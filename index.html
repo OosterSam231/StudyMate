@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -63,11 +63,11 @@
       outline:none; transition:border-color .15s; width:100%;
     }
     .form-input:focus { border-color:var(--accent); }
-    select.form-input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+    select.form-input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
     textarea.form-input { resize:vertical; min-height:100px; }
 
     /* ── Buttons ── */
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all .15s; font-family:'DM Sans',sans-serif; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
     .btn-primary { background:var(--accent); color:#fff; }
     .btn-primary:hover { background:#5a52e0; transform:translateY(-1px); }
     .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
@@ -144,7 +144,7 @@
     .q-type.fill { background:rgba(245,158,11,.15);  color:var(--orange); }
     .question-text { font-family:'Syne',sans-serif; font-size:19px; font-weight:700; line-height:1.5; margin-bottom:24px; }
     .mc-options { display:flex; flex-direction:column; gap:10px; }
-    .mc-opt { background:var(--surface2); border:2px solid var(--border); border-radius:12px; padding:14px 18px; cursor:pointer; font-size:14px; transition:all .15s; text-align:left; color:var(--text); font-family:'DM Sans',sans-serif; width:100%; }
+    .mc-opt { background:var(--surface2); border:2px solid var(--border); border-radius:12px; padding:14px 18px; cursor:pointer; font-size:14px; transition:all .15s; text-align:left; color:var(--text); }
     .mc-opt:hover:not(:disabled) { border-color:var(--accent); background:rgba(108,99,255,.08); }
     .mc-opt.selected { border-color:var(--accent); background:rgba(108,99,255,.15); }
     .mc-opt.correct  { border-color:var(--accent3)!important; background:rgba(67,233,123,.15)!important; color:var(--accent3); }
@@ -180,7 +180,7 @@
     .empty-icon { font-size:48px; margin-bottom:12px; }
     .divider { height:1px; background:var(--border); margin:20px 0; }
     .error-msg { background:rgba(255,107,107,.1); border:1px solid rgba(255,107,107,.3); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--accent2); margin-bottom:12px; }
-    .notification { position:fixed; top:20px; right:20px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; font-size:13px; font-weight:500; box-shadow:0 8px 32px rgba(0,0,0,.4); z-index:9999; animation:slideIn .3s ease; max-width:320px; }
+    .notification { position:fixed; top:20px; right:20px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; font-size:13px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.3); animation:slideIn .3s ease; }
     .notification.success { border-color:rgba(67,233,123,.4); color:var(--accent3); }
     .notification.error   { border-color:rgba(255,107,107,.4); color:var(--accent2); }
     @keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
@@ -366,10 +366,8 @@
 
 <script>
 // ══════════════════════════════════════════════════════
-//  CONFIG — VERVANG DEZE TWEE WAARDEN MET JOUW SUPABASE
+//  SUPABASE CONFIG
 // ══════════════════════════════════════════════════════
-// ⚠️ Vervang hieronder met jouw echte Supabase URL en anon key
-// Supabase → Project Settings → API
 const SUPABASE_URL  = 'https://vadrkhlpzrhydaunyede.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhZHJraGxwenJoeWRhdW55ZWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjQ0NDEsImV4cCI6MjA5NTkwMDQ0MX0.JX3OLrQgK7h3OSKCsjc7HybJ2hrq1Q4sfSKDS_Dh3yQ';
 
@@ -378,1401 +376,253 @@ const SUBJECT_COLORS = [
   { bg:'#f59e0b' }, { bg:'#06b6d4' }, { bg:'#ec4899' },
 ];
 
-// ── Demo data (wordt vervangen door echte Supabase data) ──
-let SUBJECTS = [
-  { id:1,  name:'Frans - Le subjonctif présent',     description:'Trajet 3: vorming + NE PO AP VO SE NE + onregelmatige vormen', question_count:73, color_idx:0 },
-  { id:2,  name:'Frans - Cas particuliers en -ER',   description:'Trajet 3: spellingveranderingen ER-werkwoorden',               question_count:51, color_idx:1 },
-  { id:3,  name:'Frans - Le pronom relatif',         description:'Trajet 4: qui, que, dont, où, ce qui, ce que',                 question_count:53, color_idx:2 },
-  { id:4,  name:'Frans - Verbes spéciaux',           description:"s'asseoir, se battre, vivre",                                   question_count:51, color_idx:3 },
-  { id:5,  name:'Frans - Les indéfinis',             description:'Trajet 5: tout/chaque/chacun/aucun/plusieurs/même…',           question_count:55, color_idx:4 },
-  { id:6,  name:'Frans - La négation',               description:'Trajet 5: ne…pas/jamais/plus/rien/personne/que/ni…ni',        question_count:55, color_idx:5 },
-  { id:7,  name:'Frans - Pronoms COD/COI/en/y',      description:'Trajet 6: persoonlijke voornaamwoorden + volgorde + plaats',  question_count:55, color_idx:0 },
-  { id:8,  name:'Frans - Révision verbes (tijden)',  description:'Présent, futur, p.composé, imparfait, conditionnel, impératif, subjonctif', question_count:65, color_idx:1 },
-  { id:9,  name:'Frans - Vocabulaire les médias',    description:'Trajet 3: exacte woordenlijst p.153-155',                     question_count:79, color_idx:2 },
-  { id:10, name:'Frans - Vocabulaire les inventions',description:'Trajet 4: exacte woordenlijst p.201-203',                     question_count:51, color_idx:3 },
-  { id:11, name:'Frans - Vocabulaire écologie',      description:"Trajet 5: exacte woordenlijst p.250-251",                      question_count:66, color_idx:4 },
-];
+// Initialize Supabase
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let SESSIONS = [
-  { id:1, subject_id:1, subject_name:'Wiskunde',    planned_at:'2026-05-28T10:00', duration_min:60, status:'planned', question_count:20 },
-  { id:2, subject_id:3, subject_name:'Informatica', planned_at:'2026-05-27T14:00', duration_min:45, status:'planned', question_count:15 },
-  { id:3, subject_id:2, subject_name:'Fysica',      planned_at:'2026-05-25T09:00', duration_min:60, status:'done',    score:78, question_count:20 },
-  { id:4, subject_id:4, subject_name:'Chemie',      planned_at:'2026-05-24T15:00', duration_min:30, status:'missed', question_count:10 },
-];
-
-// Vragen komen hier na leerstof upload
-let QUESTIONS = [
-  // ════════ SUBJECT 1 — LE SUBJONCTIF PRÉSENT ════════
-  {id:1, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Hoe vorm je de subjonctif van regelmatige werkwoorden?", options:["stam van ils-vorm présent + e/es/e/ions/iez/ent", "infinitief + ai/as/a/ons/ez/ont", "stam van nous-vorm + ais/ais/ait/ions/iez/aient", "infinitief + e/es/e/ions/iez/ent"], answer:"stam van ils-vorm présent + e/es/e/ions/iez/ent"},
-  {id:2, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welke uitgang neemt 'nous' in de subjonctif?", options:["-ions", "-ons", "-âmes", "-erions"], answer:"-ions"},
-  {id:3, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welk woord triggert (bijna altijd) de subjonctif?", options:["que", "qui", "si", "quand"], answer:"que"},
-  {id:4, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il faut que tu ___ (faire) tes devoirs.", answer:"fasses"},
-  {id:5, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je veux que vous ___ (être) à l'heure.", answer:"soyez"},
-  {id:6, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il faut qu'on ___ (avoir) du courage.", answer:"ait"},
-  {id:7, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je doute qu'il ___ (savoir) la réponse.", answer:"sache"},
-  {id:8, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il faut que nous ___ (aller) à l'école.", answer:"allions"},
-  {id:9, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Bien qu'il ___ (pouvoir) venir, il reste à la maison.", answer:"puisse"},
-  {id:10, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je veux que tu ___ (vouloir) m'aider.", answer:"veuilles"},
-  {id:11, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welk werkwoord is ONregelmatig in de subjonctif?", options:["être", "parler", "finir", "vendre"], answer:"être"},
-  {id:12, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welke uitdrukking eist de subjonctif?", options:["il faut que", "il est sûr que", "je sais que", "il paraît que"], answer:"il faut que"},
-  {id:13, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Na 'bien que' gebruik je…", options:["subjonctif", "indicatif", "conditionnel", "futur"], answer:"subjonctif"},
-  {id:14, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Na 'parce que' gebruik je…", options:["indicatif", "subjonctif", "conditionnel", "infinitief"], answer:"indicatif"},
-  {id:15, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Pour que tu ___ (comprendre), je vais expliquer.", answer:"comprennes"},
-  {id:16, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Avant qu'il ne ___ (partir), dis-lui au revoir.", answer:"parte"},
-  {id:17, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je suis content que tu ___ (venir).", answer:"viennes"},
-  {id:18, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il est important que vous ___ (prendre) une décision.", answer:"preniez"},
-  {id:19, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je ne crois pas qu'il ___ (dire) la vérité.", answer:"dise"},
-  {id:20, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il faut que je ___ (finir) mes devoirs.", answer:"finisse"},
-  {id:21, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welke uitgangen heeft de subjonctif (alle 6)?", options:["-e, -es, -e, -ions, -iez, -ent", "-e, -es, -e, -ons, -ez, -ent", "-ais, -ais, -ait, -ions, -iez, -aient", "-rai, -ras, -ra, -rons, -rez, -ront"], answer:"-e, -es, -e, -ions, -iez, -ent"},
-  {id:22, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"être — que je ___", answer:"sois"},
-  {id:23, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"avoir — que tu ___", answer:"aies"},
-  {id:24, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"aller — que nous ___", answer:"allions"},
-  {id:25, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"faire — qu'ils ___", answer:"fassent"},
-  {id:26, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"savoir — que vous ___", answer:"sachiez"},
-  {id:27, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"pouvoir — que je ___", answer:"puisse"},
-  {id:28, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"vouloir — qu'elle ___", answer:"veuille"},
-  {id:29, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"venir — que tu ___", answer:"viennes"},
-  {id:30, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"prendre — que nous ___", answer:"prenions"},
-  {id:31, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"voir — qu'ils ___", answer:"voient"},
-  {id:32, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"boire — que je ___", answer:"boive"},
-  {id:33, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"devoir — qu'on ___", answer:"doive"},
-  {id:34, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"falloir — qu'il ___ (modaal)", answer:"faille"},
-  {id:35, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"pleuvoir — qu'il ___", answer:"pleuve"},
-  {id:36, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welke zin staat correct in de subjonctif?", options:["Il faut que tu sois calme.", "Il faut que tu es calme.", "Il faut que tu seras calme.", "Il faut que tu étais calme."], answer:"Il faut que tu sois calme."},
-  {id:37, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Bij welke zin GEEN subjonctif?", options:["Je pense qu'il vient.", "Il faut qu'il vienne.", "Je veux qu'il vienne.", "Je doute qu'il vienne."], answer:"Je pense qu'il vient."},
-  {id:38, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"'Je ne pense pas que…' (negatie) vraagt…", options:["subjonctif", "indicatif", "conditionnel", "futur"], answer:"subjonctif"},
-  {id:39, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welk werkwoord heeft in subjonctif twee verschillende stammen?", options:["aller (aille/allions)", "parler", "finir", "vendre"], answer:"aller (aille/allions)"},
-  // NE PO AP VO SE NE — uit de PPTX
-  {id:40, subject_id:1, type:"open", topic:"Le subjonctif présent", question:"Wat betekent het ezelsbruggetje 'NE PO AP VO SE NE'?", answer:"NEcessité, POssibilité, APpréciation, VOlonté, SEntiment, NÉgation/interrogation — dit zijn de 6 categorieën die de subjonctif triggeren."},
-  {id:41, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Categorie 'Nécessité' — welke triggert subjonctif?", options:["Il faut que", "Je sais que", "Il est vrai que", "J'espère que"], answer:"Il faut que"},
-  {id:42, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Welke uitdrukking hoort bij 'Nécessité'?", options:["Il est important que", "Je pense que", "Il est certain que", "Je suis sûr que"], answer:"Il est important que"},
-  {id:43, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il est ___ que tu étudies. (Noodzaak)", answer:"nécessaire"},
-  {id:44, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il vaut ___ que tu restes. (Noodzaak)", answer:"mieux"},
-  {id:45, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Categorie 'Possibilité/Doute' — welke triggert subjonctif?", options:["Il est possible que", "Je crois que", "Il est évident que", "Je vois que"], answer:"Il est possible que"},
-  {id:46, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je ___ qu'il vienne. (twijfelen aan = subjonctif)", answer:"doute"},
-  {id:47, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Categorie 'Volonté' — welke triggert subjonctif?", options:["Vouloir que", "Je pense que", "Je sais que", "Je crois que"], answer:"Vouloir que"},
-  {id:48, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je ___ que tu viennes. (willen = subjonctif)", answer:"veux"},
-  {id:49, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je ___ que tu sois là. (wensen = subjonctif)", answer:"souhaite"},
-  {id:50, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Categorie 'Sentiment' — welke triggert subjonctif?", options:["Être content que", "Je pense que", "Il est clair que", "Je trouve que"], answer:"Être content que"},
-  {id:51, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je ___ que tu ne viennes pas. (jammer dat = subjonctif)", answer:"regrette"},
-  {id:52, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"J'ai ___ que tu sois seul. (bang zijn = subjonctif)", answer:"peur"},
-  {id:53, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"C'est ___ que tu partes. (jammer = subjonctif)", answer:"dommage"},
-  {id:54, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"UITZONDERING: 'J'espère que' neemt welke tijd?", options:["indicatif (futur simple)", "subjonctif", "conditionnel", "imparfait"], answer:"indicatif (futur simple)"},
-  {id:55, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"J'espère que tu ___ (venir — futur simple, niet subjonctif!)", answer:"viendras"},
-  {id:56, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"'Penses-tu que…?' neemt welke tijd?", options:["subjonctif (onzekerheid)", "altijd indicatif", "futur simple", "imparfait"], answer:"subjonctif (onzekerheid)"},
-  {id:57, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il faut que les enfants ___ (manger) à temps.", answer:"mangent"},
-  {id:58, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Je suis triste que tu ___ (partir).", answer:"partes"},
-  {id:59, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Il vaut mieux que nous ___ (rester) ici.", answer:"restions"},
-  {id:60, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"À condition que vous ___ (être) sages.", answer:"soyez"},
-  {id:61, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"Jusqu'à ce qu'il ___ (revenir).", answer:"revienne"},
-  {id:62, subject_id:1, type:"mc", topic:"Le subjonctif présent", question:"Wanneer NIET de subjonctif?", options:["bij zekerheid (il est vrai que, je sais que)", "bij twijfel", "bij wens/wil", "bij noodzaak"], answer:"bij zekerheid (il est vrai que, je sais que)"},
-  {id:63, subject_id:1, type:"open", topic:"Le subjonctif présent", question:"Maak een zin met 'il faut que' + tu + faire.", answer:"Il faut que tu fasses tes devoirs."},
-  {id:64, subject_id:1, type:"open", topic:"Le subjonctif présent", question:"Geef 3 werkwoorden met een totaal onregelmatige subjonctif-stam.", answer:"être (sois…), avoir (aie…), aller (aille…), faire (fasse…), savoir (sache…), pouvoir (puisse…), vouloir (veuille…)."},
-  {id:65, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"écrire — qu'elle ___", answer:"écrive"},
-  {id:66, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"lire — que je ___", answer:"lise"},
-  {id:67, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"mettre — qu'ils ___", answer:"mettent"},
-  {id:68, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"sortir — que tu ___", answer:"sortes"},
-  {id:69, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"dormir — qu'on ___", answer:"dorme"},
-  {id:70, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"connaître — que vous ___", answer:"connaissiez"},
-  {id:71, subject_id:1, type:"fill", topic:"Le subjonctif présent", question:"recevoir — qu'ils ___", answer:"reçoivent"},
-  {id:72, subject_id:1, type:"open", topic:"Le subjonctif présent", question:"Vertaal: 'Het is nodig dat we beginnen.'", answer:"Il faut que nous commencions."},
-
-  // ════════ SUBJECT 2 — CAS PARTICULIERS EN -ER ════════
-  {id:73, subject_id:2, type:"mc", topic:"Cas particuliers en -ER", question:"Welke spellingverandering bij 'manger' (nous-vorm présent)?", options:["nous mangeons (e wordt toegevoegd)", "nous mangons", "nous manjons", "nous mangez"], answer:"nous mangeons (e wordt toegevoegd)"},
-  {id:74, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"manger — nous ___ (présent)", answer:"mangeons"},
-  {id:75, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"commencer — nous ___ (présent)", answer:"commençons"},
-  {id:76, subject_id:2, type:"mc", topic:"Cas particuliers en -ER", question:"Waarom 'nous commençons' met ç?", options:["c voor o klinkt anders zonder cedille", "willekeurig", "alleen in passé", "fout, moet zonder ç"], answer:"c voor o klinkt anders zonder cedille"},
-  {id:77, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"manger — je ___ (imparfait)", answer:"mangeais"},
-  {id:78, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"commencer — il ___ (imparfait)", answer:"commençait"},
-  {id:79, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"acheter — j' ___ (présent)", answer:"achète"},
-  {id:80, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"acheter — nous ___ (présent)", answer:"achetons"},
-  {id:81, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"appeler — j' ___ (présent)", answer:"appelle"},
-  {id:82, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"appeler — nous ___ (présent)", answer:"appelons"},
-  {id:83, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"jeter — je ___ (présent)", answer:"jette"},
-  {id:84, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"jeter — nous ___ (présent)", answer:"jetons"},
-  {id:85, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"préférer — je ___ (présent)", answer:"préfère"},
-  {id:86, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"préférer — nous ___ (présent)", answer:"préférons"},
-  {id:87, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"essayer — j' ___ (présent)", answer:"essaie"},
-  {id:88, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"payer — il ___ (présent)", answer:"paie"},
-  {id:89, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"envoyer — j' ___ (présent)", answer:"envoie"},
-  {id:90, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"envoyer — nous ___ (présent)", answer:"envoyons"},
-  {id:91, subject_id:2, type:"mc", topic:"Cas particuliers en -ER", question:"Bij werkwoorden op -yer: y wordt i voor…", options:["een stomme 'e'", "een uitgesproken e", "ions/iez", "alle vormen"], answer:"een stomme 'e'"},
-  {id:92, subject_id:2, type:"mc", topic:"Cas particuliers en -ER", question:"Bij 'acheter': è verschijnt wanneer?", options:["voor een stomme lettergreep", "altijd", "alleen in imparfait", "alleen in subjonctif"], answer:"voor een stomme lettergreep"},
-  {id:93, subject_id:2, type:"mc", topic:"Cas particuliers en -ER", question:"Bij 'appeler' / 'jeter': verdubbeling van consonant wanneer?", options:["voor een stomme lettergreep", "altijd", "alleen in subjonctif", "nooit"], answer:"voor een stomme lettergreep"},
-  {id:94, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"espérer — tu ___ (présent)", answer:"espères"},
-  {id:95, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"espérer — nous ___ (présent)", answer:"espérons"},
-  {id:96, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"répéter — ils ___ (présent)", answer:"répètent"},
-  {id:97, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"nager — nous ___ (présent)", answer:"nageons"},
-  {id:98, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"voyager — je ___ (imparfait)", answer:"voyageais"},
-  {id:99, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"lancer — nous ___ (présent)", answer:"lançons"},
-  {id:100, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"effacer — j' ___ (imparfait)", answer:"effaçais"},
-  {id:101, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"acheter — j' ___ (futur simple)", answer:"achèterai"},
-  {id:102, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"appeler — j' ___ (futur simple)", answer:"appellerai"},
-  {id:103, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"jeter — il ___ (futur simple)", answer:"jettera"},
-  {id:104, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"payer — nous ___ (futur simple)", answer:"paierons"},
-  {id:105, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"envoyer — j' ___ (futur simple, onregelmatig!)", answer:"enverrai"},
-  {id:106, subject_id:2, type:"mc", topic:"Cas particuliers en -ER", question:"In de futur simple van -ER werkwoorden op -eter/-eler: wat gebeurt er?", options:["verdubbeling of è in ALLE personen", "alleen in nous/vous", "geen verandering", "y wordt i"], answer:"verdubbeling of è in ALLE personen"},
-  {id:107, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"manger — il ___ (passé composé)", answer:"a mangé"},
-  {id:108, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"commencer — il ___ (passé composé)", answer:"a commencé"},
-  {id:109, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"préférer — il ___ (passé composé)", answer:"a préféré"},
-  {id:110, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"acheter — j' ___ (conditionnel présent)", answer:"achèterais"},
-  {id:111, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"jeter — nous ___ (conditionnel présent)", answer:"jetterions"},
-  {id:112, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"essuyer — j' ___ (présent)", answer:"essuie"},
-  {id:113, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"nettoyer — tu ___ (présent)", answer:"nettoies"},
-  {id:114, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"emmener — j' ___ (présent)", answer:"emmène"},
-  {id:115, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"protéger — nous ___ (présent)", answer:"protégeons"},
-  {id:116, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"placer — nous ___ (présent)", answer:"plaçons"},
-  {id:117, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"considérer — il ___ (présent)", answer:"considère"},
-  {id:118, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"appeler — qu'il ___ (subjonctif)", answer:"appelle"},
-  {id:119, subject_id:2, type:"fill", topic:"Cas particuliers en -ER", question:"acheter — qu'ils ___ (subjonctif)", answer:"achètent"},
-  {id:120, subject_id:2, type:"open", topic:"Cas particuliers en -ER", question:"Leg uit waarom 'nous mangeons' een -e- bevat.", answer:"Om de zachte g-klank [ʒ] te behouden voor de o; zonder -e- zou 'mangons' [g] worden uitgesproken."},
-  {id:121, subject_id:2, type:"open", topic:"Cas particuliers en -ER", question:"Vervoeg 'appeler' in présent (alle 6 personen).", answer:"j'appelle, tu appelles, il/elle appelle, nous appelons, vous appelez, ils/elles appellent"},
-  {id:122, subject_id:2, type:"open", topic:"Cas particuliers en -ER", question:"Welke ER-werkwoorden krijgen ç voor a/o? Geef 3 voorbeelden.", answer:"Werkwoorden op -cer: commencer, lancer, placer, effacer, prononcer → nous commençons, je lançais, etc."},
-
-  // ════════ SUBJECT 3 — LE PRONOM RELATIF ════════
-  {id:123, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Welk pronom relatif vervangt het ONDERWERP?", options:["qui", "que", "dont", "où"], answer:"qui"},
-  {id:124, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Welk pronom relatif vervangt het LIJDEND VOORWERP (COD)?", options:["que", "qui", "dont", "où"], answer:"que"},
-  {id:125, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Welk pronom relatif vervangt 'de + iets/iemand'?", options:["dont", "qui", "que", "où"], answer:"dont"},
-  {id:126, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Welk pronom relatif gebruik je voor plaats/tijd?", options:["où", "qui", "que", "dont"], answer:"où"},
-  {id:127, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est le livre ___ je lis. (COD)", answer:"que"},
-  {id:128, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est le livre ___ est sur la table. (subject)", answer:"qui"},
-  {id:129, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est le film ___ je t'ai parlé.", answer:"dont"},
-  {id:130, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"La ville ___ j'habite est petite.", answer:"où"},
-  {id:131, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le jour ___ je suis né était un dimanche.", answer:"où"},
-  {id:132, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"La fille ___ tu vois est ma sœur.", answer:"que"},
-  {id:133, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"L'élève ___ travaille bien réussit.", answer:"qui"},
-  {id:134, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le livre ___ l'auteur est célèbre est intéressant.", answer:"dont"},
-  {id:135, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Voilà ___ je veux. (datgene wat — COD)", answer:"ce que"},
-  {id:136, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Voilà ___ me plaît. (datgene wat — subject)", answer:"ce qui"},
-  {id:137, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est ___ j'ai besoin. (datgene waarvan)", answer:"ce dont"},
-  {id:138, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"'Avoir besoin DE qqch' → relatief pronom = ?", options:["dont", "que", "qui", "où"], answer:"dont"},
-  {id:139, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"'Parler DE qqn' → relatief pronom = ?", options:["dont", "qui", "que", "à qui"], answer:"dont"},
-  {id:140, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"L'homme ___ je parle est mon voisin. (over wie)", answer:"dont"},
-  {id:141, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"L'année ___ je suis née, il y a eu une éclipse.", answer:"où"},
-  {id:142, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le pays ___ je viens est petit. (waar vandaan)", answer:"d'où"},
-  {id:143, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Combineer: 'J'ai un ami. Il habite à Paris.'", options:["J'ai un ami qui habite à Paris.", "J'ai un ami que habite à Paris.", "J'ai un ami dont habite à Paris.", "J'ai un ami où habite à Paris."], answer:"J'ai un ami qui habite à Paris."},
-  {id:144, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Combineer: 'Voici le livre. J'ai acheté ce livre.'", options:["Voici le livre que j'ai acheté.", "Voici le livre qui j'ai acheté.", "Voici le livre dont j'ai acheté.", "Voici le livre où j'ai acheté."], answer:"Voici le livre que j'ai acheté."},
-  {id:145, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Combineer: 'C'est le film. Je t'ai parlé de ce film.'", options:["C'est le film dont je t'ai parlé.", "C'est le film que je t'ai parlé.", "C'est le film qui je t'ai parlé.", "C'est le film où je t'ai parlé."], answer:"C'est le film dont je t'ai parlé."},
-  {id:146, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est la maison ___ j'ai grandi.", answer:"où"},
-  {id:147, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Tout ___ brille n'est pas or. (subject)", answer:"ce qui"},
-  {id:148, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Je ne comprends pas ___ tu dis. (COD)", answer:"ce que"},
-  {id:149, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Voilà ___ il s'agit. (waar het over gaat)", answer:"ce dont"},
-  {id:150, subject_id:3, type:"open", topic:"Le pronom relatif", question:"Verschil tussen 'qui' en 'que' (relatief)?", answer:"'Qui' is onderwerp van de relatieve bijzin (volgt direct werkwoord). 'Que' is lijdend voorwerp (volgt direct een subject + werkwoord)."},
-  {id:151, subject_id:3, type:"open", topic:"Le pronom relatif", question:"Wanneer 'dont' gebruiken?", answer:"Wanneer het werkwoord/uitdrukking de prepositie 'de' verlangt: parler DE, avoir besoin DE, être fier DE, le livre DE..."},
-  {id:152, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le moment ___ il est arrivé, tout le monde se taisait.", answer:"où"},
-  {id:153, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"La voiture ___ il conduit est rapide.", answer:"que"},
-  {id:154, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"La fille ___ chante est mon amie.", answer:"qui"},
-  {id:155, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est un sujet ___ on discute beaucoup.", answer:"dont"},
-  {id:156, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le moment ___ je préfère, c'est le matin.", answer:"que"},
-  {id:157, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le sport ___ je fais s'appelle le tennis.", answer:"que"},
-  {id:158, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"L'école ___ je vais est moderne.", answer:"où"},
-  {id:159, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"L'enfant ___ pleure a perdu son jouet.", answer:"qui"},
-  {id:160, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"___ m'intéresse, c'est la musique.", answer:"Ce qui"},
-  {id:161, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"___ je veux, c'est dormir.", answer:"Ce que"},
-  {id:162, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Dis-moi ___ tu as envie.", answer:"ce dont"},
-  {id:163, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Welke zin is FOUT?", options:["L'homme que parle est gentil.", "L'homme qui parle est gentil.", "L'homme dont je parle est gentil.", "L'homme que je connais est gentil."], answer:"L'homme que parle est gentil."},
-  {id:164, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est l'endroit ___ nous nous sommes rencontrés.", answer:"où"},
-  {id:165, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le médecin ___ je consulte est compétent.", answer:"que"},
-  {id:166, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est le résultat ___ je suis fier. (fier DE)", answer:"dont"},
-  {id:167, subject_id:3, type:"open", topic:"Le pronom relatif", question:"Vertaal: 'Het huis waarin ik woon is groot.'", answer:"La maison où j'habite est grande."},
-  {id:168, subject_id:3, type:"open", topic:"Le pronom relatif", question:"Vertaal: 'Wat ik wil weten is de waarheid.'", answer:"Ce que je veux savoir, c'est la vérité."},
-  {id:169, subject_id:3, type:"open", topic:"Le pronom relatif", question:"Vertaal: 'De man wiens auto rood is, is mijn buur.'", answer:"L'homme dont la voiture est rouge est mon voisin."},
-  {id:170, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"Le chien ___ aboie ne mord pas.", answer:"qui"},
-  {id:171, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"La chanson ___ tu écoutes est belle.", answer:"que"},
-  {id:172, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"L'idée ___ il a parlé est intéressante.", answer:"dont"},
-  {id:173, subject_id:3, type:"fill", topic:"Le pronom relatif", question:"C'est l'époque ___ tout était différent.", answer:"où"},
-  {id:174, subject_id:3, type:"mc", topic:"Le pronom relatif", question:"Bij 'que' in passé composé: wat doet het participe?", options:["het stemt overeen in geslacht/getal met het COD ervoor", "altijd masculien", "altijd onveranderlijk", "krijgt -ent"], answer:"het stemt overeen in geslacht/getal met het COD ervoor"},
-
-  // ════════ SUBJECT 4 — VERBES SPÉCIAUX (s'asseoir, se battre, vivre) ════════
-  {id:175, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — je m' ___ (présent)", answer:"assieds"},
-  {id:176, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — tu t' ___ (présent)", answer:"assieds"},
-  {id:177, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — il s' ___ (présent)", answer:"assied"},
-  {id:178, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — nous nous ___ (présent)", answer:"asseyons"},
-  {id:179, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — vous vous ___ (présent)", answer:"asseyez"},
-  {id:180, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — ils s' ___ (présent)", answer:"asseyent"},
-  {id:181, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — je me suis ___ (p. composé, masc.)", answer:"assis"},
-  {id:182, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — elle s'est ___ (p. composé)", answer:"assise"},
-  {id:183, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — je m' ___ (imparfait)", answer:"asseyais"},
-  {id:184, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — je m' ___ (futur simple)", answer:"assiérai"},
-  {id:185, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — assieds- ___ ! (impératif tu)", answer:"toi"},
-  {id:186, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — asseyez- ___ ! (impératif vous)", answer:"vous"},
-  {id:187, subject_id:4, type:"mc", topic:"s'asseoir", question:"Welk hulpwerkwoord bij 's'asseoir' in passé composé?", options:["être", "avoir", "geen", "beide"], answer:"être"},
-  {id:188, subject_id:4, type:"mc", topic:"s'asseoir", question:"Wat is het participe passé van 's'asseoir'?", options:["assis(e)", "asseyé", "assu", "assoié"], answer:"assis(e)"},
-  {id:189, subject_id:4, type:"fill", topic:"se battre", question:"se battre — je me ___ (présent)", answer:"bats"},
-  {id:190, subject_id:4, type:"fill", topic:"se battre", question:"se battre — tu te ___ (présent)", answer:"bats"},
-  {id:191, subject_id:4, type:"fill", topic:"se battre", question:"se battre — il se ___ (présent)", answer:"bat"},
-  {id:192, subject_id:4, type:"fill", topic:"se battre", question:"se battre — nous nous ___ (présent)", answer:"battons"},
-  {id:193, subject_id:4, type:"fill", topic:"se battre", question:"se battre — vous vous ___ (présent)", answer:"battez"},
-  {id:194, subject_id:4, type:"fill", topic:"se battre", question:"se battre — ils se ___ (présent)", answer:"battent"},
-  {id:195, subject_id:4, type:"fill", topic:"se battre", question:"se battre — je me suis ___ (p. composé, masc.)", answer:"battu"},
-  {id:196, subject_id:4, type:"fill", topic:"se battre", question:"se battre — elle s'est ___ (p. composé)", answer:"battue"},
-  {id:197, subject_id:4, type:"fill", topic:"se battre", question:"se battre — je me ___ (imparfait)", answer:"battais"},
-  {id:198, subject_id:4, type:"fill", topic:"se battre", question:"se battre — je me ___ (futur simple)", answer:"battrai"},
-  {id:199, subject_id:4, type:"fill", topic:"se battre", question:"se battre — qu'il se ___ (subjonctif)", answer:"batte"},
-  {id:200, subject_id:4, type:"mc", topic:"se battre", question:"Wat betekent 'se battre'?", options:["vechten", "verslagen worden", "bidden", "zich aankleden"], answer:"vechten"},
-  {id:201, subject_id:4, type:"fill", topic:"vivre", question:"vivre — je ___ (présent)", answer:"vis"},
-  {id:202, subject_id:4, type:"fill", topic:"vivre", question:"vivre — tu ___ (présent)", answer:"vis"},
-  {id:203, subject_id:4, type:"fill", topic:"vivre", question:"vivre — il ___ (présent)", answer:"vit"},
-  {id:204, subject_id:4, type:"fill", topic:"vivre", question:"vivre — nous ___ (présent)", answer:"vivons"},
-  {id:205, subject_id:4, type:"fill", topic:"vivre", question:"vivre — vous ___ (présent)", answer:"vivez"},
-  {id:206, subject_id:4, type:"fill", topic:"vivre", question:"vivre — ils ___ (présent)", answer:"vivent"},
-  {id:207, subject_id:4, type:"fill", topic:"vivre", question:"vivre — j'ai ___ (p. composé)", answer:"vécu"},
-  {id:208, subject_id:4, type:"fill", topic:"vivre", question:"vivre — je ___ (imparfait)", answer:"vivais"},
-  {id:209, subject_id:4, type:"fill", topic:"vivre", question:"vivre — je ___ (futur simple)", answer:"vivrai"},
-  {id:210, subject_id:4, type:"fill", topic:"vivre", question:"vivre — je ___ (conditionnel présent)", answer:"vivrais"},
-  {id:211, subject_id:4, type:"fill", topic:"vivre", question:"vivre — que je ___ (subjonctif)", answer:"vive"},
-  {id:212, subject_id:4, type:"mc", topic:"vivre", question:"Wat is het participe passé van 'vivre'?", options:["vécu", "vivu", "vivé", "vivant"], answer:"vécu"},
-  {id:213, subject_id:4, type:"mc", topic:"vivre", question:"Welk hulpwerkwoord bij 'vivre' in p. composé?", options:["avoir", "être", "geen", "beide"], answer:"avoir"},
-  {id:214, subject_id:4, type:"open", topic:"vivre", question:"Vertaal: 'Wij hebben in Frankrijk gewoond.'", answer:"Nous avons vécu en France."},
-  {id:215, subject_id:4, type:"open", topic:"s'asseoir", question:"Vertaal: 'Ga zitten alstublieft.' (vous)", answer:"Asseyez-vous, s'il vous plaît."},
-  {id:216, subject_id:4, type:"open", topic:"se battre", question:"Vertaal: 'De kinderen vochten op het schoolplein.'", answer:"Les enfants se battaient dans la cour de récré(ation)."},
-  {id:217, subject_id:4, type:"fill", topic:"vivre", question:"Il ___ à Paris depuis 10 ans. (présent)", answer:"vit"},
-  {id:218, subject_id:4, type:"fill", topic:"s'asseoir", question:"Hier, je me suis ___ sur le banc.", answer:"assis"},
-  {id:219, subject_id:4, type:"fill", topic:"se battre", question:"Ne vous ___ pas! (impératif nég.)", answer:"battez"},
-  {id:220, subject_id:4, type:"open", topic:"vivre", question:"Geef de stam van 'vivre' in présent (ils-vorm).", answer:"viv- (ils vivent)"},
-  {id:221, subject_id:4, type:"open", topic:"s'asseoir", question:"Welke twee stam-vormen heeft s'asseoir? (présent)", answer:"assied- (singulier) en assey- (pluriel: nous asseyons, vous asseyez, ils asseyent)"},
-  {id:222, subject_id:4, type:"fill", topic:"s'asseoir", question:"s'asseoir — je m' ___ (conditionnel présent)", answer:"assiérais"},
-  {id:223, subject_id:4, type:"fill", topic:"se battre", question:"se battre — nous nous ___ (imparfait)", answer:"battions"},
-  {id:224, subject_id:4, type:"fill", topic:"vivre", question:"vivre — nous ___ (passé composé)", answer:"avons vécu"},
-
-  // ════════ SUBJECT 5 — LES INDÉFINIS ════════
-  {id:225, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'quelqu'un'?", options:["iemand","iets","niemand","iedereen"], answer:"iemand"},
-  {id:226, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'quelque chose'?", options:["iets","iemand","niets","alles"], answer:"iets"},
-  {id:227, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'tout le monde'?", options:["iedereen","alles","sommigen","niemand"], answer:"iedereen"},
-  {id:228, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'aucun(e)'?", options:["geen enkele","sommige","elk","verschillende"], answer:"geen enkele"},
-  {id:229, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'plusieurs'?", options:["meerdere","weinig","alle","geen"], answer:"meerdere"},
-  {id:230, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'chaque'?", options:["elke","alle","sommige","geen"], answer:"elke"},
-  {id:231, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'chacun(e)'?", options:["ieder(een)","elke","alle","sommigen"], answer:"ieder(een)"},
-  {id:232, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'certain(e)s'?", options:["sommige","zeker","verschillende","ieder"], answer:"sommige"},
-  {id:233, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'la plupart'?", options:["de meeste","de helft","weinig","allen"], answer:"de meeste"},
-  {id:234, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'le/la même'?", options:["dezelfde","een ander","verschillend","sommige"], answer:"dezelfde"},
-  {id:235, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vertaling van 'd'autres'?", options:["andere","sommige","allemaal","geen"], answer:"andere"},
-  {id:236, subject_id:5, type:"mc", topic:"Les indéfinis", question:"'Chaque' wordt gevolgd door…", options:["enkelvoudig substantief","meervoudig substantief","een infinitief","een adjectief alleen"], answer:"enkelvoudig substantief"},
-  {id:237, subject_id:5, type:"mc", topic:"Les indéfinis", question:"'Chacun' is…", options:["een pronoom (alleen)","een adjectief","een werkwoord","een bijwoord"], answer:"een pronoom (alleen)"},
-  {id:238, subject_id:5, type:"mc", topic:"Les indéfinis", question:"'La plupart' wordt gevolgd door…", options:["de + meervoud","du + enkelvoud","à + infinitief","geen prepositie"], answer:"de + meervoud"},
-  {id:239, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vorm van TOUT — masc. enkelvoud:", options:["tout","toute","tous","toutes"], answer:"tout"},
-  {id:240, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vorm van TOUT — fem. enkelvoud:", options:["toute","tout","tous","toutes"], answer:"toute"},
-  {id:241, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vorm van TOUT — masc. meervoud:", options:["tous","toute","tout","toutes"], answer:"tous"},
-  {id:242, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Vorm van TOUT — fem. meervoud:", options:["toutes","tous","toute","tout"], answer:"toutes"},
-  {id:243, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ les élèves sont là. (alle, masc. plur.)", answer:"Tous"},
-  {id:244, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ la classe est partie. (heel, fem. sing.)", answer:"Toute"},
-  {id:245, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ le monde est ici. (heel/iedereen)", answer:"Tout"},
-  {id:246, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ les filles sont parties. (alle)", answer:"Toutes"},
-  {id:247, subject_id:5, type:"fill", topic:"Les indéfinis", question:"J'ai vu ___ chose d'étrange. (iets)", answer:"quelque"},
-  {id:248, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ personne ne savait. (geen enkele, fem.)", answer:"Aucune"},
-  {id:249, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ élève doit travailler. (elke)", answer:"Chaque"},
-  {id:250, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ d'entre nous a son opinion. (ieder)", answer:"Chacun"},
-  {id:251, subject_id:5, type:"fill", topic:"Les indéfinis", question:"J'ai ___ amis en France. (een paar)", answer:"quelques"},
-  {id:252, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ des élèves ont réussi. (de meeste)", answer:"La plupart"},
-  {id:253, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Nous avons lu ___ le livre. (heel)", answer:"tout"},
-  {id:254, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Elle a mangé ___ la tarte. (heel)", answer:"toute"},
-  {id:255, subject_id:5, type:"fill", topic:"Les indéfinis", question:"J'ai vu ___ d'intéressant. (iets — + adj.)", answer:"quelque chose"},
-  {id:256, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Je connais ___ qui peut t'aider. (iemand)", answer:"quelqu'un"},
-  {id:257, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Donne-moi un ___ livre. (een ander)", answer:"autre"},
-  {id:258, subject_id:5, type:"fill", topic:"Les indéfinis", question:"C'est ___ chose. (hetzelfde)", answer:"la même"},
-  {id:259, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Quelque chose D'intéressant: welk woord verbindt?", options:["de + adj.","à + adj.","que + adj.","direct adj."], answer:"de + adj."},
-  {id:260, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Quelqu'un d' + adjectief: het adjectief is altijd…", options:["masc. enkelvoud","fem.","meervoud","onveranderlijk in NL"], answer:"masc. enkelvoud"},
-  {id:261, subject_id:5, type:"mc", topic:"Les indéfinis", question:"Welke zin is correct?", options:["Tous les élèves sont là.","Tout les élèves sont là.","Toute les élèves sont là.","Toutes les élèves sont là (= alle meisjes)."], answer:"Tous les élèves sont là."},
-  {id:262, subject_id:5, type:"open", topic:"Les indéfinis", question:"Verschil tussen 'chaque' en 'chacun'?", answer:"'Chaque' is adjectief + enkelvoudig substantief (chaque élève). 'Chacun(e)' staat alleen, als voornaamwoord (chacun a son livre)."},
-  {id:263, subject_id:5, type:"open", topic:"Les indéfinis", question:"Verschil tussen 'quelque chose' en 'rien'?", answer:"'Quelque chose' = iets (positief). 'Rien' = niets (negatief, met ne)."},
-  {id:264, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ ces gens sont gentils. (al deze)", answer:"Tous"},
-  {id:265, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ idées sont bonnes. (sommige, fem.)", answer:"Certaines"},
-  {id:266, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ étudiants travaillent dur. (verscheidene)", answer:"Plusieurs"},
-  {id:267, subject_id:5, type:"open", topic:"Les indéfinis", question:"Vertaal: 'Iedereen heeft een mening.'", answer:"Tout le monde a une opinion. / Chacun a son opinion."},
-  {id:268, subject_id:5, type:"open", topic:"Les indéfinis", question:"Vertaal: 'Sommige boeken zijn saai.'", answer:"Certains livres sont ennuyeux."},
-  {id:269, subject_id:5, type:"open", topic:"Les indéfinis", question:"Vertaal: 'Ik heb verschillende vrienden in Frankrijk.'", answer:"J'ai plusieurs amis en France."},
-  {id:270, subject_id:5, type:"open", topic:"Les indéfinis", question:"Vertaal: 'De meeste mensen werken.'", answer:"La plupart des gens travaillent."},
-  {id:271, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Il y a ___ pommes dans le panier. (een paar)", answer:"quelques"},
-  {id:272, subject_id:5, type:"fill", topic:"Les indéfinis", question:"___ de mes amis sont venus. (sommige van)", answer:"Certains"},
-  {id:273, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Je veux ___ livre, pas celui-ci. (een ander)", answer:"un autre"},
-  {id:274, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Nous habitons dans la ___ rue. (dezelfde)", answer:"même"},
-  {id:275, subject_id:5, type:"mc", topic:"Les indéfinis", question:"'Tout' kan adjectief OF bijwoord zijn. Als bijwoord (= heel/helemaal)?", options:["meestal onveranderlijk","altijd 'tous'","altijd 'toute'","altijd 'toutes'"], answer:"meestal onveranderlijk"},
-  {id:276, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Elle est ___ contente. (heel/helemaal — bijwoord)", answer:"tout"},
-  {id:277, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Elles sont ___ heureuses. (heel — bijwoord, voor klinker → onveranderlijk)", answer:"tout"},
-  {id:278, subject_id:5, type:"fill", topic:"Les indéfinis", question:"Elles sont ___ tristes. (heel — voor consonant fem.: variabel)", answer:"toutes"},
-  {id:279, subject_id:5, type:"open", topic:"Les indéfinis", question:"Geef 5 indéfinis met betekenis.", answer:"tout (al/heel), chaque (elke), chacun (ieder), quelques (een paar), plusieurs (meerdere), certain(e)s (sommige), aucun (geen enkele), la plupart (de meeste), même (zelfde), autre (ander)."},
-
-  // ════════ SUBJECT 6 — LA NÉGATION ════════
-  {id:280, subject_id:6, type:"mc", topic:"La négation", question:"'Niet' in het Frans?", options:["ne … pas","ne … plus","ne … jamais","ne … rien"], answer:"ne … pas"},
-  {id:281, subject_id:6, type:"mc", topic:"La négation", question:"'Nooit' in het Frans?", options:["ne … jamais","ne … plus","ne … rien","ne … pas encore"], answer:"ne … jamais"},
-  {id:282, subject_id:6, type:"mc", topic:"La négation", question:"'Niet meer' in het Frans?", options:["ne … plus","ne … jamais","ne … pas","ne … pas encore"], answer:"ne … plus"},
-  {id:283, subject_id:6, type:"mc", topic:"La négation", question:"'Niets' in het Frans?", options:["ne … rien","ne … personne","ne … pas","ne … aucun"], answer:"ne … rien"},
-  {id:284, subject_id:6, type:"mc", topic:"La négation", question:"'Niemand' in het Frans?", options:["ne … personne","ne … rien","ne … aucun","ne … plus"], answer:"ne … personne"},
-  {id:285, subject_id:6, type:"mc", topic:"La négation", question:"'Nergens' in het Frans?", options:["ne … nulle part","ne … plus","ne … rien","ne … pas"], answer:"ne … nulle part"},
-  {id:286, subject_id:6, type:"mc", topic:"La négation", question:"'Slechts/alleen maar' in het Frans?", options:["ne … que","ne … pas","ne … plus","ne … rien"], answer:"ne … que"},
-  {id:287, subject_id:6, type:"mc", topic:"La négation", question:"'Geen enkele' in het Frans?", options:["ne … aucun(e)","ne … rien","ne … personne","ne … plus"], answer:"ne … aucun(e)"},
-  {id:288, subject_id:6, type:"mc", topic:"La négation", question:"'Nog niet' in het Frans?", options:["ne … pas encore","ne … jamais","ne … plus","ne … rien"], answer:"ne … pas encore"},
-  {id:289, subject_id:6, type:"mc", topic:"La négation", question:"'Ook niet' in het Frans?", options:["ne … non plus","ne … pas non","ne … aussi pas","ne … plus"], answer:"ne … non plus"},
-  {id:290, subject_id:6, type:"fill", topic:"La négation", question:"Je ___ travaille ___. (niet)", answer:"ne, pas"},
-  {id:291, subject_id:6, type:"fill", topic:"La négation", question:"Il n'a ___ d'argent. (geen)", answer:"pas"},
-  {id:292, subject_id:6, type:"fill", topic:"La négation", question:"Je ne mange ___. (niets)", answer:"rien"},
-  {id:293, subject_id:6, type:"fill", topic:"La négation", question:"Je ne connais ___. (niemand)", answer:"personne"},
-  {id:294, subject_id:6, type:"fill", topic:"La négation", question:"Je ne vais ___ au cinéma. (nooit)", answer:"jamais"},
-  {id:295, subject_id:6, type:"fill", topic:"La négation", question:"Je n'habite ___ à Paris. (niet meer)", answer:"plus"},
-  {id:296, subject_id:6, type:"fill", topic:"La négation", question:"Il n'a ___ ___ ses devoirs. (nog niet gemaakt — p.c.)", answer:"pas encore fait"},
-  {id:297, subject_id:6, type:"fill", topic:"La négation", question:"Il n'y a ___ ___ bus le dimanche. (geen enkele)", answer:"aucun"},
-  {id:298, subject_id:6, type:"fill", topic:"La négation", question:"Je ne le trouve ___ ___. (nergens)", answer:"nulle part"},
-  {id:299, subject_id:6, type:"fill", topic:"La négation", question:"Je n'ai ___ deux euros. (slechts)", answer:"que"},
-  {id:300, subject_id:6, type:"mc", topic:"La négation", question:"Wat gebeurt met 'un/une/du/de la/des' na een negatie (van avoir)?", options:["wordt 'de/d''","blijft hetzelfde","wordt 'le/la/les'","verdwijnt"], answer:"wordt 'de/d''"},
-  {id:301, subject_id:6, type:"fill", topic:"La négation", question:"J'ai un chien. → Je n'ai ___ ___ chien. (geen)", answer:"pas de"},
-  {id:302, subject_id:6, type:"fill", topic:"La négation", question:"J'ai des amis. → Je n'ai ___ ___ amis. (geen)", answer:"pas d'"},
-  {id:303, subject_id:6, type:"fill", topic:"La négation", question:"Je bois du lait. → Je ne bois ___ ___ lait. (geen)", answer:"pas de"},
-  {id:304, subject_id:6, type:"mc", topic:"La négation", question:"Na 'être': wat gebeurt met het artikel in negatie?", options:["blijft hetzelfde","wordt 'de'","verdwijnt","wordt 'le'"], answer:"blijft hetzelfde"},
-  {id:305, subject_id:6, type:"fill", topic:"La négation", question:"C'est un livre. → Ce n'est ___ ___ livre. (geen — na être!)", answer:"pas un"},
-  {id:306, subject_id:6, type:"mc", topic:"La négation", question:"Waar staat 'ne…pas' in passé composé?", options:["rond het hulpwerkwoord","rond het participe","na het participe","voor het subject"], answer:"rond het hulpwerkwoord"},
-  {id:307, subject_id:6, type:"mc", topic:"La négation", question:"Waar staat 'personne' in passé composé?", options:["na het participe passé","tussen hulpw. en participe","voor het hulpw.","voor het subject"], answer:"na het participe passé"},
-  {id:308, subject_id:6, type:"fill", topic:"La négation", question:"Il a vu quelqu'un. → Il n'a vu ___. (niemand)", answer:"personne"},
-  {id:309, subject_id:6, type:"fill", topic:"La négation", question:"Il a fait quelque chose. → Il n'a ___ ___. (niets gedaan)", answer:"rien fait"},
-  {id:310, subject_id:6, type:"fill", topic:"La négation", question:"Il est déjà parti. → Il n'est ___ ___ parti. (nog niet)", answer:"pas encore"},
-  {id:311, subject_id:6, type:"open", topic:"La négation", question:"Zet om naar negatief: 'Il a mangé quelque chose.'", answer:"Il n'a rien mangé."},
-  {id:312, subject_id:6, type:"open", topic:"La négation", question:"Zet om: 'Quelqu'un est venu.'", answer:"Personne n'est venu."},
-  {id:313, subject_id:6, type:"open", topic:"La négation", question:"Zet om: 'J'ai déjà fini.'", answer:"Je n'ai pas encore fini."},
-  {id:314, subject_id:6, type:"open", topic:"La négation", question:"Zet om: 'Je vais souvent au cinéma.'", answer:"Je ne vais jamais au cinéma."},
-  {id:315, subject_id:6, type:"open", topic:"La négation", question:"Zet om: 'Il habite encore ici.'", answer:"Il n'habite plus ici."},
-  {id:316, subject_id:6, type:"fill", topic:"La négation", question:"Moi ___ ___! (ik ook niet)", answer:"non plus"},
-  {id:317, subject_id:6, type:"fill", topic:"La négation", question:"Je n'aime pas le café et toi ___ ___?", answer:"non plus"},
-  {id:318, subject_id:6, type:"mc", topic:"La négation", question:"'Ni … ni …' betekent?", options:["noch … noch …","ofwel … ofwel …","en … en …","wel … of …"], answer:"noch … noch …"},
-  {id:319, subject_id:6, type:"fill", topic:"La négation", question:"Je ne bois ___ café ___ thé. (noch … noch)", answer:"ni, ni"},
-  {id:320, subject_id:6, type:"mc", topic:"La négation", question:"Bij 'ni…ni…' verdwijnt het artikel meestal?", options:["ja, bij onbepaald artikel","nee, blijft altijd","alleen bij être","alleen meervoud"], answer:"ja, bij onbepaald artikel"},
-  {id:321, subject_id:6, type:"fill", topic:"La négation", question:"Il ne fait ___ d'efforts. (geen — pas de)", answer:"pas"},
-  {id:322, subject_id:6, type:"open", topic:"La négation", question:"Vertaal: 'Hij heeft niemand gezien.'", answer:"Il n'a vu personne."},
-  {id:323, subject_id:6, type:"open", topic:"La négation", question:"Vertaal: 'Ik heb geen enkele idee.'", answer:"Je n'ai aucune idée."},
-  {id:324, subject_id:6, type:"open", topic:"La négation", question:"Vertaal: 'We zien elkaar nooit meer.'", answer:"On ne se voit plus jamais."},
-  {id:325, subject_id:6, type:"fill", topic:"La négation", question:"Il n'a ___ ___ frère ___ sœur. (noch broer noch zus)", answer:"ni, ni"},
-  {id:326, subject_id:6, type:"fill", topic:"La négation", question:"Hier, les profs n'ont ___ écouté les élèves. (niet)", answer:"pas"},
-  {id:327, subject_id:6, type:"mc", topic:"La négation", question:"In de gesproken taal valt vaak welk deel weg?", options:["ne","pas","jamais","rien"], answer:"ne"},
-  {id:328, subject_id:6, type:"fill", topic:"La négation", question:"Je ___ vois personne. (niet/niemand: vul 'ne' in)", answer:"ne"},
-  {id:329, subject_id:6, type:"fill", topic:"La négation", question:"Personne ___ comprend. (vul 'ne' in)", answer:"ne"},
-  {id:330, subject_id:6, type:"fill", topic:"La négation", question:"Rien ___ marche. (vul 'ne' in)", answer:"ne"},
-  {id:331, subject_id:6, type:"open", topic:"La négation", question:"Geef de plaats van 'jamais' in passé composé.", answer:"Tussen hulpwerkwoord en participe passé: Je n'ai jamais vu."},
-  {id:332, subject_id:6, type:"open", topic:"La négation", question:"Geef 6 negatieve uitdrukkingen met ne…", answer:"ne…pas, ne…jamais, ne…plus, ne…rien, ne…personne, ne…aucun, ne…nulle part, ne…que, ne…ni…ni…, ne…pas encore, ne…non plus."},
-  {id:333, subject_id:6, type:"fill", topic:"La négation", question:"Je ___ veux ___. (ik wil niets)", answer:"ne, rien"},
-  {id:334, subject_id:6, type:"fill", topic:"La négation", question:"Elle ___ travaille ___. (zij werkt niet meer)", answer:"ne, plus"},
-
-  // ════════ SUBJECT 7 — PRONOMS COD/COI/EN/Y ════════
-  {id:335, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COD voor 'je' (mij)?", options:["me","te","lui","moi"], answer:"me"},
-  {id:336, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COD voor 'tu' (jou)?", options:["te","me","toi","vous"], answer:"te"},
-  {id:337, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COD voor 'il' (hem/het masc.)?", options:["le","lui","la","y"], answer:"le"},
-  {id:338, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COD voor 'elle' (haar/het fem.)?", options:["la","lui","le","elle"], answer:"la"},
-  {id:339, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COD voor 'nous'?", options:["nous","on","notre","nos"], answer:"nous"},
-  {id:340, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COD voor 'ils/elles'?", options:["les","leur","eux","y"], answer:"les"},
-  {id:341, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COI voor 'il' (aan hem)?", options:["lui","le","y","en"], answer:"lui"},
-  {id:342, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"COI voor 'ils/elles' (aan hen)?", options:["leur","les","lui","eux"], answer:"leur"},
-  {id:343, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Wat vervangt 'EN'?", options:["de + iets","à + iets","plaats waar","persoon"], answer:"de + iets"},
-  {id:344, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Wat vervangt 'Y'?", options:["à + iets / plaats","de + iets","persoon (COD)","persoon (COI)"], answer:"à + iets / plaats"},
-  {id:345, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu vois Paul? Oui, je ___ vois.", answer:"le"},
-  {id:346, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu vois Marie? Oui, je ___ vois.", answer:"la"},
-  {id:347, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu connais mes amis? Oui, je ___ connais.", answer:"les"},
-  {id:348, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu parles à Paul? Oui, je ___ parle.", answer:"lui"},
-  {id:349, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu parles à tes parents? Oui, je ___ parle.", answer:"leur"},
-  {id:350, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu vas à Paris? Oui, j' ___ vais.", answer:"y"},
-  {id:351, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu penses à tes examens? Oui, j' ___ pense.", answer:"y"},
-  {id:352, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu manges du pain? Oui, j' ___ mange.", answer:"en"},
-  {id:353, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu as des frères? Oui, j' ___ ai deux.", answer:"en"},
-  {id:354, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu viens de Paris? Oui, j' ___ viens.", answer:"en"},
-  {id:355, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu parles de tes vacances? Oui, j' ___ parle.", answer:"en"},
-  {id:356, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Waar staat het pronom in een bevestigende zin?", options:["voor het werkwoord (of hulpwerkw.)","na het werkwoord","na het participe","aan het einde"], answer:"voor het werkwoord (of hulpwerkw.)"},
-  {id:357, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"In passé composé: pronom staat…", options:["voor het hulpwerkwoord","voor het participe","na het participe","aan het einde"], answer:"voor het hulpwerkwoord"},
-  {id:358, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"J'ai vu Paul. → Je ___ ___ vu.", answer:"l'ai"},
-  {id:359, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"J'ai parlé à Marie. → Je ___ ___ parlé.", answer:"lui ai"},
-  {id:360, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"J'ai vu Marie. → Je l'ai ___ . (accordpassé)", answer:"vue"},
-  {id:361, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Akkoord participe passé met avoir: wanneer?", options:["als COD ervoor staat","altijd","nooit","alleen met être"], answer:"als COD ervoor staat"},
-  {id:362, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Wat is de tonische vorm voor 'je'?", options:["moi","me","mon","mien"], answer:"moi"},
-  {id:363, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Volgorde COD/COI: 'Je le lui donne' — klopt dat?", options:["ja","nee, le komt na lui","fout","alleen in passé"], answer:"ja"},
-  {id:364, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Il me donne le livre. → Il ___ ___ donne.", answer:"me le"},
-  {id:365, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Je donne le livre à Paul. → Je ___ ___ donne.", answer:"le lui"},
-  {id:366, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Il y a des livres? Oui, il ___ ___ a.", answer:"y en"},
-  {id:367, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Volgorde van pronoms (vereenvoudigd): tussen 'le/la/les' en 'lui/leur', wie eerst?", options:["le/la/les eerst","lui/leur eerst","alfabetisch","willekeurig"], answer:"le/la/les eerst"},
-  {id:368, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"In impératif affirmatief: pronom staat…", options:["NA het werkwoord (met streepje)","voor","binnenin","nergens"], answer:"NA het werkwoord (met streepje)"},
-  {id:369, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Regarde Paul! → Regarde-___ !", answer:"le"},
-  {id:370, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Donne-moi le livre! → Donne-___ ___ !", answer:"le-moi"},
-  {id:371, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Vas à l'école! → ___ - ___ !", answer:"Vas-y"},
-  {id:372, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"In impératif négatif: pronom staat…", options:["voor het werkwoord","na het werkwoord","mag overal","nergens"], answer:"voor het werkwoord"},
-  {id:373, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Ne ___ regarde pas! (hem niet)", answer:"le"},
-  {id:374, subject_id:7, type:"open", topic:"Pronoms COD/COI/en/y", question:"Vervang door pronom: 'Je donne le livre à Marie.'", answer:"Je le lui donne."},
-  {id:375, subject_id:7, type:"open", topic:"Pronoms COD/COI/en/y", question:"Vervang door pronom: 'Il achète des fleurs.'", answer:"Il en achète."},
-  {id:376, subject_id:7, type:"open", topic:"Pronoms COD/COI/en/y", question:"Vervang door pronom: 'Nous allons au cinéma.'", answer:"Nous y allons."},
-  {id:377, subject_id:7, type:"open", topic:"Pronoms COD/COI/en/y", question:"Vervang door pronom: 'Tu téléphones à tes parents.'", answer:"Tu leur téléphones."},
-  {id:378, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu m'aimes? Oui, je ___ aime.", answer:"t'"},
-  {id:379, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Vous nous voyez? Oui, nous ___ voyons.", answer:"vous"},
-  {id:380, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Welk pronom vervang je: 'penser À qqch'?", options:["y","en","le","lui"], answer:"y"},
-  {id:381, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Welk pronom: 'parler DE qqch'?", options:["en","y","le","lui"], answer:"en"},
-  {id:382, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Welk pronom: 'parler À qqn' (persoon)?", options:["lui/leur (COI)","y","le","en"], answer:"lui/leur (COI)"},
-  {id:383, subject_id:7, type:"mc", topic:"Pronoms COD/COI/en/y", question:"Welk pronom: 'penser À qqn' (persoon)?", options:["uitzondering: tonisch (à lui, à elle)","y","lui","en"], answer:"uitzondering: tonisch (à lui, à elle)"},
-  {id:384, subject_id:7, type:"open", topic:"Pronoms COD/COI/en/y", question:"Geef de volgorde van pronoms (alle 5 groepen).", answer:"1) me/te/se/nous/vous  2) le/la/les  3) lui/leur  4) y  5) en"},
-  {id:385, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Combien d'enfants as-tu? J' ___ ai trois.", answer:"en"},
-  {id:386, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu as besoin de mon aide? Oui, j' ___ ai besoin.", answer:"en"},
-  {id:387, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Tu réponds à la question? Oui, j' ___ réponds.", answer:"y"},
-  {id:388, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Il offre des fleurs à sa mère. → Il ___ ___ offre.", answer:"lui en"},
-  {id:389, subject_id:7, type:"fill", topic:"Pronoms COD/COI/en/y", question:"Donne-moi du pain! → Donne-___ ___ !", answer:"m'en"},
-
-  // ════════ SUBJECT 8 — RÉVISION VERBES (TIJDEN) ════════
-  {id:390, subject_id:8, type:"mc", topic:"Présent", question:"Uitgangen -ER présent?", options:["-e/-es/-e/-ons/-ez/-ent","-s/-s/-t/-ons/-ez/-ent","-is/-is/-it/-issons/-issez/-issent","-rai/-ras/-ra/..."], answer:"-e/-es/-e/-ons/-ez/-ent"},
-  {id:391, subject_id:8, type:"mc", topic:"Présent", question:"Uitgangen -IR (type finir) présent?", options:["-is/-is/-it/-issons/-issez/-issent","-s/-s/-t/-ons/-ez/-ent","-e/-es/-e/...","-rai/-ras/..."], answer:"-is/-is/-it/-issons/-issez/-issent"},
-  {id:392, subject_id:8, type:"mc", topic:"Présent", question:"Uitgangen -RE (type vendre) présent?", options:["-s/-s/-(geen)/-ons/-ez/-ent","-e/-es/-e/...","-is/-is/-it/...","-rai/-ras/..."], answer:"-s/-s/-(geen)/-ons/-ez/-ent"},
-  {id:393, subject_id:8, type:"fill", topic:"Présent", question:"parler — nous ___", answer:"parlons"},
-  {id:394, subject_id:8, type:"fill", topic:"Présent", question:"finir — ils ___", answer:"finissent"},
-  {id:395, subject_id:8, type:"fill", topic:"Présent", question:"vendre — il ___", answer:"vend"},
-  {id:396, subject_id:8, type:"fill", topic:"Présent", question:"être — vous ___", answer:"êtes"},
-  {id:397, subject_id:8, type:"fill", topic:"Présent", question:"avoir — nous ___", answer:"avons"},
-  {id:398, subject_id:8, type:"fill", topic:"Présent", question:"aller — nous ___", answer:"allons"},
-  {id:399, subject_id:8, type:"fill", topic:"Présent", question:"faire — vous ___", answer:"faites"},
-  {id:400, subject_id:8, type:"mc", topic:"Impératif", question:"Impératif heeft hoeveel vormen?", options:["3 (tu/nous/vous)","6","2","1"], answer:"3 (tu/nous/vous)"},
-  {id:401, subject_id:8, type:"fill", topic:"Impératif", question:"parler — tu: ___ ! (geen -s!)", answer:"Parle"},
-  {id:402, subject_id:8, type:"fill", topic:"Impératif", question:"finir — vous: ___ !", answer:"Finissez"},
-  {id:403, subject_id:8, type:"fill", topic:"Impératif", question:"avoir — tu: ___ !", answer:"Aie"},
-  {id:404, subject_id:8, type:"fill", topic:"Impératif", question:"être — vous: ___ !", answer:"Soyez"},
-  {id:405, subject_id:8, type:"mc", topic:"Futur proche", question:"Hoe vorm je futur proche?", options:["aller (présent) + infinitief","avoir/être + participe","futur stam + uitgang","subjonctif + que"], answer:"aller (présent) + infinitief"},
-  {id:406, subject_id:8, type:"fill", topic:"Futur proche", question:"Je ___ ___ (manger) — Ik ga eten.", answer:"vais manger"},
-  {id:407, subject_id:8, type:"fill", topic:"Futur proche", question:"Nous ___ ___ (partir).", answer:"allons partir"},
-  {id:408, subject_id:8, type:"mc", topic:"Passé récent", question:"Hoe vorm je passé récent?", options:["venir de + infinitief","être + participe","avoir + participe","aller + infinitief"], answer:"venir de + infinitief"},
-  {id:409, subject_id:8, type:"fill", topic:"Passé récent", question:"Je ___ ___ ___ (manger) — Ik heb net gegeten.", answer:"viens de manger"},
-  {id:410, subject_id:8, type:"mc", topic:"Futur simple", question:"Stam van futur simple = ?", options:["infinitief (eventueel met aanpassing)","nous-vorm zonder -ons","ils-vorm","participe passé"], answer:"infinitief (eventueel met aanpassing)"},
-  {id:411, subject_id:8, type:"mc", topic:"Futur simple", question:"Uitgangen futur simple?", options:["-rai/-ras/-ra/-rons/-rez/-ront","-rais/-rais/-rait/...","-e/-es/-e/...","-ais/-ais/-ait/..."], answer:"-rai/-ras/-ra/-rons/-rez/-ront"},
-  {id:412, subject_id:8, type:"fill", topic:"Futur simple", question:"parler — je ___", answer:"parlerai"},
-  {id:413, subject_id:8, type:"fill", topic:"Futur simple", question:"finir — nous ___", answer:"finirons"},
-  {id:414, subject_id:8, type:"fill", topic:"Futur simple", question:"être — je ___", answer:"serai"},
-  {id:415, subject_id:8, type:"fill", topic:"Futur simple", question:"avoir — tu ___", answer:"auras"},
-  {id:416, subject_id:8, type:"fill", topic:"Futur simple", question:"aller — il ___", answer:"ira"},
-  {id:417, subject_id:8, type:"fill", topic:"Futur simple", question:"faire — nous ___", answer:"ferons"},
-  {id:418, subject_id:8, type:"fill", topic:"Futur simple", question:"voir — je ___", answer:"verrai"},
-  {id:419, subject_id:8, type:"fill", topic:"Futur simple", question:"venir — ils ___", answer:"viendront"},
-  {id:420, subject_id:8, type:"fill", topic:"Futur simple", question:"pouvoir — je ___", answer:"pourrai"},
-  {id:421, subject_id:8, type:"fill", topic:"Futur simple", question:"vouloir — il ___", answer:"voudra"},
-  {id:422, subject_id:8, type:"fill", topic:"Futur simple", question:"savoir — nous ___", answer:"saurons"},
-  {id:423, subject_id:8, type:"fill", topic:"Futur simple", question:"envoyer — je ___", answer:"enverrai"},
-  {id:424, subject_id:8, type:"mc", topic:"Passé composé", question:"Welke hulpwerkwoorden in passé composé?", options:["avoir of être","alleen avoir","alleen être","faire"], answer:"avoir of être"},
-  {id:425, subject_id:8, type:"mc", topic:"Passé composé", question:"Welk werkwoord neemt être als hulpwerkw.?", options:["aller","manger","parler","finir"], answer:"aller"},
-  {id:426, subject_id:8, type:"mc", topic:"Passé composé", question:"Welk werkwoord neemt avoir?", options:["manger","aller","partir","venir"], answer:"manger"},
-  {id:427, subject_id:8, type:"fill", topic:"Passé composé", question:"parler — j' ___ ___", answer:"ai parlé"},
-  {id:428, subject_id:8, type:"fill", topic:"Passé composé", question:"finir — il ___ ___", answer:"a fini"},
-  {id:429, subject_id:8, type:"fill", topic:"Passé composé", question:"vendre — nous ___ ___", answer:"avons vendu"},
-  {id:430, subject_id:8, type:"fill", topic:"Passé composé", question:"aller — elle ___ ___ ___", answer:"est allée"},
-  {id:431, subject_id:8, type:"fill", topic:"Passé composé", question:"venir — ils ___ ___", answer:"sont venus"},
-  {id:432, subject_id:8, type:"fill", topic:"Passé composé", question:"être — j' ___ ___", answer:"ai été"},
-  {id:433, subject_id:8, type:"fill", topic:"Passé composé", question:"avoir — j' ___ ___", answer:"ai eu"},
-  {id:434, subject_id:8, type:"fill", topic:"Passé composé", question:"faire — j' ___ ___", answer:"ai fait"},
-  {id:435, subject_id:8, type:"fill", topic:"Passé composé", question:"prendre — j' ___ ___", answer:"ai pris"},
-  {id:436, subject_id:8, type:"fill", topic:"Passé composé", question:"mettre — j' ___ ___", answer:"ai mis"},
-  {id:437, subject_id:8, type:"fill", topic:"Passé composé", question:"voir — j' ___ ___", answer:"ai vu"},
-  {id:438, subject_id:8, type:"fill", topic:"Passé composé", question:"lire — j' ___ ___", answer:"ai lu"},
-  {id:439, subject_id:8, type:"fill", topic:"Passé composé", question:"écrire — j' ___ ___", answer:"ai écrit"},
-  {id:440, subject_id:8, type:"mc", topic:"Imparfait", question:"Stam imparfait = ?", options:["nous-vorm présent zonder -ons","infinitief","ils-vorm","participe passé"], answer:"nous-vorm présent zonder -ons"},
-  {id:441, subject_id:8, type:"mc", topic:"Imparfait", question:"Uitgangen imparfait?", options:["-ais/-ais/-ait/-ions/-iez/-aient","-rai/-ras/-ra/...","-e/-es/-e/...","-is/-is/-it/..."], answer:"-ais/-ais/-ait/-ions/-iez/-aient"},
-  {id:442, subject_id:8, type:"fill", topic:"Imparfait", question:"parler — je ___", answer:"parlais"},
-  {id:443, subject_id:8, type:"fill", topic:"Imparfait", question:"être — j' ___ (UITZONDERING: stam ét-)", answer:"étais"},
-  {id:444, subject_id:8, type:"fill", topic:"Imparfait", question:"avoir — nous ___", answer:"avions"},
-  {id:445, subject_id:8, type:"fill", topic:"Imparfait", question:"faire — il ___", answer:"faisait"},
-  {id:446, subject_id:8, type:"fill", topic:"Imparfait", question:"finir — vous ___", answer:"finissiez"},
-  {id:447, subject_id:8, type:"mc", topic:"Conditionnel présent", question:"Stam conditionnel = stam van …", options:["futur simple","présent","passé","subjonctif"], answer:"futur simple"},
-  {id:448, subject_id:8, type:"mc", topic:"Conditionnel présent", question:"Uitgangen conditionnel = uitgangen van …", options:["imparfait","futur","présent","p.c."], answer:"imparfait"},
-  {id:449, subject_id:8, type:"fill", topic:"Conditionnel présent", question:"parler — je ___", answer:"parlerais"},
-  {id:450, subject_id:8, type:"fill", topic:"Conditionnel présent", question:"être — je ___", answer:"serais"},
-  {id:451, subject_id:8, type:"fill", topic:"Conditionnel présent", question:"avoir — il ___", answer:"aurait"},
-  {id:452, subject_id:8, type:"fill", topic:"Conditionnel présent", question:"aller — nous ___", answer:"irions"},
-  {id:453, subject_id:8, type:"fill", topic:"Conditionnel présent", question:"faire — vous ___", answer:"feriez"},
-  {id:454, subject_id:8, type:"fill", topic:"Conditionnel présent", question:"vouloir — je ___ (= zou willen)", answer:"voudrais"},
-
-  // ════════ SUBJECT 9 — VOCABULAIRE LES MÉDIAS (trajet 3 lijst p.153-155) ════════
-  // Médias généraux
-  {id:455, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'abonnement (m) = het ___", answer:"abonnement"},
-  {id:456, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'avantage (m) = het ___", answer:"voordeel"},
-  {id:457, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"la bibliothèque = de ___", answer:"bibliotheek"},
-  {id:458, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"la communication = de ___", answer:"communicatie"},
-  {id:459, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le développement = de ___", answer:"ontwikkeling"},
-  {id:460, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le message = de boodschap / het ___", answer:"bericht"},
-  {id:461, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le public cible = de ___", answer:"doelgroep"},
-  {id:462, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'événement (m) = het evenement / de ___", answer:"gebeurtenis"},
-  {id:463, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le fait divers = het ___", answer:"nieuwsfeit"},
-  {id:464, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'information (f) = de ___", answer:"informatie"},
-  {id:465, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le / la journaliste = de ___", answer:"journalist"},
-  {id:466, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"la politique = de ___", answer:"politiek"},
-  {id:467, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"informer = ___", answer:"informeren"},
-  {id:468, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"mentir = ___", answer:"liegen"},
-  {id:469, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"s'informer = zich ___", answer:"informeren"},
-  {id:470, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"suivre l'actualité = op de hoogte zijn van de ___", answer:"actualiteit"},
-  // Audiovisuel
-  {id:471, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"la chaîne = de ___", answer:"zender"},
-  {id:472, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'émission (f) = het ___", answer:"programma"},
-  {id:473, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le journal télévisé (le JT) = het ___-journaal", answer:"tv"},
-  {id:474, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le / la présentateur/trice = de ___", answer:"presentator"},
-  {id:475, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"monter le son = het volume ___ zetten", answer:"harder"},
-  {id:476, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"baisser le son = het volume ___ zetten", answer:"zachter"},
-  {id:477, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"enregistrer = ___", answer:"opnemen"},
-  {id:478, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"regarder les informations = naar het nieuws ___", answer:"kijken"},
-  // Les TIC
-  {id:479, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'application (f) = de ___", answer:"app"},
-  {id:480, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le clic = de ___", answer:"klik"},
-  {id:481, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'internaute (m/f) = de ___ (op het internet)", answer:"surfer"},
-  {id:482, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le lien = de ___", answer:"link"},
-  {id:483, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le mot de passe = het ___", answer:"wachtwoord"},
-  {id:484, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le nom d'utilisateur = de ___ / de login", answer:"gebruikersnaam"},
-  {id:485, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"la notification = de ___", answer:"melding"},
-  {id:486, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"les TIC = de ___", answer:"ICT"},
-  {id:487, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"numérique = ___", answer:"digitaal"},
-  {id:488, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"avoir accès à = ___ hebben tot", answer:"toegang"},
-  {id:489, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"se connecter = ___", answer:"inloggen"},
-  {id:490, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"télécharger = ___", answer:"downloaden"},
-  {id:491, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"compléter le formulaire = het formulier ___", answer:"invullen"},
-  // Téléphone
-  {id:492, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"la batterie = de ___", answer:"batterij"},
-  {id:493, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le chargeur = de ___", answer:"lader"},
-  {id:494, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"allumer son portable = zijn gsm ___", answer:"aanzetten"},
-  {id:495, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"éteindre son portable = zijn gsm ___", answer:"uitzetten"},
-  {id:496, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"recharger (la batterie) = ___", answer:"opladen"},
-  {id:497, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"rappeler (qqn) = iemand ___", answer:"opbellen"},
-  {id:498, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'La batterie est à plat' betekent?", options:["de batterij is leeg","de batterij laadt op","het toestel is kapot","de batterij is vol"], answer:"de batterij is leeg"},
-  // Médias sociaux
-  {id:499, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'adresse mail (f) = het ___", answer:"e-mailadres"},
-  {id:500, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"l'émoticône (f) = de ___", answer:"smiley"},
-  {id:501, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"le hashtag = de ___", answer:"hashtag"},
-  {id:502, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"les réseaux sociaux (m) = de sociale ___", answer:"netwerken"},
-  {id:503, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"commenter = ___", answer:"becommentariëren"},
-  {id:504, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"partager = ___", answer:"delen"},
-  {id:505, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"réagir = ___", answer:"reageren"},
-  {id:506, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"recommander = ___", answer:"aanraden"},
-  {id:507, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"être joignable = ___ zijn", answer:"bereikbaar"},
-  {id:508, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"la publicité = de ___", answer:"reclame"},
-  {id:509, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"persuader = ___", answer:"overtuigen"},
-  // MC vragen médias
-  {id:510, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'allumer la télé' = ?", options:["tv aanzetten","tv uitzetten","tv kopen","tv repareren"], answer:"tv aanzetten"},
-  {id:511, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'éteindre la télé' = ?", options:["tv uitzetten","tv aanzetten","tv verlaten","tv verkopen"], answer:"tv uitzetten"},
-  {id:512, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'le Net' = ?", options:["het internet","het netwerk (bedrijf)","de krant","de radio"], answer:"het internet"},
-  {id:513, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'en ligne' = ?", options:["online","in een rij","per lijn","aan de lijn"], answer:"online"},
-  {id:514, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'le public cible' = ?", options:["de doelgroep","het grote publiek","de kijker","de lezer"], answer:"de doelgroep"},
-  // Actes de parole
-  {id:515, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"Welke uitdrukking gebruik je om instructies te geven (étape 1)?", options:["D'abord / Pour commencer","À mon avis","Par contre","Bien que"], answer:"D'abord / Pour commencer"},
-  {id:516, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"Welke uitdrukking verbindt stap 2 bij het geven van instructies?", options:["Puis / Ensuite / Après cela","Donc","Pourtant","Cependant"], answer:"Puis / Ensuite / Après cela"},
-  {id:517, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"Instructies — 'ten slotte': ___ / Enfin", answer:"Finalement"},
-  {id:518, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"Il ___ accepter les conditions générales.", answer:"faut"},
-  {id:519, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"Il est ___ de / d' introduire ton adresse mail.", answer:"obligatoire"},
-  // Open
-  {id:520, subject_id:9, type:"open", topic:"Vocabulaire - médias", question:"Geef 4 soorten media in het Frans met lidwoord.", answer:"le journal (krant), la télévision / la chaîne, la radio, les réseaux sociaux, le magazine, le podcast, le blog, le site web."},
-  {id:521, subject_id:9, type:"open", topic:"Vocabulaire - médias", question:"Vertaal: 'Je moet je wachtwoord bevestigen en daarna klikken op inloggen.'", answer:"Tu dois confirmer ton mot de passe et ensuite cliquer sur se connecter."},
-  {id:522, subject_id:9, type:"open", topic:"Vocabulaire - médias", question:"Vertaal: 'Ik volg het nieuws elke dag via de sociale media.'", answer:"Je suis l'actualité chaque jour via les réseaux sociaux."},
-  {id:523, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'suivre l'actualité' = ?", options:["op de hoogte zijn van het nieuws","het nieuws volgen op tv alleen","een krant lezen","een serie volgen"], answer:"op de hoogte zijn van het nieuws"},
-  {id:524, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"'le fait divers' = ?", options:["het nieuwsfeit (klein nieuws)","de politieke zaak","het hoofdartikel","de mening"], answer:"het nieuwsfeit (klein nieuws)"},
-  {id:525, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"de krant: le ___", answer:"journal"},
-  {id:526, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"het tijdschrift: le ___", answer:"magazine"},
-  {id:527, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"de kijker: le télé___", answer:"spectateur"},
-  {id:528, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"de luisteraar: l'___ (masc.)", answer:"auditeur"},
-  {id:529, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"de lezer: le ___", answer:"lecteur"},
-  {id:530, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"het artikel: l'___ (masc.)", answer:"article"},
-  {id:531, subject_id:9, type:"fill", topic:"Vocabulaire - médias", question:"vals nieuws: les fausses ___", answer:"informations"},
-  {id:532, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"Hoe zeg je 'mijn mening' in het Frans (acte de parole)?", options:["À mon avis","En effet","Par exemple","D'abord"], answer:"À mon avis"},
-  {id:533, subject_id:9, type:"mc", topic:"Vocabulaire - médias", question:"Welke constructie gebruik je voor 'je vindt'?", options:["Je trouve que","Il faut que","Bien que","Pour que"], answer:"Je trouve que"},
-
-  // ════════ SUBJECT 10 — VOCABULAIRE LES INVENTIONS (trajet 4 lijst p.201-203) ════════
-  // Les personnes
-  {id:534, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"le bricoleur = de ___ / de doe-het-zelver", answer:"knutselaar"},
-  {id:535, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'inventeur (m) / l'inventrice (f) = de ___", answer:"uitvinder"},
-  {id:536, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"le / la scientifique = de ___", answer:"wetenschapper"},
-  // Les choses
-  {id:537, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'énergie (f) = de ___", answer:"energie"},
-  {id:538, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"le fonctionnement = de ___", answer:"werking"},
-  {id:539, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'invention (f) = de ___", answer:"uitvinding"},
-  {id:540, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'objet (m) = het ___ / het object", answer:"voorwerp"},
-  {id:541, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"le système = het ___", answer:"systeem"},
-  {id:542, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'appareil (m) = het ___", answer:"toestel"},
-  {id:543, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'écran (m) = het ___", answer:"scherm"},
-  {id:544, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'électricité (f) = de ___", answer:"elektriciteit"},
-  {id:545, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'outil (m) = het werktuig / het ___", answer:"gereedschap"},
-  // Le concept
-  {id:546, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"le but = het ___", answer:"doel"},
-  {id:547, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"proposer de = ___ om te", answer:"voorstellen"},
-  {id:548, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"obliger = ___", answer:"verplichten"},
-  // Les qualités / L'évaluation
-  {id:549, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"l'avantage (m) = het ___", answer:"voordeel"},
-  {id:550, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"efficace = ___ / doeltreffend", answer:"efficiënt"},
-  {id:551, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"innovant(e) = ___", answer:"innoverend"},
-  {id:552, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"inutile = ___", answer:"nutteloos"},
-  {id:553, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"léger / légère = ___", answer:"licht"},
-  {id:554, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"pratique = ___ / handig", answer:"praktisch"},
-  {id:555, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"rechargeable = ___ / oplaadbaar", answer:"herlaadbaar"},
-  {id:556, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"réalisable = ___", answer:"haalbaar"},
-  {id:557, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"solaire = zonne- (bv. énergie ___)", answer:"solaire"},
-  {id:558, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"utile = ___", answer:"nuttig"},
-  // Les mesures
-  {id:559, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"la dimension = de ___ / de omvang", answer:"afmeting"},
-  {id:560, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"la forme = de ___", answer:"vorm"},
-  {id:561, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"le poids = het ___", answer:"gewicht"},
-  {id:562, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"simple = ___ / eenvoudig", answer:"simpel"},
-  // L'élaboration / Les actions
-  {id:563, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"développer = ___", answer:"ontwikkelen"},
-  {id:564, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"employer = ___ / in dienst nemen", answer:"gebruiken"},
-  {id:565, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"inventer = ___", answer:"uitvinden"},
-  {id:566, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"fabriquer = ___", answer:"fabriceren"},
-  {id:567, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"produire = ___", answer:"produceren"},
-  {id:568, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"se servir de = ___ van", answer:"gebruikmaken"},
-  {id:569, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"créer = ___", answer:"creëren"},
-  {id:570, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"la dimension = de ___", answer:"afmeting"},
-  // MC vragen inventions
-  {id:571, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"'le fonctionnement' = ?", options:["de werking","de uitvinding","het toestel","de productie"], answer:"de werking"},
-  {id:572, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"'réalisable' = ?", options:["haalbaar","revolutionair","te verkopen","nuttig"], answer:"haalbaar"},
-  {id:573, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"'pratique' = ?", options:["praktisch","theoretisch","zwaar","simpel"], answer:"praktisch"},
-  {id:574, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"'rechargeable' = ?", options:["herlaadbaar / oplaadbaar","herbruikbaar","recycleerbaar","uitwisselbaar"], answer:"herlaadbaar / oplaadbaar"},
-  {id:575, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"'le bricoleur' = ?", options:["de knutselaar","de uitvinder","de wetenschapper","de ingenieur"], answer:"de knutselaar"},
-  {id:576, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"'se servir de' = ?", options:["gebruikmaken van","dienen voor","gebruiken (iemand)","zichzelf redden"], answer:"gebruikmaken van"},
-  // Actes de parole (Convaincre) — uit PPTX trajet 4
-  {id:577, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"Convaincre: 'À la place, je ___ regarder la version doublée.' (zou moeten)", answer:"lirais / regarderais"},
-  {id:578, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"Convaincre: 'Tu ___ essayer de regarder la version doublée.'", answer:"devrais"},
-  {id:579, subject_id:10, type:"fill", topic:"Vocabulaire - inventions", question:"Convaincre: 'Tu ___ activer le sous-titrage.'", answer:"pourrais"},
-  {id:580, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"Welke tijd gebruik je om iemand te overtuigen ('je zou moeten...')?", options:["conditionnel présent","subjonctif","futur simple","impératif"], answer:"conditionnel présent"},
-  {id:581, subject_id:10, type:"mc", topic:"Vocabulaire - inventions", question:"Hoe begin je een argumentatie (convaincre)?", options:["D'abord… / Premièrement…","Il faut que…","Bien que…","Pour que…"], answer:"D'abord… / Premièrement…"},
-  {id:582, subject_id:10, type:"open", topic:"Vocabulaire - inventions", question:"Vertaal: 'Het is een licht, oplaadbaar apparaat dat de moeite waard is om te gebruiken.'", answer:"C'est un appareil léger et rechargeable qui vaut la peine d'être utilisé."},
-  {id:583, subject_id:10, type:"open", topic:"Vocabulaire - inventions", question:"Geef 5 adjectieven die je kunt gebruiken om een uitvinding te evalueren (in het Frans).", answer:"efficace, innovant(e), pratique, utile, léger/légère, rechargeable, réalisable, inutile, simple."},
-  {id:584, subject_id:10, type:"open", topic:"Vocabulaire - inventions", question:"Vertaal: 'Je kan je doen aan...' om iemand te overtuigen.", answer:"Tu pourrais / Tu devrais… / À ta place, je… / Il vaut mieux…"},
-
-  // ════════ SUBJECT 11 — VOCABULAIRE ÉCOLOGIE (trajet 5 lijst p.250-251) ════════
-  // Les changements
-  {id:585, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le changement = de ___", answer:"verandering"},
-  {id:586, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le consommateur / la consommatrice = de ___", answer:"verbruiker"},
-  {id:587, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la consommation = het ___", answer:"verbruik"},
-  {id:588, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le constat = de ___", answer:"vaststelling"},
-  {id:589, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"dangereux / dangereuse = ___", answer:"gevaarlijk"},
-  {id:590, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"changer = ___", answer:"veranderen"},
-  {id:591, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"consommer = ___", answer:"verbruiken"},
-  {id:592, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"diminuer = ___ / afnemen", answer:"verminderen"},
-  {id:593, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"limiter = ___", answer:"beperken"},
-  {id:594, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"réparer = ___", answer:"herstellen"},
-  // La terre
-  {id:595, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la planète = de ___", answer:"planeet"},
-  {id:596, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le sol = de ___ / de bodem", answer:"grond"},
-  // L'environnement et l'action
-  {id:597, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"l'écologie (f) = de ___ / de milieukunde", answer:"ecologie"},
-  {id:598, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"l'environnement (m) = het ___", answer:"milieu"},
-  {id:599, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le recyclage = het ___", answer:"recyclage"},
-  {id:600, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la station d'épuration = het ___station", answer:"zuiverings"},
-  {id:601, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"les transports en commun = het ___ vervoer", answer:"openbaar"},
-  {id:602, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"propre = ___", answer:"schoon"},
-  {id:603, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"recyclable = ___", answer:"recycleerbaar"},
-  {id:604, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"recycler = ___", answer:"recycleren"},
-  {id:605, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"en vrac = in ___", answer:"bulk"},
-  // Énergie
-  {id:606, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"l'ampoule basse consommation (f) = de ___", answer:"spaarlamp"},
-  {id:607, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"l'éolienne (f) = de ___", answer:"windturbine"},
-  {id:608, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le panneau solaire = het ___", answer:"zonnepaneel"},
-  {id:609, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la source d'énergie = de ___bron", answer:"energie"},
-  {id:610, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"débrancher = ___ / loskoppelen", answer:"uitschakelen"},
-  // La pollution
-  {id:611, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le dioxyde de carbone (CO₂) = het ___", answer:"koolstofdioxide"},
-  {id:612, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"les eaux usées = het ___", answer:"afvalwater"},
-  {id:613, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la particule = het ___(deeltje)", answer:"fijnstof"},
-  {id:614, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la pollution = de ___", answer:"vervuiling"},
-  {id:615, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"polluant(e) = ___", answer:"vervuilend"},
-  {id:616, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"sale = ___", answer:"vuil"},
-  {id:617, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"polluer = ___", answer:"vervuilen"},
-  // Les déchets
-  {id:618, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le compost = de ___", answer:"compost"},
-  {id:619, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le container = de ___", answer:"sorteerbak"},
-  {id:620, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la décharge = de stortplaats / de ___", answer:"vuilnisbelt"},
-  {id:621, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"un déchet (ménager) = (huishoudelijk) ___", answer:"afval"},
-  {id:622, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"l'emballage plastique (m) = de plastic ___", answer:"verpakking"},
-  {id:623, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le gaspillage = de ___", answer:"verspilling"},
-  {id:624, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"les ordures ménagères = het ___ afval", answer:"huishoudelijk"},
-  {id:625, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le sac poubelle = de ___", answer:"vuilniszak"},
-  {id:626, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"le tri (des déchets) = het ___ (van het afval)", answer:"sorteren"},
-  {id:627, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"biodégradable = bio___", answer:"afbreekbaar"},
-  {id:628, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"gaspiller = ___", answer:"verspillen"},
-  {id:629, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"ramasser = ___", answer:"oprapen"},
-  {id:630, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"stocker = ___", answer:"opslaan"},
-  {id:631, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"trier (les déchets) = het afval ___", answer:"sorteren"},
-  // La nature
-  {id:632, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"la protection = de ___", answer:"bescherming"},
-  {id:633, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"protéger = ___", answer:"beschermen"},
-  // MC vragen écologie
-  {id:634, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'le constat' = ?", options:["de vaststelling","de controle","het bezwaar","de aanklacht"], answer:"de vaststelling"},
-  {id:635, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'la station d'épuration' = ?", options:["het zuiveringsstation","het pompstation","het recyclagepunt","de energiecentrale"], answer:"het zuiveringsstation"},
-  {id:636, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'en vrac' = ?", options:["in bulk","gratis","gerecycleerd","los verkocht"], answer:"in bulk"},
-  {id:637, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'la décharge' = ?", options:["de stortplaats / vuilnisbelt","de sorteerbak","het recyclagecentrum","de vuilniszak"], answer:"de stortplaats / vuilnisbelt"},
-  {id:638, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'l'emballage plastique' = ?", options:["de plastic verpakking","de plastic zak","de plastic fles","het plastic afval"], answer:"de plastic verpakking"},
-  {id:639, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'le gaspillage' = ?", options:["de verspilling","het afval","de vervuiling","het verbruik"], answer:"de verspilling"},
-  {id:640, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'débrancher' = ?", options:["uitschakelen / loskoppelen","opladen","aanzetten","installeren"], answer:"uitschakelen / loskoppelen"},
-  {id:641, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'diminuer' = ?", options:["verminderen / afnemen","vergroten","begrenzen","verdelen"], answer:"verminderen / afnemen"},
-  {id:642, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'les eaux usées' = ?", options:["het afvalwater","het drinkwater","het regenwater","het oppervlaktewater"], answer:"het afvalwater"},
-  // Actes de parole (mode de vie)
-  {id:643, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"'À ta place, je ___ moins de vêtements.' (mode de vie)", answer:"achèterais"},
-  {id:644, subject_id:11, type:"fill", topic:"Vocabulaire - écologie", question:"'Je ne voudrais plus ___ de nouveaux objets.' (kopen)", answer:"acheter"},
-  {id:645, subject_id:11, type:"mc", topic:"Vocabulaire - écologie", question:"'le carpooling' = ?", options:["het carpoolen","het openbaar vervoer","de fiets","de taxi"], answer:"het carpoolen"},
-  // Open
-  {id:646, subject_id:11, type:"open", topic:"Vocabulaire - écologie", question:"Geef 5 woorden uit de categorie 'les déchets' met vertaling.", answer:"le compost (compost), le container (sorteerbak), la décharge (stortplaats), les ordures ménagères (huishoudelijk afval), le sac poubelle (vuilniszak), le tri (sorteren), l'emballage plastique (plastic verpakking)."},
-  {id:647, subject_id:11, type:"open", topic:"Vocabulaire - écologie", question:"Vertaal: 'We moeten het afval sorteren en het verbruik verminderen.'", answer:"Nous devons trier les déchets et diminuer la consommation."},
-  {id:648, subject_id:11, type:"open", topic:"Vocabulaire - écologie", question:"Vertaal: 'Ik zou graag minder kopen en meer hergebruiken.' (mode de vie)", answer:"Je voudrais acheter moins et réutiliser davantage."},
-  {id:649, subject_id:11, type:"open", topic:"Vocabulaire - écologie", question:"Geef 4 energiebronnen in het Frans met lidwoord.", answer:"l'éolienne (windturbine), le panneau solaire (zonnepaneel), l'ampoule basse consommation (spaarlamp), la source d'énergie renouvelable (hernieuwbare energiebron)."},
-  {id:650, subject_id:11, type:"open", topic:"Vocabulaire - écologie", question:"Wat is 'parler de son mode de vie'? Geef 3 voorbeelduitdrukkingen.", answer:"Bv: 'À ma place, j'achèterais moins de gadgets.' / 'Je ne voudrais plus acheter de nouveaux objets.' / 'Je pourrais chercher des objets d'occasion.'"},
-];
-
-let WRONG_ANSWERS = []; // { question_id, question, correct_answer }
+// Global state
+let SUBJECTS = [];
+let SESSIONS = [];
+let QUESTIONS = [];
 let currentUser = null;
 let currentPage = 'dashboard';
-let activeTab = 'upcoming';
-let quizState = null; // { questions, idx, answers, revealed, selfScore }
-let supaClient = null;
 
-// ══ Init ══
-try {
-  supaClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-} catch(e) {}
+// ══════════════════════════════════════════════════════
+//  MAIN APP LOGIC
+// ══════════════════════════════════════════════════════
 
-window.addEventListener('DOMContentLoaded', () => {
-  setupNav();
-  setupAuth();
-  setupPlanner();
-
-  // Check existing session
-  const saved = localStorage.getItem('sm_user');
-  if (saved) {
-    currentUser = JSON.parse(saved);
+async function initApp() {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (session) {
+    currentUser = session.user;
+    await loadData();
     showApp();
+  } else {
+    showAuth();
   }
-});
 
-// ══ Notification ══
-function notify(msg, type='success') {
-  const n = document.getElementById('notif');
-  n.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
-  n.className = `notification ${type}`;
-  setTimeout(() => n.classList.add('hidden'), 3200);
-}
-
-// ══ Auth ══
-let authMode = 'login';
-
-function setupAuth() {
-  document.getElementById('auth-btn').addEventListener('click', handleAuth);
-  document.getElementById('inp-pw').addEventListener('keydown', e => e.key === 'Enter' && handleAuth());
-  document.getElementById('auth-switch-btn').addEventListener('click', () => {
-    authMode = authMode === 'login' ? 'register' : 'login';
-    const isReg = authMode === 'register';
-    document.getElementById('auth-title').textContent = isReg ? 'Account aanmaken' : 'Welkom terug 👋';
-    document.getElementById('auth-sub').textContent   = isReg ? 'Maak je gratis studeeraccount aan' : 'Log in op je studeeraccount';
-    document.getElementById('auth-btn').textContent   = isReg ? 'Registreren' : 'Inloggen';
-    document.getElementById('auth-switch-text').textContent = isReg ? 'Al een account? ' : 'Nog geen account? ';
-    document.getElementById('auth-switch-btn').textContent  = isReg ? 'Log in' : 'Registreer hier';
-    document.getElementById('field-name').style.display     = isReg ? 'flex' : 'none';
-    document.getElementById('auth-error').classList.add('hidden');
-  });
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    if (supaClient) supaClient.auth.signOut();
-    localStorage.removeItem('sm_user');
-    currentUser = null;
-    document.getElementById('auth-screen').classList.remove('hidden');
-    document.getElementById('app').classList.add('hidden');
+  // Page navigation
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => navigateTo(e.target.closest('.nav-item').dataset.page));
   });
 }
 
-async function handleAuth() {
-  const email = document.getElementById('inp-email').value.trim();
-  const pw    = document.getElementById('inp-pw').value;
-  const name  = document.getElementById('inp-name').value.trim();
-  const errEl = document.getElementById('auth-error');
-  errEl.classList.add('hidden');
-
-  if (!email || !pw) { errEl.textContent = 'Vul alle velden in.'; errEl.classList.remove('hidden'); return; }
-
-  document.getElementById('auth-btn').disabled = true;
-  document.getElementById('auth-btn').textContent = 'Laden...';
-
+async function loadData() {
   try {
-    let user;
-    if (supaClient && !SUPABASE_URL.includes('JOUW')) {
-      if (authMode === 'login') {
-        const { data, error } = await supaClient.auth.signInWithPassword({ email, password: pw });
-        if (error) throw error;
-        user = { id: data.user.id, email, name: data.user.user_metadata?.name || email.split('@')[0] };
-      } else {
-        const { data, error } = await supaClient.auth.signUp({ email, password: pw, options: { data: { name } } });
-        if (error) throw error;
-        user = { id: data.user.id, email, name: name || email.split('@')[0] };
-      }
-    } else {
-      // Demo mode
-      user = { id: 'demo-' + Date.now(), email, name: name || email.split('@')[0] };
-    }
-    currentUser = user;
-    localStorage.setItem('sm_user', JSON.stringify(user));
-    showApp();
-  } catch(e) {
-    errEl.textContent = e.message || 'Er ging iets mis.';
-    errEl.classList.remove('hidden');
-  } finally {
-    document.getElementById('auth-btn').disabled = false;
-    document.getElementById('auth-btn').textContent = authMode === 'login' ? 'Inloggen' : 'Registreren';
+    const [subjectsRes, sessionsRes, questionsRes] = await Promise.all([
+      supabase.from('subjects').select('*'),
+      supabase.from('sessions').select('*'),
+      supabase.from('questions').select('*')
+    ]);
+
+    if (subjectsRes.error) throw subjectsRes.error;
+    if (sessionsRes.error) throw sessionsRes.error;
+    if (questionsRes.error) throw questionsRes.error;
+
+    SUBJECTS = subjectsRes.data || [];
+    SESSIONS = sessionsRes.data || [];
+    QUESTIONS = questionsRes.data || [];
+
+    console.log('✅ Data loaded:', { subjects: SUBJECTS.length, sessions: SESSIONS.length, questions: QUESTIONS.length });
+  } catch (error) {
+    console.error('❌ Error loading data:', error);
+    showNotification('Fout bij laden van data: ' + error.message, 'error');
   }
+}
+
+function navigateTo(page) {
+  currentPage = page;
+  document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
+  document.getElementById('page-' + page).classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'subjects') renderSubjects();
+  if (page === 'planner') renderPlanner();
+  if (page === 'progress') renderProgress();
+  if (page === 'klas') renderKlas();
+}
+
+function renderDashboard() {
+  const stats = document.getElementById('dash-stats');
+  stats.innerHTML = `
+    <div class="stat-card c-purple">
+      <div class="stat-label">Totaal Vragen</div>
+      <div class="stat-value">${QUESTIONS.length}</div>
+      <div class="stat-sub">Vanaf dit semester</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-label">Sessies Voltooid</div>
+      <div class="stat-value">${SESSIONS.filter(s => s.status === 'done').length}</div>
+      <div class="stat-sub">Dit semester</div>
+    </div>
+    <div class="stat-card c-orange">
+      <div class="stat-label">Gemiddelde Score</div>
+      <div class="stat-value">-</div>
+      <div class="stat-sub">Nog geen scores</div>
+    </div>
+    <div class="stat-card c-red">
+      <div class="stat-label">Sessies Gepland</div>
+      <div class="stat-value">${SESSIONS.filter(s => s.status === 'planned').length}</div>
+      <div class="stat-sub">Aankomende sessies</div>
+    </div>
+  `;
+}
+
+function renderSubjects() {
+  const grid = document.getElementById('subjects-grid');
+  grid.innerHTML = SUBJECTS.map(s => {
+    const color = SUBJECT_COLORS[s.color_idx || 0];
+    return `
+      <div class="subject-card" style="border-left: 4px solid ${color.bg}">
+        <div class="accent-bar" style="background:${color.bg}"></div>
+        <div style="font-size:24px">📚</div>
+        <div class="subject-title">${s.name}</div>
+        <div style="font-size:12px;color:var(--muted)">${s.description}</div>
+        <div style="margin-top:12px;font-size:13px;font-weight:600;color:var(--accent)">${s.question_count || 0} vragen</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPlanner() {
+  const list = document.getElementById('sessions-list');
+  const upcomingSessions = SESSIONS.filter(s => s.status === 'planned').sort((a, b) => new Date(a.planned_at) - new Date(b.planned_at));
+  
+  if (upcomingSessions.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div>Geen geplande sessies</div></div>';
+    return;
+  }
+
+  list.innerHTML = upcomingSessions.map(s => {
+    const date = new Date(s.planned_at);
+    return `
+      <div class="session-card">
+        <div class="session-date">
+          <div class="day">${date.getDate()}</div>
+          <div class="mon">${date.toLocaleDateString('nl-NL', { month: 'short' })}</div>
+        </div>
+        <div class="session-info">
+          <div class="session-title">${s.subject_name}</div>
+          <div class="session-sub">${date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })} • ${s.duration_min} min</div>
+        </div>
+        <div class="badge badge-planned">GEPLAND</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderProgress() {
+  document.getElementById('progress-stats').innerHTML = `
+    <div class="stat-card c-purple">
+      <div class="stat-label">Totale Vragen Beantwoord</div>
+      <div class="stat-value">0</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-label">Correcte Antwoorden</div>
+      <div class="stat-value">0%</div>
+    </div>
+    <div class="stat-card c-orange">
+      <div class="stat-label">Studieuren</div>
+      <div class="stat-value">0h</div>
+    </div>
+  `;
+}
+
+function renderKlas() {
+  document.getElementById('klas-content').innerHTML = `
+    <div class="klas-header-card">
+      <div style="font-size:28px">🏆</div>
+      <div>
+        <div style="font-size:16px;font-weight:800">Leaderboard</div>
+        <div style="font-size:13px;color:var(--muted)">Competitie met je klasgenoten</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--muted)">Geen klasdata beschikbaar</div>
+  `;
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
 }
 
 function showApp() {
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('sidebar-name').textContent   = currentUser.name || currentUser.email;
-  document.getElementById('sidebar-avatar').textContent = (currentUser.name || currentUser.email || '?')[0].toUpperCase();
-  renderPage('dashboard');
-}
-
-// ══ Nav ══
-function setupNav() {
-  document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
-    btn.addEventListener('click', () => renderPage(btn.dataset.page));
-  });
-}
-
-function renderPage(page) {
-  currentPage = page;
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-  ['dashboard','subjects','planner','quiz','progress','klas'].forEach(p => {
-    document.getElementById('page-' + p).classList.toggle('hidden', p !== page);
-  });
-  if (page === 'dashboard') renderDashboard();
-  if (page === 'subjects')  renderSubjects();
-  if (page === 'planner')   renderPlanner();
-  if (page === 'quiz')      renderQuizSetup();
-  if (page === 'progress')  renderProgress();
-  if (page === 'klas')      renderKlas();
-}
-
-// ══ Dashboard ══
-function renderDashboard() {
-  const done    = SESSIONS.filter(s => s.status === 'done');
-  const planned = SESSIONS.filter(s => s.status === 'planned');
-  const avgScore = done.length ? Math.round(done.reduce((a,s) => a+(s.score||0),0)/done.length) : 0;
-  const totalQ   = SUBJECTS.reduce((a,s) => a+s.question_count, 0);
-
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card c-purple"><div class="stat-label">Totale vragen</div><div class="stat-value">${totalQ}</div><div class="stat-sub">Over ${SUBJECTS.length} vakken</div></div>
-    <div class="stat-card c-green"><div class="stat-label">Sessies gedaan</div><div class="stat-value">${done.length}</div><div class="stat-sub">Van ${SESSIONS.length} totaal</div></div>
-    <div class="stat-card c-orange"><div class="stat-label">Gem. score</div><div class="stat-value">${avgScore}%</div><div class="stat-sub">${done.length ? 'Laatste sessies' : 'Nog geen sessies'}</div></div>
-    <div class="stat-card c-red"><div class="stat-label">Geplande sessies</div><div class="stat-value">${planned.length}</div><div class="stat-sub">Komende periode</div></div>
-  `;
-
-  const upcoming = [...planned].sort((a,b) => new Date(a.planned_at)-new Date(b.planned_at)).slice(0,3);
-  const sessHTML = upcoming.length === 0
-    ? `<div class="empty-state"><div class="empty-icon">📅</div><p>Geen sessies gepland</p></div>`
-    : upcoming.map(s => {
-        const col = SUBJECT_COLORS[SUBJECTS.find(sub=>sub.id===s.subject_id)?.color_idx||0];
-        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
-          <div style="width:8px;height:8px;border-radius:50%;background:${col.bg};flex-shrink:0"></div>
-          <div style="flex:1"><div style="font-weight:600;font-size:14px">${s.subject_name}</div>
-            <div style="font-size:12px;color:var(--muted)">${fmtDt(s.planned_at)} · ${s.duration_min} min</div></div>
-          <button class="btn btn-primary btn-sm" onclick="startQuizFor(${s.subject_id})">Start</button>
-        </div>`;
-      }).join('');
-
-  const subHTML = SUBJECTS.slice(0,4).map(s => {
-    const col  = SUBJECT_COLORS[s.color_idx];
-    const prog = Math.min(100, Math.floor((s.question_count/70)*100));
-    return `<div style="margin-bottom:12px">
-      <div class="flex items-center justify-between mb-8">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="width:8px;height:8px;border-radius:50%;background:${col.bg};display:inline-block"></span>
-          <span style="font-size:14px;font-weight:500">${s.name}</span></div>
-        <span style="font-size:12px;color:var(--muted)">${s.question_count} vr.</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${col.bg}"></div></div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('dash-lower').innerHTML = `
-    <div class="card">
-      <div class="flex items-center justify-between mb-16">
-        <h3>Volgende sessies</h3>
-        <button class="btn btn-secondary btn-sm" onclick="renderPage('planner')">Alles zien</button>
-      </div>${sessHTML}</div>
-    <div class="card">
-      <div class="flex items-center justify-between mb-16">
-        <h3>Vakken</h3>
-        <button class="btn btn-secondary btn-sm" onclick="renderPage('subjects')">Alles zien</button>
-      </div>${subHTML}</div>
-  `;
-}
-
-// ══ Subjects ══
-function renderSubjects() {
-  document.getElementById('subjects-grid').innerHTML = SUBJECTS.map(s => {
-    const col  = SUBJECT_COLORS[s.color_idx];
-    const prog = Math.min(100, Math.floor((s.question_count/70)*100));
-    return `<div class="subject-card">
-      <div class="accent-bar" style="background:${col.bg}"></div>
-      <div class="subject-title">${s.name}</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${s.description}</div>
-      <div style="font-size:12px;color:var(--muted)">📝 ${s.question_count} vragen</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${col.bg}"></div></div>
-      <div style="margin-top:16px">
-        <button class="btn btn-primary btn-sm btn-full" onclick="startQuizFor(${s.id})">Quiz starten</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ══ Planner ══
-function setupPlanner() {
-  document.getElementById('add-session-btn').addEventListener('click', openSessionModal);
-  document.getElementById('close-session-modal').addEventListener('click', closeSessionModal);
-  document.getElementById('cancel-session-modal').addEventListener('click', closeSessionModal);
-  document.getElementById('session-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSessionModal(); });
-  document.getElementById('save-session-btn').addEventListener('click', saveSession);
-  document.querySelectorAll('.tab[data-tab]').forEach(t => {
-    t.addEventListener('click', () => {
-      activeTab = t.dataset.tab;
-      document.querySelectorAll('.tab[data-tab]').forEach(x => x.classList.toggle('active', x === t));
-      renderSessionsList();
-    });
-  });
-}
-
-function openSessionModal() {
-  const sel = document.getElementById('sess-subject');
-  sel.innerHTML = '<option value="">Kies een vak...</option>' +
-    SUBJECTS.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-  document.getElementById('session-modal').classList.remove('hidden');
-}
-function closeSessionModal() { document.getElementById('session-modal').classList.add('hidden'); }
-
-function saveSession() {
-  const subjectId = parseInt(document.getElementById('sess-subject').value);
-  const dt        = document.getElementById('sess-datetime').value;
-  if (!subjectId || !dt) { alert('Vul vak en datum in.'); return; }
-  const sub = SUBJECTS.find(s => s.id === subjectId);
-  SESSIONS.push({
-    id: Date.now(), subject_id: subjectId, subject_name: sub.name,
-    planned_at: dt, duration_min: parseInt(document.getElementById('sess-duration').value),
-    question_count: parseInt(document.getElementById('sess-qcount').value),
-    status: 'planned',
-  });
-  closeSessionModal();
-  renderPlanner();
-  notify('Sessie aangemaakt!');
-}
-
-function renderPlanner() {
-  renderSessionsList();
-}
-
-function renderSessionsList() {
-  const now = new Date();
-  let list = activeTab === 'upcoming'
-    ? SESSIONS.filter(s => s.status === 'planned' && new Date(s.planned_at) >= now).sort((a,b) => new Date(a.planned_at)-new Date(b.planned_at))
-    : SESSIONS.filter(s => s.status !== 'planned' || new Date(s.planned_at) < now).sort((a,b) => new Date(b.planned_at)-new Date(a.planned_at));
-
-  document.getElementById('sessions-list').innerHTML = list.length === 0
-    ? `<div class="empty-state"><div class="empty-icon">📅</div><p>Geen sessies in dit overzicht</p></div>`
-    : list.map(s => {
-        const d   = new Date(s.planned_at);
-        const col = SUBJECT_COLORS[SUBJECTS.find(sub=>sub.id===s.subject_id)?.color_idx||0];
-        const badgeCls = s.status === 'done' ? 'badge-done' : s.status === 'missed' ? 'badge-missed' : 'badge-planned';
-        const badgeTxt = s.status === 'done' ? 'Gedaan' : s.status === 'missed' ? 'Gemist' : 'Gepland';
-        const cancelBtn = s.status === 'planned'
-          ? `<button class="btn btn-danger btn-sm" onclick="cancelSession(${s.id})">✕</button>` : '';
-        return `<div class="session-card mb-8" style="gap:16px">
-          <div class="session-date" style="border-left:3px solid ${col.bg}">
-            <div class="day">${d.getDate()}</div>
-            <div class="mon">${d.toLocaleDateString('nl-BE',{month:'short'})}</div>
-          </div>
-          <div class="session-info">
-            <div class="session-title">${s.subject_name}</div>
-            <div class="session-sub">${d.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})} · ${s.duration_min} min · ${s.question_count} vragen${s.score?` · Score: ${s.score}%`:''}</div>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span class="badge ${badgeCls}">${badgeTxt}</span>${cancelBtn}
-          </div>
-        </div>`;
-      }).join('');
-}
-
-function cancelSession(id) {
-  SESSIONS = SESSIONS.map(s => s.id === id ? {...s, status:'missed'} : s);
-  renderSessionsList();
-}
-
-// ══ Quiz ══
-function startQuizFor(subjectId) {
-  renderPage('quiz');
-  renderQuizSetup(subjectId);
-}
-
-function renderQuizSetup(preSubjectId = null) {
-  const el = document.getElementById('page-quiz');
-  el.innerHTML = `
-    <div class="page-header"><h1>Quiz starten</h1><p>Kies je instellingen en begin met studeren</p></div>
-    <div style="max-width:520px;margin:0 auto">
-      <div class="card">
-        <h3 style="margin-bottom:20px">Configureer je quiz</h3>
-        <div class="col-gap">
-          <div class="form-group">
-            <label class="form-label">Vak</label>
-            <select class="form-input" id="qconf-subject">
-              <option value="">Alle vakken</option>
-              ${SUBJECTS.map(s=>`<option value="${s.id}"${preSubjectId==s.id?' selected':''}>${s.name}</option>`).join('')}
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Aantal vragen</label>
-            <input class="form-input" type="number" id="qconf-count" value="15" min="5" max="50" />
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:10px;padding:12px 16px">
-            <input type="checkbox" id="qconf-wrong" checked style="width:16px;height:16px;accent-color:var(--accent)" />
-            <label for="qconf-wrong" style="font-size:14px;cursor:pointer">
-              Eerder fout beantwoorde vragen prioriteit geven
-              ${WRONG_ANSWERS.length>0?`<span style="color:var(--accent2);font-weight:600"> (${WRONG_ANSWERS.length} open)</span>`:''}
-            </label>
-          </div>
-          <button class="btn btn-primary btn-lg btn-full" onclick="doStartQuiz()">Quiz starten 🧠</button>
-        </div>
-      </div>
-      ${WRONG_ANSWERS.length>0?`<div class="card mt-20" style="border-color:rgba(255,107,107,.3)">
-        <h4 style="color:var(--accent2);margin-bottom:12px">⚠️ Openstaande fouten (${WRONG_ANSWERS.length})</h4>
-        <p style="font-size:13px;color:var(--muted)">Deze vragen worden automatisch toegevoegd aan je volgende quiz.</p>
-      </div>`:''}
-    </div>`;
-}
-
-function doStartQuiz() {
-  const sid         = parseInt(document.getElementById('qconf-subject').value) || null;
-  const count       = parseInt(document.getElementById('qconf-count').value) || 15;
-  const inclWrong   = document.getElementById('qconf-wrong').checked;
-
-  let pool = QUESTIONS.filter(q => !sid || q.subject_id === sid);
-  if (inclWrong) {
-    const wrongIds = WRONG_ANSWERS.map(w => w.question_id);
-    const wq = pool.filter(q => wrongIds.includes(q.id));
-    const oq = pool.filter(q => !wrongIds.includes(q.id));
-    pool = [...wq, ...oq];
+  
+  if (currentUser) {
+    document.getElementById('sidebar-name').textContent = currentUser.email;
+    document.getElementById('sidebar-avatar').textContent = currentUser.email[0].toUpperCase();
   }
-  const selected = pool.slice(0, count);
-  if (selected.length === 0) { alert('Geen vragen beschikbaar voor dit vak!'); return; }
-
-  quizState = { questions: selected, idx: 0, answers: {}, revealed: {}, selfScore: {} };
-  renderQuizQuestion();
+  
+  navigateTo('dashboard');
 }
 
-function renderQuizQuestion() {
-  const { questions, idx, answers, revealed, selfScore } = quizState;
-  const q   = questions[idx];
-  const pct = Math.round((idx / questions.length) * 100);
-  const typeLabel = { mc:'Meerkeuze', open:'Open vraag', fill:'Invullen' }[q.type];
-
-  let bodyHTML = '';
-
-  if (q.type === 'mc') {
-    bodyHTML = `<div class="mc-options">` +
-      q.options.map((opt, i) => {
-        let cls = 'mc-opt';
-        if (revealed[idx]) {
-          if (opt === q.answer) cls += ' correct';
-          else if (opt === answers[idx] && opt !== q.answer) cls += ' wrong';
-        } else if (opt === answers[idx]) cls += ' selected';
-        return `<button class="${cls}" ${revealed[idx]?'disabled':''} onclick="pickMC('${escHtml(opt)}')">`
-          + `<span style="margin-right:10px;opacity:.5;font-size:12px">${String.fromCharCode(65+i)}</span>${escHtml(opt)}</button>`;
-      }).join('') + `</div>`;
-
-  } else if (q.type === 'open') {
-    const feedbackHTML = revealed[idx] ? `
-      <div class="feedback info" style="margin-top:16px">
-        <strong>Model-antwoord:</strong> ${escHtml(q.answer)}
-        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-          <span style="font-size:13px">Hoe deed je het?</span>
-          <button class="btn btn-sm" style="background:${selfScore[idx]==='correct'?'rgba(67,233,123,.3)':'rgba(67,233,123,.1)'};color:var(--accent3);padding:4px 12px" onclick="setSelf('correct')">✓ Correct</button>
-          <button class="btn btn-sm" style="background:${selfScore[idx]==='wrong'?'rgba(255,107,107,.3)':'rgba(255,107,107,.1)'};color:var(--accent2);padding:4px 12px" onclick="setSelf('wrong')">✗ Fout</button>
-        </div>
-      </div>` : '';
-    bodyHTML = `<textarea class="form-input" id="open-ans" style="min-height:100px" placeholder="Schrijf je antwoord hier..." ${revealed[idx]?'disabled':''}>${escHtml(answers[idx]||'')}</textarea>${feedbackHTML}`;
-
-  } else if (q.type === 'fill') {
-    const parts    = q.question.split('___');
-    const isCorr   = revealed[idx] ? (answers[idx]||'').toLowerCase().trim() === q.answer.toLowerCase().trim() : null;
-    const fillEl   = `<input class="fill-input" id="fill-ans" value="${escHtml(answers[idx]||'')}" placeholder="..." ${revealed[idx]?'disabled':''}/>`;
-    const lineHTML = parts.map((p,i) => escHtml(p) + (i < parts.length-1 ? fillEl : '')).join('');
-    const fbHTML   = revealed[idx]
-      ? `<div class="feedback ${isCorr?'correct':'wrong'}" style="margin-top:12px">${isCorr?'✓ Correct!':'✗ Fout. Correct: '+escHtml(q.answer)}</div>` : '';
-    bodyHTML = `<div style="font-size:16px;line-height:2.8">${lineHTML}</div>${fbHTML}`;
-  }
-
-  const canNext = revealed[idx] && (q.type !== 'open' || selfScore[idx]);
-  const checkBtn = !revealed[idx] && q.type !== 'mc'
-    ? `<button class="btn btn-secondary" onclick="checkAnswer()">Controleer</button>` : '';
-  const nextBtn = canNext
-    ? `<button class="btn btn-primary" onclick="nextQuestion()">${idx < questions.length-1 ? 'Volgende →' : 'Resultaten bekijken'}</button>` : '';
-
-  document.getElementById('page-quiz').innerHTML = `
-    <div class="quiz-wrap">
-      <div class="quiz-progress">
-        <div class="quiz-bar"><div class="quiz-fill" style="width:${pct}%"></div></div>
-        <span class="quiz-counter">${idx+1} / ${questions.length}</span>
-      </div>
-      <div class="question-card">
-        <span class="q-type ${q.type}">${typeLabel}</span>
-        ${q.topic?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">📌 ${escHtml(q.topic)}</div>`:''}
-        <div class="question-text">${escHtml(q.question)}</div>
-        ${bodyHTML}
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:10px">${checkBtn}${nextBtn}</div>
-    </div>`;
+function showNotification(msg, type = 'success') {
+  const notif = document.getElementById('notif');
+  notif.textContent = msg;
+  notif.className = `notification ${type}`;
+  notif.classList.remove('hidden');
+  setTimeout(() => notif.classList.add('hidden'), 4000);
 }
 
-function pickMC(opt) {
-  if (quizState.revealed[quizState.idx]) return;
-  quizState.answers[quizState.idx] = opt;
-  quizState.revealed[quizState.idx] = true;
-  renderQuizQuestion();
-}
+// ══════════════════════════════════════════════════════
+//  AUTH HANDLERS
+// ══════════════════════════════════════════════════════
 
-function checkAnswer() {
-  const q = quizState.questions[quizState.idx];
-  let val = '';
-  if (q.type === 'open') val = document.getElementById('open-ans')?.value || '';
-  if (q.type === 'fill') val = document.getElementById('fill-ans')?.value || '';
-  quizState.answers[quizState.idx] = val;
-  quizState.revealed[quizState.idx] = true;
-  renderQuizQuestion();
-}
+document.getElementById('auth-btn').addEventListener('click', handleAuth);
+document.getElementById('auth-switch-btn').addEventListener('click', toggleAuthMode);
+document.getElementById('logout-btn').addEventListener('click', handleLogout);
 
-function setSelf(verdict) {
-  quizState.selfScore[quizState.idx] = verdict;
-  renderQuizQuestion();
-}
-
-function nextQuestion() {
-  const { questions, idx } = quizState;
-  if (idx < questions.length - 1) {
-    quizState.idx++;
-    renderQuizQuestion();
-  } else {
-    showResults();
-  }
-}
-
-function isCorrect(i) {
-  const q = quizState.questions[i];
-  if (q.type === 'open') return quizState.selfScore[i] !== 'wrong';
-  return (quizState.answers[i]||'').toLowerCase().trim() === q.answer.toLowerCase().trim();
-}
-
-function showResults() {
-  const { questions } = quizState;
-  const results = questions.map((q,i) => ({ question:q.question, given:quizState.answers[i]||'', correct_answer:q.answer, correct:isCorrect(i), question_id:q.id }));
-  const score   = Math.round((results.filter(r=>r.correct).length / results.length)*100);
-  const wrong   = results.filter(r => !r.correct);
-
-  // Update WRONG_ANSWERS
-  const newWrong = wrong.map(r => ({ question_id:r.question_id, question:r.question, correct_answer:r.correct_answer }));
-  WRONG_ANSWERS = [...WRONG_ANSWERS.filter(w => !results.find(r=>r.question_id===w.question_id)), ...newWrong];
-
-  const borderColor = score>=70?'var(--accent3)':score>=50?'var(--orange)':'var(--accent2)';
-  const emoji = score>=80?'🔥 Uitstekend!':score>=60?'👍 Goed bezig!':'📚 Blijf oefenen!';
-
-  const wrongHTML = wrong.length === 0 ? '' : `
-    <div class="card mb-20">
-      <h3 style="color:var(--accent2);margin-bottom:16px">Foute antwoorden (${wrong.length})</h3>
-      <div class="wrong-list">
-        ${wrong.map(w=>`<div class="wrong-item">
-          <div class="wq">${escHtml(w.question)}</div>
-          <div class="wa">❌ Jouw antwoord: ${escHtml(w.given)||'(leeg)'}</div>
-          <div class="wc">✓ Correct: ${escHtml(w.correct_answer)}</div>
-        </div>`).join('')}
-      </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:12px">Deze vragen worden meegenomen naar je volgende sessie.</p>
-    </div>`;
-
-  document.getElementById('page-quiz').innerHTML = `
-    <div class="results-wrap">
-      <div class="page-header" style="text-align:center"><h1>Resultaten</h1></div>
-      <div class="card mb-20">
-        <div class="score-circle" style="border-color:${borderColor}">
-          <div class="score-pct" style="color:${borderColor}">${score}%</div>
-          <div class="score-lbl">Score</div>
-        </div>
-        <p style="text-align:center;font-size:14px;color:var(--muted);margin-bottom:4px">${results.filter(r=>r.correct).length} van ${results.length} correct</p>
-        <p style="text-align:center;font-size:13px;color:${borderColor}">${emoji}</p>
-      </div>
-      ${wrongHTML}
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-secondary" style="flex:1" onclick="renderQuizSetup()">Nieuwe quiz</button>
-        <button class="btn btn-primary" style="flex:1" onclick="doStartQuiz()">Opnieuw</button>
-      </div>
-    </div>`;
-
-  notify(`Quiz voltooid! Score: ${score}%`, score>=60?'success':'error');
-}
-
-// ══ Progress ══
-function renderProgress() {
-  const done   = SESSIONS.filter(s => s.status === 'done');
-  const scores = done.map(s => s.score||0);
-  const avg    = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
-
-  document.getElementById('progress-stats').innerHTML = `
-    <div class="stat-card c-green"><div class="stat-label">Gemiddelde score</div><div class="stat-value">${avg}%</div></div>
-    <div class="stat-card c-purple"><div class="stat-label">Sessies voltooid</div><div class="stat-value">${done.length}</div></div>
-    <div class="stat-card c-red"><div class="stat-label">Open fouten</div><div class="stat-value">${WRONG_ANSWERS.length}</div><div class="stat-sub">Worden herhaald</div></div>
-  `;
-
-  const perVak = SUBJECTS.map(s => {
-    const sub = done.filter(sess=>sess.subject_id===s.id);
-    const a   = sub.length ? Math.round(sub.reduce((x,b)=>x+(b.score||0),0)/sub.length) : null;
-    const col = SUBJECT_COLORS[s.color_idx];
-    return `<div style="margin-bottom:16px">
-      <div class="flex items-center justify-between mb-8">
-        <span style="font-size:14px;font-weight:500">${s.name}</span>
-        <span style="font-size:13px;color:var(--muted)">${a!==null?a+'%':'Geen data'}</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${a||0}%;background:${col.bg}"></div></div>
-    </div>`;
-  }).join('');
-
-  const recentHTML = done.length===0
-    ? `<div class="empty-state"><div class="empty-icon">📊</div><p>Nog geen voltooide sessies</p></div>`
-    : done.slice(0,5).map(s=>{
-        const c = s.score>=70?'var(--accent3)':s.score>=50?'var(--orange)':'var(--accent2)';
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
-          <div><div style="font-size:14px;font-weight:500">${s.subject_name}</div>
-               <div style="font-size:12px;color:var(--muted)">${new Date(s.planned_at).toLocaleDateString('nl-BE')}</div></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:${c}">${s.score}%</div>
-        </div>`;
-      }).join('');
-
-  document.getElementById('progress-lower').innerHTML = `
-    <div class="card"><h3 style="margin-bottom:16px">Score per vak</h3>${perVak}</div>
-    <div class="card"><h3 style="margin-bottom:16px">Recente sessies</h3>${recentHTML}</div>
-  `;
-}
-
-// ══ Klas ══
-
-// Demo klasdata — in productie komt dit uit Supabase public_profiles + session_stats views
-const DEMO_CLASSMATES = [
-  { id:'u1', name:'Lena Verstraete',  sessions_done:12, avg_score:84, subjects_progress:[90,75,80,60], wrong_open:2  },
-  { id:'u2', name:'Noah Declercq',    sessions_done:9,  avg_score:71, subjects_progress:[65,80,55,70], wrong_open:5  },
-  { id:'u3', name:'Amber Janssens',   sessions_done:15, avg_score:91, subjects_progress:[95,88,92,85], wrong_open:1  },
-  { id:'u4', name:'Remi Depoorter',   sessions_done:6,  avg_score:58, subjects_progress:[50,60,45,70], wrong_open:11 },
-  { id:'u5', name:'Elise Baert',      sessions_done:11, avg_score:77, subjects_progress:[80,70,75,82], wrong_open:4  },
-  { id:'u6', name:'Finn Vermeersch',  sessions_done:8,  avg_score:65, subjects_progress:[60,72,58,68], wrong_open:7  },
-];
-
-const AVATAR_COLORS = ['#6c63ff','#ff6b6b','#43e97b','#f59e0b','#06b6d4','#ec4899','#8b5cf6','#10b981'];
-
-async function renderKlas() {
-  const el = document.getElementById('klas-content');
-  el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">Laden...</div>`;
-
-  // Probeer echte data uit Supabase, anders demo
-  let students = [];
+async function handleAuth() {
+  const email = document.getElementById('inp-email').value;
+  const password = document.getElementById('inp-pw').value;
+  const isSignup = document.getElementById('field-name').style.display !== 'none';
+  
   try {
-    if (supaClient && !SUPABASE_URL.includes('JOUW')) {
-      const { data } = await supaClient.from('student_stats').select('*').order('avg_score', { ascending: false });
-      if (data && data.length > 0) students = data;
-      else students = buildDemoStudents();
+    if (isSignup) {
+      const name = document.getElementById('inp-name').value;
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      showNotification('✅ Account aangemaakt! Controleer je email.');
+      toggleAuthMode();
     } else {
-      students = buildDemoStudents();
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      currentUser = data.user;
+      await loadData();
+      showApp();
     }
-  } catch(e) {
-    students = buildDemoStudents();
+  } catch (error) {
+    const errorDiv = document.getElementById('auth-error');
+    errorDiv.textContent = '❌ ' + error.message;
+    errorDiv.classList.remove('hidden');
   }
-
-  // Sorteer op gem. score
-  students.sort((a,b) => b.avg_score - a.avg_score);
-
-  const myId = currentUser?.id;
-  const myPos = students.findIndex(s => s.id === myId);
-  const top3 = students.slice(0,3);
-  const maxScore = Math.max(...students.map(s=>s.avg_score), 1);
-  const maxSessions = Math.max(...students.map(s=>s.sessions_done), 1);
-
-  // Header card met eigen positie
-  const myRankTxt = myPos >= 0 ? `#${myPos+1} van ${students.length}` : 'Nog geen data';
-  const myStudent = students.find(s=>s.id===myId);
-
-  el.innerHTML = `
-    <div class="klas-header-card">
-      <div style="font-size:40px">🏆</div>
-      <div style="flex:1">
-        <div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px">Jouw klassering</div>
-        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800">${myRankTxt}</div>
-        ${myStudent?`<div style="font-size:13px;color:var(--muted);margin-top:2px">Score ${myStudent.avg_score}% · ${myStudent.sessions_done} sessies gedaan</div>`:''}
-      </div>
-      <div style="display:flex;gap:24px">
-        ${top3.map((s,i)=>{
-          const medals = ['🥇','🥈','🥉'];
-          return `<div style="text-align:center">
-            <div style="font-size:20px">${medals[i]}</div>
-            <div style="font-size:12px;font-weight:600;margin-top:4px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(s.name.split(' ')[0])}</div>
-            <div style="font-size:12px;color:var(--muted)">${s.avg_score}%</div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>
-
-    <div style="display:flex;gap:12px;margin-bottom:20px">
-      <div class="card" style="flex:1;text-align:center;padding:16px">
-        <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif">${students.length}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">Studenten actief</div>
-      </div>
-      <div class="card" style="flex:1;text-align:center;padding:16px">
-        <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif">${Math.round(students.reduce((a,s)=>a+s.avg_score,0)/students.length)}%</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">Klas gemiddelde</div>
-      </div>
-      <div class="card" style="flex:1;text-align:center;padding:16px">
-        <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif">${students.reduce((a,s)=>a+s.sessions_done,0)}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">Totale sessies klas</div>
-      </div>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${students.map((s, i) => {
-        const isMe = s.id === myId;
-        const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-        const rankDisp = i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`;
-        const aColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
-        const scoreColor = s.avg_score>=80?'var(--accent3)':s.avg_score>=60?'var(--orange)':'var(--accent2)';
-
-        const barsHTML = SUBJECTS.slice(0,4).map((sub,si) => {
-          const pct = s.subjects_progress?.[si] ?? 0;
-          const col = SUBJECT_COLORS[sub.color_idx];
-          return `<div class="lb-bar-row">
-            <span class="lb-bar-label">${sub.name.slice(0,3)}</span>
-            <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${pct}%;background:${col.bg}"></div></div>
-          </div>`;
-        }).join('');
-
-        return `<div class="lb-row${isMe?' is-me':''}">
-          <div class="lb-rank ${rankCls}">${rankDisp}</div>
-          <div class="lb-avatar" style="background:${aColor}">${s.name[0].toUpperCase()}</div>
-          <div class="lb-info">
-            <div class="lb-name">${escHtml(s.name)}${isMe?'<span class="lb-you">jij</span>':''}</div>
-            <div class="lb-sub">${s.sessions_done} sessies · ${s.wrong_open} fouten open</div>
-          </div>
-          <div class="lb-bars">${barsHTML}</div>
-          <div class="lb-score" style="color:${scoreColor}">${s.avg_score}%</div>
-        </div>`;
-      }).join('')}
-    </div>
-
-    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:20px">
-      ${supaClient && !SUPABASE_URL.includes('JOUW') ? '🔴 Live data uit Supabase' : '📋 Demo data — koppel Supabase voor live klasoverzicht'}
-    </p>
-  `;
 }
 
-function buildDemoStudents() {
-  // Voeg huidige gebruiker toe aan demo data
-  const me = {
-    id: currentUser?.id || 'me',
-    name: currentUser?.name || currentUser?.email?.split('@')[0] || 'Jij',
-    sessions_done: SESSIONS.filter(s=>s.status==='done').length,
-    avg_score: (() => { const d=SESSIONS.filter(s=>s.status==='done'); return d.length?Math.round(d.reduce((a,s)=>a+(s.score||0),0)/d.length):0; })(),
-    subjects_progress: SUBJECTS.map((_,i) => [55,40,70,35][i]||50),
-    wrong_open: WRONG_ANSWERS.length,
-  };
-  return [...DEMO_CLASSMATES, me];
+function toggleAuthMode() {
+  const isSignup = document.getElementById('field-name').style.display !== 'none';
+  document.getElementById('field-name').style.display = isSignup ? 'none' : 'flex';
+  document.getElementById('auth-title').textContent = isSignup ? 'Welkom terug 👋' : 'Nieuw account 🎉';
+  document.getElementById('auth-sub').textContent = isSignup ? 'Log in op je studeeraccount' : 'Maak een nieuw account aan';
+  document.getElementById('auth-btn').textContent = isSignup ? 'Inloggen' : 'Registreren';
+  document.getElementById('auth-switch-text').textContent = isSignup ? 'Nog geen account? ' : 'Al een account? ';
+  document.getElementById('auth-switch-btn').textContent = isSignup ? 'Registreer hier' : 'Log in hier';
+  document.getElementById('auth-error').classList.add('hidden');
 }
 
-// ══ Helpers ══
-function fmtDt(dt) {
-  const d = new Date(dt);
-  return d.toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'}) + ' ' +
-         d.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
+async function handleLogout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) console.error(error);
+  currentUser = null;
+  showAuth();
 }
-function escHtml(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+
+// Start the app
+initApp();
 </script>
 </body>
 </html>
