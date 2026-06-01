@@ -261,7 +261,7 @@
     <div class="sidebar-logo">Study<span>Mate</span></div>
     <div class="sidebar-nav">
       <button class="nav-item active" data-page="dashboard"><span class="icon">⬡</span>Dashboard</button>
-      <button class="nav-item" data-page="subjects"><span class="icon">📚</span>Hoofdstukken</button>
+      <button class="nav-item" data-page="subjects"><span class="icon">📚</span>Vakken</button>
       <button class="nav-item" data-page="planner"><span class="icon">📅</span>Planner</button>
       <button class="nav-item" data-page="quiz"><span class="icon">🧠</span>Quiz starten</button>
       <button class="nav-item" data-page="progress"><span class="icon">📊</span>Voortgang</button>
@@ -290,7 +290,7 @@
 
     <!-- SUBJECTS -->
     <div id="page-subjects" class="hidden">
-      <div class="page-header"><h1>Frans — Hoofdstukken</h1><p>Klik op een hoofdstuk om de quiz te starten</p></div>
+      <div id="subjects-header" class="page-header"><h1>Vakken</h1><p>Kies een vak om de hoofdstukken te zien</p></div>
       <div class="grid-3" id="subjects-grid"></div>
     </div>
 
@@ -473,17 +473,40 @@ function renderDashboard() {
 }
 
 function renderSubjects() {
+  // Toon de vakken (enkel Frans)
+  document.getElementById('subjects-header').innerHTML = '<h1>Vakken</h1><p>Kies een vak om de hoofdstukken te zien</p>';
+  const grid = document.getElementById('subjects-grid');
+  grid.innerHTML = `
+    <div class="subject-card" onclick="renderHoofdstukken()" style="border-left:4px solid #6c63ff">
+      <div class="accent-bar" style="background:#6c63ff"></div>
+      <div style="font-size:32px">🇫🇷</div>
+      <div class="subject-title">Frans</div>
+      <div style="font-size:12px;color:var(--muted)">Nouveau Quartier français 4 — Examen 2</div>
+      <div style="margin-top:12px;font-size:13px;font-weight:600;color:#6c63ff">${SUBJECTS.length} hoofdstukken · ${SUBJECTS.reduce((a,s)=>a+(s.question_count||0),0)} vragen</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted)">Klik om hoofdstukken te zien →</div>
+    </div>
+  `;
+}
+
+function renderHoofdstukken() {
+  document.getElementById('subjects-header').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+      <button onclick="renderSubjects()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:13px">← Vakken</button>
+      <h1>Frans — Hoofdstukken</h1>
+    </div>
+    <p>Klik op een hoofdstuk om de quiz te starten</p>
+  `;
   const grid = document.getElementById('subjects-grid');
   grid.innerHTML = SUBJECTS.map(s => {
     const color = SUBJECT_COLORS[s.color_idx || 0];
     return `
-      <div class="subject-card" onclick="startQuizForSubject(${s.id})" style="border-left: 4px solid ${color.bg}">
+      <div class="subject-card" onclick="startQuizForSubject(${s.id})" style="border-left:4px solid ${color.bg}">
         <div class="accent-bar" style="background:${color.bg}"></div>
-        <div style="font-size:24px">📚</div>
+        <div style="font-size:22px">📖</div>
         <div class="subject-title">${s.name.replace('Frans - ', '')}</div>
         <div style="font-size:12px;color:var(--muted)">${s.description}</div>
         <div style="margin-top:12px;font-size:13px;font-weight:600;color:${color.bg}">${s.question_count || 0} vragen</div>
-        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Klik om te oefenen →</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Klik om te oefenen →</div>
       </div>
     `;
   }).join('');
@@ -491,10 +514,9 @@ function renderSubjects() {
 
 function startQuizForSubject(subjectId) {
   navigateTo('quiz');
-  // Pre-selecteer het hoofdstuk in de quiz setup
   setTimeout(() => {
     const sel = document.getElementById('quiz-subject-sel');
-    if (sel) { sel.value = subjectId; }
+    if (sel) sel.value = subjectId;
   }, 50);
 }
 
