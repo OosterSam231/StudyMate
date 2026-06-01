@@ -261,7 +261,7 @@
     <div class="sidebar-logo">Study<span>Mate</span></div>
     <div class="sidebar-nav">
       <button class="nav-item active" data-page="dashboard"><span class="icon">⬡</span>Dashboard</button>
-      <button class="nav-item" data-page="subjects"><span class="icon">📚</span>Vakken</button>
+      <button class="nav-item" data-page="subjects"><span class="icon">📚</span>Hoofdstukken</button>
       <button class="nav-item" data-page="planner"><span class="icon">📅</span>Planner</button>
       <button class="nav-item" data-page="quiz"><span class="icon">🧠</span>Quiz starten</button>
       <button class="nav-item" data-page="progress"><span class="icon">📊</span>Voortgang</button>
@@ -290,7 +290,7 @@
 
     <!-- SUBJECTS -->
     <div id="page-subjects" class="hidden">
-      <div class="page-header"><h1>Vakken</h1><p>Alle vakken met bijhorende leerstof en vragen</p></div>
+      <div class="page-header"><h1>Frans — Hoofdstukken</h1><p>Klik op een hoofdstuk om de quiz te starten</p></div>
       <div class="grid-3" id="subjects-grid"></div>
     </div>
 
@@ -477,15 +477,25 @@ function renderSubjects() {
   grid.innerHTML = SUBJECTS.map(s => {
     const color = SUBJECT_COLORS[s.color_idx || 0];
     return `
-      <div class="subject-card" style="border-left: 4px solid ${color.bg}">
+      <div class="subject-card" onclick="startQuizForSubject(${s.id})" style="border-left: 4px solid ${color.bg}">
         <div class="accent-bar" style="background:${color.bg}"></div>
         <div style="font-size:24px">📚</div>
-        <div class="subject-title">${s.name}</div>
+        <div class="subject-title">${s.name.replace('Frans - ', '')}</div>
         <div style="font-size:12px;color:var(--muted)">${s.description}</div>
-        <div style="margin-top:12px;font-size:13px;font-weight:600;color:var(--accent)">${s.question_count || 0} vragen</div>
+        <div style="margin-top:12px;font-size:13px;font-weight:600;color:${color.bg}">${s.question_count || 0} vragen</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Klik om te oefenen →</div>
       </div>
     `;
   }).join('');
+}
+
+function startQuizForSubject(subjectId) {
+  navigateTo('quiz');
+  // Pre-selecteer het hoofdstuk in de quiz setup
+  setTimeout(() => {
+    const sel = document.getElementById('quiz-subject-sel');
+    if (sel) { sel.value = subjectId; }
+  }, 50);
 }
 
 function renderPlanner() {
@@ -569,6 +579,55 @@ function showNotification(msg, type = 'success') {
   notif.classList.remove('hidden');
   setTimeout(() => notif.classList.add('hidden'), 4000);
 }
+
+// ══════════════════════════════════════════════════════
+//  PLANNER HANDLERS
+// ══════════════════════════════════════════════════════
+
+document.getElementById('add-session-btn').addEventListener('click', () => {
+  // Vul hoofdstukken in dropdown
+  const sel = document.getElementById('sess-subject');
+  sel.innerHTML = SUBJECTS.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('');
+  document.getElementById('session-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-session-modal').addEventListener('click', () => {
+  document.getElementById('session-modal').classList.add('hidden');
+});
+
+document.getElementById('cancel-session-modal').addEventListener('click', () => {
+  document.getElementById('session-modal').classList.add('hidden');
+});
+
+document.getElementById('save-session-btn').addEventListener('click', async () => {
+  const sel = document.getElementById('sess-subject');
+  const subjectId = parseInt(sel.value);
+  const subjectName = sel.options[sel.selectedIndex]?.dataset.name || '';
+  const plannedAt = document.getElementById('sess-datetime').value;
+  const duration = parseInt(document.getElementById('sess-duration').value);
+  const qcount = parseInt(document.getElementById('sess-qcount').value);
+
+  if (!plannedAt) { showNotification('Kies een datum en tijd', 'error'); return; }
+
+  const { error } = await supabase.from('sessions').insert({
+    user_id: currentUser.id,
+    subject_id: subjectId,
+    subject_name: subjectName,
+    planned_at: new Date(plannedAt).toISOString(),
+    duration_min: duration,
+    question_count: qcount,
+    status: 'planned'
+  });
+
+  if (error) { showNotification('Fout: ' + error.message, 'error'); return; }
+
+  document.getElementById('session-modal').classList.add('hidden');
+  showNotification('Sessie gepland!');
+  // Herlaad sessions
+  const { data } = await supabase.from('sessions').select('*').eq('user_id', currentUser.id);
+  SESSIONS = data || [];
+  renderPlanner();
+});
 
 // ══════════════════════════════════════════════════════
 //  AUTH HANDLERS
