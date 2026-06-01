@@ -441,6 +441,7 @@ function navigateTo(page) {
   if (page === 'dashboard') renderDashboard();
   if (page === 'subjects') renderSubjects();
   if (page === 'planner') renderPlanner();
+  if (page === 'quiz') renderPage_quiz();
   if (page === 'progress') renderProgress();
   if (page === 'klas') renderKlas();
 }
@@ -806,12 +807,6 @@ async function showResults() {
     </div>`;
 }
 
-// Patch navigateTo to call quiz setup
-const _origNav = navigateTo;
-function navigateTo(page) {
-  _origNav(page);
-  if (page === 'quiz') renderPage_quiz();
-}
 
 // Start the app
 initApp();
