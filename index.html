@@ -272,7 +272,7 @@
         <div class="avatar" id="sidebar-avatar">S</div>
         <div style="flex:1;overflow:hidden">
           <div id="sidebar-name" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Student</div>
-          <div style="font-size:11px;color:var(--muted)">Student</div>
+          <button onclick="editName()" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:0;text-align:left">✏️ naam wijzigen</button>
         </div>
         <button class="btn btn-sm" id="logout-btn" style="padding:4px 8px;font-size:11px" title="Uitloggen">↩</button>
       </div>
@@ -617,41 +617,246 @@ document.getElementById('week-today').addEventListener('click', () => { calOffse
 let studyTimer = null;
 let activeSession = null;
 
+// ══════════════════════════════════════════════════════
+//  STUDEER SESSIE — Adaptief leersysteem
+// ══════════════════════════════════════════════════════
+let learnPool     = [];   // vragen die nog geleerd moeten worden
+let learnKnown    = [];   // vragen die je kent
+let learnCurrent  = null;
+let learnMode     = 'mc'; // modus voor huidige vraag: 'mc'|'type'|'flash'
+let studyRemaining = 0;
+
 async function openStudySession(sessionId) {
   activeSession = SESSIONS.find(s => s.id === sessionId);
   if (!activeSession) return;
 
-  document.getElementById('study-subject').textContent = (activeSession.subject_name||'').replace('Frans - ','');
+  const { data: wrongData } = await supabase
+    .from('wrong_answers').select('question_id')
+    .eq('user_id', currentUser.id).eq('subject_id', activeSession.subject_id);
+  const wrongIds = new Set((wrongData||[]).map(w => w.question_id));
+
+  const allQ = QUESTIONS.filter(q => q.subject_id === activeSession.subject_id);
+  const wrongPool  = allQ.filter(q => wrongIds.has(q.id)).map(q => ({...q, _priority: true}));
+  const normalPool = allQ.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-.5);
+
+  learnPool    = [...wrongPool, ...normalPool];
+  learnKnown   = [];
+  studyRemaining = (activeSession.duration_min || 30) * 60;
+
   document.getElementById('study-overlay').classList.remove('hidden');
-
-  let remaining = (activeSession.duration_min || 30) * 60;
-
-  function tick() {
-    const m = String(Math.floor(remaining/60)).padStart(2,'0');
-    const s = String(remaining % 60).padStart(2,'0');
-    document.getElementById('study-timer').textContent = `${m}:${s}`;
-    if (remaining <= 0) {
-      clearInterval(studyTimer);
-      document.getElementById('study-timer').style.color = 'var(--accent3)';
-      document.getElementById('study-toets-btn').textContent = '📝 Toets starten (tijd om!)';
-    }
-    remaining--;
-  }
-  tick();
-  studyTimer = setInterval(tick, 1000);
+  startStudyTimer();
+  nextLearnCard();
 }
 
-document.getElementById('study-stop-btn').addEventListener('click', () => {
+function startStudyTimer() {
+  clearInterval(studyTimer);
+  studyTimer = setInterval(() => {
+    studyRemaining--;
+    const el = document.getElementById('study-timer-val');
+    if (el) {
+      const m = String(Math.floor(studyRemaining/60)).padStart(2,'0');
+      const s = String(studyRemaining % 60).padStart(2,'0');
+      el.textContent = `${m}:${s}`;
+      el.style.color = studyRemaining < 60 ? 'var(--accent2)' : 'var(--accent)';
+    }
+    if (studyRemaining <= 0) {
+      clearInterval(studyTimer);
+      const btn = document.getElementById('study-toets-btn');
+      if (btn) btn.textContent = '📝 Tijd om! Start toets';
+    }
+  }, 1000);
+}
+
+// Kies welke modus past bij de vraag
+function pickMode(q) {
+  if (q.type === 'mc') return 'mc';
+  if (q.type === 'fill') return Math.random() < .6 ? 'type' : 'mc_generated';
+  return Math.random() < .5 ? 'type' : 'flash';
+}
+
+// Genereer MC opties vanuit andere antwoorden in de pool
+function generateMCOptions(q) {
+  const correct = q.answer;
+  const others = [...learnPool, ...learnKnown]
+    .filter(x => x.id !== q.id && x.answer && x.answer !== correct)
+    .map(x => x.answer)
+    .sort(() => Math.random()-.5)
+    .slice(0, 3);
+  return [correct, ...others].sort(() => Math.random()-.5);
+}
+
+function nextLearnCard() {
+  if (!learnPool.length) {
+    renderLearnComplete();
+    return;
+  }
+  learnCurrent = learnPool[0];
+  learnMode = pickMode(learnCurrent);
+  renderLearnCard();
+}
+
+function renderLearnCard() {
+  const q = learnCurrent;
+  const overlay = document.getElementById('study-overlay');
+  const total = learnPool.length + learnKnown.length;
+  const known = learnKnown.length;
+  const pct = Math.round(known / total * 100);
+  const m = String(Math.floor(studyRemaining/60)).padStart(2,'0');
+  const s = String(studyRemaining % 60).padStart(2,'0');
+
+  // Genereer opties voor mc_generated
+  const mcOpts = (learnMode === 'mc_generated') ? generateMCOptions(q)
+    : (q.type === 'mc' ? (Array.isArray(q.options) ? q.options : JSON.parse(q.options||'[]')) : []);
+
+  // Hint: eerste letters van antwoord
+  const hint = q.answer.split('').map((c,i) => i===0 ? c : c===' ' ? ' ' : '_').join('');
+
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:700px;padding:24px 24px 32px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;max-height:100vh">
+
+      <!-- Topbalk -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${(activeSession.subject_name||'').replace('Frans - ','')} · ${known}/${total} gekend</div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:var(--accent3);border-radius:3px;transition:width .4s"></div>
+          </div>
+        </div>
+        <div style="text-align:center;min-width:70px">
+          <div id="study-timer-val" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent)">${m}:${s}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="study-toets-btn" class="btn btn-primary btn-sm">📝 Toets</button>
+          <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">✕</button>
+        </div>
+      </div>
+
+      ${q._priority ? `<div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--accent2)">⚠️ Vorige keer fout — extra aandacht!</div>` : ''}
+
+      <!-- Vraagkaart -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+          <span style="background:${learnMode==='mc'||learnMode==='mc_generated'?'rgba(108,99,255,.15)':learnMode==='type'?'rgba(245,158,11,.15)':'rgba(67,233,123,.15)'};color:${learnMode==='mc'||learnMode==='mc_generated'?'var(--accent)':learnMode==='type'?'var(--orange)':'var(--accent3)'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">
+            ${learnMode==='mc'||learnMode==='mc_generated'?'🔘 Meerkeuze':learnMode==='type'?'⌨️ Typ het antwoord':'🃏 Flashcard'}
+          </span>
+          <span style="font-size:11px;color:var(--muted)">${q.topic||''}</span>
+        </div>
+
+        <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;line-height:1.5;margin-bottom:20px">
+          ${q.question.replace('___', '<span style="border-bottom:2px solid var(--accent);padding:0 24px;margin:0 4px">?</span>')}
+        </div>
+
+        <div id="learn-input-area">
+          ${learnMode === 'mc' || learnMode === 'mc_generated' ? `
+            <div style="display:flex;flex-direction:column;gap:8px" id="mc-opts">
+              ${mcOpts.map((o,i) => `
+                <button class="mc-opt" onclick="checkLearnMC(this,'${o.replace(/'/g,"\\'")}','${q.answer.replace(/'/g,"\\'")}')">
+                  <span style="display:inline-block;width:24px;height:24px;border-radius:50%;background:var(--border);text-align:center;line-height:24px;font-size:12px;font-weight:700;margin-right:10px">${'ABCD'[i]}</span>${o}
+                </button>`).join('')}
+            </div>` : ''}
+
+          ${learnMode === 'type' ? `
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input id="learn-type-inp" class="form-input" placeholder="Typ je antwoord..." autocomplete="off" style="font-size:16px;padding:12px 16px"
+                onkeydown="if(event.key==='Enter') checkLearnType()"/>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-danger btn-sm" onclick="learnResult(false)">✗ Ik weet het niet</button>
+                <button class="btn btn-secondary btn-sm" onclick="showLearnHint()">💡 Hint</button>
+                <button class="btn btn-primary" onclick="checkLearnType()">Controleren →</button>
+              </div>
+              <div id="learn-hint" style="display:none;font-size:13px;color:var(--orange)">Hint: <strong>${hint}</strong></div>
+            </div>` : ''}
+
+          ${learnMode === 'flash' ? `
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div id="flash-answer" class="hidden" style="background:rgba(67,233,123,.08);border:1px solid rgba(67,233,123,.3);border-radius:12px;padding:16px">
+                <div style="font-size:11px;font-weight:700;color:var(--accent3);margin-bottom:6px">ANTWOORD</div>
+                <div style="font-size:20px;font-weight:700">${q.answer}</div>
+              </div>
+              <div id="flash-btns-reveal" style="display:flex;gap:10px;justify-content:center">
+                <button class="btn btn-secondary" onclick="document.getElementById('flash-answer').classList.remove('hidden');document.getElementById('flash-btns-reveal').style.display='none';document.getElementById('flash-btns-judge').style.display='flex'">👁 Toon antwoord</button>
+              </div>
+              <div id="flash-btns-judge" style="display:none;gap:10px;justify-content:center">
+                <button class="btn btn-danger" onclick="learnResult(false)" style="flex:1">✗ Kende ik niet</button>
+                <button class="btn" style="flex:1;background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3)" onclick="learnResult(true)">✓ Kende ik wel</button>
+              </div>
+            </div>` : ''}
+        </div>
+      </div>
+
+      <div style="text-align:center;font-size:12px;color:var(--muted)">${learnPool.length} nog te leren · ${learnKnown.length} gekend</div>
+    </div>`;
+
+  document.getElementById('study-toets-btn')?.addEventListener('click', () => {
+    clearInterval(studyTimer);
+    document.getElementById('study-overlay').classList.add('hidden');
+    startToets(activeSession);
+  });
+  document.getElementById('learn-type-inp')?.focus();
+}
+
+function showLearnHint() {
+  document.getElementById('learn-hint').style.display = 'block';
+}
+
+function checkLearnMC(btn, chosen, correct) {
+  const opts = document.querySelectorAll('.mc-opt');
+  opts.forEach(b => b.disabled = true);
+  const isCorrect = chosen === correct;
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+  opts.forEach(b => { if (b.textContent.replace(/^[A-D]\s+/,'').trim() === correct || b.textContent.includes(correct)) b.classList.add('correct'); });
+  setTimeout(() => learnResult(isCorrect), 1200);
+}
+
+function checkLearnType() {
+  const inp = document.getElementById('learn-type-inp');
+  const userVal = inp?.value?.trim() || '';
+  if (!userVal) { showNotification('Typ een antwoord of klik "Ik weet het niet"', 'error'); return; }
+  const correct = learnCurrent.answer;
+  const isCorrect = userVal.toLowerCase() === correct.toLowerCase();
+  inp.disabled = true;
+  inp.style.borderColor = isCorrect ? 'var(--accent3)' : 'var(--accent2)';
+  const area = document.getElementById('learn-input-area');
+  area.insertAdjacentHTML('beforeend', `
+    <div class="feedback ${isCorrect?'correct':'wrong'}" style="margin-top:10px">
+      ${isCorrect ? '✅ Correct!' : `❌ Fout — correct: <strong>${correct}</strong>`}
+    </div>`);
+  setTimeout(() => learnResult(isCorrect), 1400);
+}
+
+function learnResult(known) {
+  // Verwijder huidige vraag uit pool
+  learnPool = learnPool.filter(q => q.id !== learnCurrent.id);
+  if (known) {
+    learnKnown.push(learnCurrent);
+  } else {
+    // Zet achteraan, iets minder prioriteit
+    learnCurrent._priority = false;
+    learnPool.push(learnCurrent);
+  }
+  nextLearnCard();
+}
+
+function renderLearnComplete() {
+  document.getElementById('study-overlay').innerHTML = `
+    <div style="text-align:center;max-width:480px;padding:32px">
+      <div style="font-size:64px;margin-bottom:16px">🎉</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px">Alles gekend!</h2>
+      <p style="color:var(--muted);margin-bottom:32px">Je hebt alle ${learnKnown.length} kaarten correct beantwoord. Tijd voor de toets!</p>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="btn btn-secondary" onclick="stopStudySession()">Stoppen</button>
+        <button class="btn btn-primary btn-lg" onclick="clearInterval(studyTimer);document.getElementById('study-overlay').classList.add('hidden');startToets(activeSession)">📝 Toets starten</button>
+      </div>
+    </div>`;
+}
+
+function stopStudySession() {
   clearInterval(studyTimer);
   document.getElementById('study-overlay').classList.add('hidden');
   activeSession = null;
-});
+}
 
-document.getElementById('study-toets-btn').addEventListener('click', () => {
-  clearInterval(studyTimer);
-  document.getElementById('study-overlay').classList.add('hidden');
-  if (activeSession) startToets(activeSession);
-});
+document.getElementById('study-stop-btn')?.addEventListener('click', stopStudySession);
 
 // ── Toets na sessie ──
 let toetsState = null;
@@ -703,8 +908,8 @@ function renderToetsQuestion() {
         <div id="qfeedback"></div>
       </div>
       <div style="display:flex;gap:12px;justify-content:flex-end">
-        <button class="btn btn-secondary" onclick="toetsSkip()">Overslaan</button>
-        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren</button>
+        <button class="btn btn-danger" onclick="toetsSkip()" style="font-size:13px">✗ Ik weet het niet</button>
+        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren →</button>
       </div>
     </div>`;
 
@@ -731,12 +936,14 @@ function toetsCheck() {
     });
   } else if (q.type==='fill') {
     userAns = document.getElementById('fill-ans')?.value?.trim()||'';
+    if (!userAns) { showNotification('Typ een antwoord of klik "Ik weet het niet"', 'error'); return; }
     correct = userAns.toLowerCase()===q.answer.toLowerCase();
     const inp=document.getElementById('fill-ans');
     if(inp){inp.disabled=true;inp.style.borderColor=correct?'var(--accent3)':'var(--accent2)';}
   } else {
-    userAns = document.getElementById('open-ans')?.value||'';
-    correct = true;
+    userAns = document.getElementById('open-ans')?.value?.trim()||'';
+    if (!userAns) { showNotification('Typ een antwoord of klik "Ik weet het niet"', 'error'); return; }
+    correct = false; // open vragen: gebruiker beoordeelt zelf via knoppen
   }
 
   if (correct) {
@@ -812,17 +1019,78 @@ function renderProgress() {
   `;
 }
 
-function renderKlas() {
+async function renderKlas() {
   document.getElementById('klas-content').innerHTML = `
     <div class="klas-header-card">
       <div style="font-size:28px">🏆</div>
-      <div>
-        <div style="font-size:16px;font-weight:800">Leaderboard</div>
-        <div style="font-size:13px;color:var(--muted)">Competitie met je klasgenoten</div>
-      </div>
+      <div><div style="font-size:16px;font-weight:800">Leaderboard</div>
+      <div style="font-size:13px;color:var(--muted)">Competitie met je klasgenoten</div></div>
     </div>
-    <div style="text-align:center;color:var(--muted)">Geen klasdata beschikbaar</div>
-  `;
+    <div style="text-align:center;color:var(--muted);padding:20px">Laden...</div>`;
+
+  // Haal alle scores op + profiles
+  const [scoresRes, profilesRes] = await Promise.all([
+    supabase.from('scores').select('user_id, score, total, subject_name, played_at'),
+    supabase.from('profiles').select('id, name, email')
+  ]);
+
+  const scores   = scoresRes.data  || [];
+  const profiles = profilesRes.data || [];
+
+  if (!scores.length) {
+    document.getElementById('klas-content').innerHTML += '';
+    document.querySelector('#klas-content div:last-child').textContent = 'Nog geen scores beschikbaar.';
+    return;
+  }
+
+  // Groepeer per gebruiker: gemiddelde score
+  const perUser = {};
+  scores.forEach(s => {
+    if (!perUser[s.user_id]) perUser[s.user_id] = { scores: [], count: 0 };
+    perUser[s.user_id].scores.push(s.score);
+    perUser[s.user_id].count++;
+  });
+
+  const ranked = Object.entries(perUser).map(([uid, d]) => {
+    const avg = Math.round(d.scores.reduce((a,b)=>a+b,0) / d.scores.length);
+    const profile = profiles.find(p => p.id === uid);
+    const name = profile?.name || profile?.email?.split('@')[0] || 'Anoniem';
+    return { uid, name, avg, count: d.count };
+  }).sort((a,b) => b.avg - a.avg);
+
+  const MEDALS = ['🥇','🥈','🥉'];
+  const colors = ['#f59e0b','#9ca3af','#cd7c3f'];
+  const SUBJECT_COLORS_HEX = ['#6c63ff','#ff6b6b','#43e97b','#f59e0b','#06b6d4','#ec4899'];
+
+  const rows = ranked.map((u, i) => {
+    const isMe = u.uid === currentUser?.id;
+    const medal = i < 3 ? MEDALS[i] : `${i+1}`;
+    const color = SUBJECT_COLORS_HEX[i % SUBJECT_COLORS_HEX.length];
+    return `
+      <div class="lb-row ${isMe?'is-me':''}" style="margin-bottom:10px">
+        <div class="lb-rank" style="${i<3?`color:${colors[i]}`:'color:var(--muted)'}">${medal}</div>
+        <div class="lb-avatar" style="background:${color}">${u.name[0].toUpperCase()}</div>
+        <div class="lb-info">
+          <div class="lb-name">${u.name} ${isMe?'<span class="lb-you">jij</span>':''}</div>
+          <div class="lb-sub">${u.count} toets${u.count===1?'':'en} gemaakt</div>
+        </div>
+        <div class="lb-bars">
+          <div class="lb-bar-row">
+            <div class="lb-bar-label">gem.</div>
+            <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${u.avg}%;background:${color}"></div></div>
+          </div>
+        </div>
+        <div class="lb-score" style="color:${color}">${u.avg}%</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('klas-content').innerHTML = `
+    <div class="klas-header-card">
+      <div style="font-size:28px">🏆</div>
+      <div><div style="font-size:16px;font-weight:800">Leaderboard</div>
+      <div style="font-size:13px;color:var(--muted)">${ranked.length} student${ranked.length===1?'':'en} actief</div></div>
+    </div>
+    <div class="col-gap">${rows}</div>`;
 }
 
 function showAuth() {
@@ -915,9 +1183,16 @@ async function handleAuth() {
   try {
     if (isSignup) {
       const name = document.getElementById('inp-name').value;
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { name } }
+      });
       if (error) throw error;
-      showNotification('✅ Account aangemaakt! Controleer je email.');
+      // Sla naam op in profiles
+      if (data?.user) {
+        await supabase.from('profiles').upsert({ id: data.user.id, email, name });
+      }
+      showNotification('✅ Account aangemaakt!');
       toggleAuthMode();
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
