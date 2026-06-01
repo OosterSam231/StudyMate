@@ -535,63 +535,83 @@ function startQuizForSubject(subjectId) {
   }, 50);
 }
 
-// ── Week kalender ──
-let weekOffset = 0;
-
-function getWeekDays(offset = 0) {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7);
-  monday.setHours(0,0,0,0);
-  return Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return d; });
-}
+// ── Maand kalender ──
+let calOffset = 0; // maanden tov vandaag
 
 function renderPlanner() {
-  const days = getWeekDays(weekOffset);
   const today = new Date(); today.setHours(0,0,0,0);
+  const ref = new Date(today.getFullYear(), today.getMonth() + calOffset, 1);
+  const year = ref.getFullYear();
+  const month = ref.getMonth();
 
-  const months = [...new Set(days.map(d => d.toLocaleDateString('nl-NL',{month:'long'})))];
   document.getElementById('week-label').textContent =
-    `${days[0].getDate()} – ${days[6].getDate()} ${months.join(' / ')} ${days[0].getFullYear()}`;
+    ref.toLocaleDateString('nl-NL', {month:'long', year:'numeric'}).replace(/^\w/, c => c.toUpperCase());
 
+  // Eerste dag van de maand (0=zo → omzetten naar ma=0)
+  const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev  = new Date(year, month, 0).getDate();
+
+  const DAY_HDR = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
   const grid = document.getElementById('agenda-grid');
-  const DAY = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+  grid.style.gridTemplateColumns = 'repeat(7,1fr)';
 
-  grid.innerHTML = days.map((d, i) => {
-    const isToday = d.getTime() === today.getTime();
-    const isPast  = d < today;
+  // Dag-headers
+  let html = DAY_HDR.map(d =>
+    `<div style="text-align:center;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:6px 0">${d}</div>`
+  ).join('');
+
+  // Lege cellen voor begin
+  for (let i = 0; i < firstDow; i++) {
+    const dn = daysInPrev - firstDow + 1 + i;
+    html += `<div style="min-height:90px;border-radius:12px;padding:8px;opacity:.3;background:var(--surface)">
+      <div style="font-size:13px;font-weight:600;color:var(--muted)">${dn}</div></div>`;
+  }
+
+  // Echte dagen
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const isToday = date.getTime() === today.getTime();
+    const isPast  = date < today;
+
     const daySessions = SESSIONS.filter(s => {
       const sd = new Date(s.planned_at); sd.setHours(0,0,0,0);
-      return sd.getTime() === d.getTime();
+      return sd.getTime() === date.getTime();
     });
 
-    const sessHTML = daySessions.length ? daySessions.map(s => {
+    const sessHTML = daySessions.map(s => {
       const t = new Date(s.planned_at).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
       const done = s.status === 'done';
-      return `
-        <div style="background:${done?'rgba(67,233,123,.08)':'rgba(108,99,255,.08)'};border:1px solid ${done?'rgba(67,233,123,.3)':'rgba(108,99,255,.3)'};border-radius:10px;padding:10px;margin-top:8px">
-          <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">${t} · ${s.duration_min}min</div>
-          <div style="font-size:12px;font-weight:600;line-height:1.3">${(s.subject_name||'').replace('Frans - ','')}</div>
-          ${done
-            ? `<div style="margin-top:6px;font-size:11px;color:var(--accent3)">✅ Score: ${s.score ?? '-'}%</div>`
-            : `<button onclick="openStudySession(${s.id})" style="margin-top:8px;width:100%;background:var(--accent);border:none;border-radius:7px;padding:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer">▶ Start sessie</button>`
-          }
-        </div>`;
-    }).join('') : `<div style="color:var(--border);font-size:11px;text-align:center;margin-top:16px">—</div>`;
+      const name = (s.subject_name||'').replace('Frans - ','');
+      return `<div style="margin-top:4px;background:${done?'rgba(67,233,123,.12)':'rgba(108,99,255,.12)'};border-left:3px solid ${done?'var(--accent3)':'var(--accent)'};border-radius:0 6px 6px 0;padding:4px 6px;font-size:10px;cursor:pointer" onclick="openStudySession(${s.id})">
+        <div style="font-weight:700;color:${done?'var(--accent3)':'var(--accent)'};">${t}</div>
+        <div style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${name}</div>
+        ${done?`<div style="color:var(--accent3)">✅ ${s.score??'-'}%</div>`:`<div style="color:var(--accent)">▶ Starten</div>`}
+      </div>`;
+    }).join('');
 
-    return `
-      <div style="background:${isToday?'rgba(108,99,255,.08)':'var(--surface)'};border:1px solid ${isToday?'rgba(108,99,255,.4)':'var(--border)'};border-radius:14px;padding:14px;min-height:120px">
-        <div style="font-size:11px;font-weight:700;color:${isToday?'var(--accent)':'var(--muted)'};text-transform:uppercase;letter-spacing:.5px">${DAY[i]}</div>
-        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${isToday?'var(--accent)':isPast?'var(--muted)':'var(--text)'}">${d.getDate()}</div>
+    html += `
+      <div style="min-height:90px;border-radius:12px;padding:8px;background:${isToday?'rgba(108,99,255,.1)':'var(--surface)'};border:1px solid ${isToday?'rgba(108,99,255,.5)':'var(--border)'};position:relative">
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${isToday?'var(--accent)':isPast?'var(--muted)':'var(--text)'}">${d}</div>
         ${sessHTML}
       </div>`;
-  }).join('');
+  }
+
+  // Lege cellen einde
+  const total = firstDow + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div style="min-height:90px;border-radius:12px;padding:8px;opacity:.3;background:var(--surface)">
+      <div style="font-size:13px;font-weight:600;color:var(--muted)">${i}</div></div>`;
+  }
+
+  grid.innerHTML = html;
 }
 
-// ── Week navigatie ──
-document.getElementById('week-prev').addEventListener('click',   () => { weekOffset--; renderPlanner(); });
-document.getElementById('week-next').addEventListener('click',   () => { weekOffset++; renderPlanner(); });
-document.getElementById('week-today').addEventListener('click',  () => { weekOffset=0;  renderPlanner(); });
+// ── Maand navigatie ──
+document.getElementById('week-prev').addEventListener('click',  () => { calOffset--; renderPlanner(); });
+document.getElementById('week-next').addEventListener('click',  () => { calOffset++; renderPlanner(); });
+document.getElementById('week-today').addEventListener('click', () => { calOffset=0;  renderPlanner(); });
 
 // ── Studeer sessie + timer ──
 let studyTimer = null;
