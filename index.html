@@ -621,6 +621,198 @@ async function handleLogout() {
   showAuth();
 }
 
+// ══════════════════════════════════════════════════════
+//  QUIZ
+// ══════════════════════════════════════════════════════
+let quizState = null;
+
+function renderPage_quiz() {
+  const page = document.getElementById('page-quiz');
+  page.innerHTML = `
+    <div class="page-header"><h1>Quiz starten</h1><p>Test je kennis per onderwerp</p></div>
+    <div class="card" style="max-width:520px">
+      <div class="col-gap">
+        <div class="form-group">
+          <label class="form-label">Vak</label>
+          <select class="form-input" id="quiz-subject-sel">
+            <option value="">— Kies een vak —</option>
+            ${SUBJECTS.map(s => `<option value="${s.id}">${s.name} (${s.question_count} vragen)</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Aantal vragen</label>
+          <select class="form-input" id="quiz-count-sel">
+            <option value="10">10 vragen</option>
+            <option value="20" selected>20 vragen</option>
+            <option value="30">30 vragen</option>
+            <option value="50">50 vragen</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vraagtype</label>
+          <select class="form-input" id="quiz-type-sel">
+            <option value="all">Alle types</option>
+            <option value="mc">Meerkeuze</option>
+            <option value="fill">Invullen</option>
+            <option value="open">Open</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">🧠 Quiz starten</button>
+      </div>
+    </div>`;
+  document.getElementById('quiz-start-btn').onclick = startQuiz;
+}
+
+function startQuiz() {
+  const sid = parseInt(document.getElementById('quiz-subject-sel').value);
+  const count = parseInt(document.getElementById('quiz-count-sel').value);
+  const typeFilter = document.getElementById('quiz-type-sel').value;
+  if (!sid) { showNotification('Kies eerst een vak', 'error'); return; }
+
+  let pool = QUESTIONS.filter(q => q.subject_id === sid);
+  if (typeFilter !== 'all') pool = pool.filter(q => q.type === typeFilter);
+  if (!pool.length) { showNotification('Geen vragen gevonden voor deze selectie', 'error'); return; }
+
+  // Shuffle
+  pool = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
+
+  quizState = { questions: pool, current: 0, score: 0, wrongs: [], subjectId: sid };
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const { questions, current } = quizState;
+  const q = questions[current];
+  const page = document.getElementById('page-quiz');
+  const pct = Math.round(current / questions.length * 100);
+
+  page.innerHTML = `
+    <div class="quiz-wrap">
+      <div class="quiz-progress">
+        <div class="quiz-bar"><div class="quiz-fill" style="width:${pct}%"></div></div>
+        <span class="quiz-counter">${current + 1} / ${questions.length}</span>
+      </div>
+      <div class="question-card">
+        <span class="q-type ${q.type}">${q.type === 'mc' ? 'Meerkeuze' : q.type === 'fill' ? 'Invullen' : 'Open'}</span>
+        <div class="question-text">${renderQuestionText(q)}</div>
+        ${renderInput(q)}
+        <div id="qfeedback"></div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="skipQuestion()">Overslaan</button>
+        <button class="btn btn-primary" id="check-btn" onclick="checkAnswer()">Controleren</button>
+      </div>
+    </div>`;
+
+  if (q.type === 'mc') {
+    document.querySelectorAll('.mc-opt').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.mc-opt').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+    });
+  }
+  if (q.type === 'fill') {
+    document.getElementById('fill-ans')?.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+  }
+}
+
+function renderQuestionText(q) {
+  if (q.type === 'fill') return q.question.replace('___', '<input id="fill-ans" class="fill-input" autocomplete="off" />');
+  return q.question;
+}
+
+function renderInput(q) {
+  if (q.type === 'mc') {
+    const opts = Array.isArray(q.options) ? q.options : JSON.parse(q.options || '[]');
+    return `<div class="mc-options">${opts.map(o => `<button class="mc-opt">${o}</button>`).join('')}</div>`;
+  }
+  if (q.type === 'open') return `<textarea id="open-ans" class="form-input" placeholder="Jouw antwoord..." rows="3"></textarea>`;
+  return '';
+}
+
+function checkAnswer() {
+  const q = quizState.questions[quizState.current];
+  const fb = document.getElementById('qfeedback');
+  let correct = false, userAns = '';
+
+  if (q.type === 'mc') {
+    const sel = document.querySelector('.mc-opt.selected');
+    if (!sel) { showNotification('Kies een optie', 'error'); return; }
+    userAns = sel.textContent;
+    correct = userAns === q.answer;
+    document.querySelectorAll('.mc-opt').forEach(btn => {
+      btn.disabled = true;
+      if (btn.textContent === q.answer) btn.classList.add('correct');
+      else if (btn.classList.contains('selected')) btn.classList.add('wrong');
+    });
+  } else if (q.type === 'fill') {
+    const inp = document.getElementById('fill-ans');
+    userAns = inp?.value?.trim() || '';
+    correct = userAns.toLowerCase() === q.answer.toLowerCase();
+    if (inp) { inp.disabled = true; inp.style.borderColor = correct ? 'var(--accent3)' : 'var(--accent2)'; }
+  } else {
+    userAns = document.getElementById('open-ans')?.value || '';
+    correct = true; // open vragen altijd goed (zelfbeoordeling)
+  }
+
+  if (correct) {
+    quizState.score++;
+    fb.innerHTML = `<div class="feedback correct">✅ Correct!</div>`;
+  } else {
+    quizState.wrongs.push({ q: q.question, wrong: userAns, correct: q.answer });
+    fb.innerHTML = `<div class="feedback wrong">❌ Fout — correct: <strong>${q.answer}</strong></div>`;
+  }
+
+  document.getElementById('check-btn').textContent = 'Volgende →';
+  document.getElementById('check-btn').onclick = nextQuestion;
+}
+
+function skipQuestion() {
+  quizState.wrongs.push({ q: quizState.questions[quizState.current].question, wrong: '(overgeslagen)', correct: quizState.questions[quizState.current].answer });
+  nextQuestion();
+}
+
+function nextQuestion() {
+  quizState.current++;
+  if (quizState.current >= quizState.questions.length) { showResults(); return; }
+  renderQuestion();
+}
+
+async function showResults() {
+  const { questions, score, wrongs, subjectId } = quizState;
+  const pct = Math.round(score / questions.length * 100);
+  const subj = SUBJECTS.find(s => s.id === subjectId);
+  const color = pct >= 70 ? 'var(--accent3)' : pct >= 50 ? 'var(--orange)' : 'var(--accent2)';
+
+  // Save score
+  if (currentUser) {
+    await supabase.from('scores').insert({ user_id: currentUser.id, subject_id: subjectId, subject_name: subj?.name, score: pct, total: questions.length });
+  }
+
+  document.getElementById('page-quiz').innerHTML = `
+    <div class="results-wrap">
+      <div class="page-header"><h1>Resultaten</h1></div>
+      <div class="score-circle" style="border-color:${color}">
+        <div class="score-pct" style="color:${color}">${pct}%</div>
+        <div class="score-lbl">${score}/${questions.length}</div>
+      </div>
+      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! 🎉':pct>=60?'Goed gedaan! 👍':'Blijf oefenen 💪'}</p>
+      ${wrongs.length ? `<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px">Foute antwoorden</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">❌ ${w.wrong}</div><div class="wc">✅ ${w.correct}</div></div>`).join('')}</div></div>` : ''}
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="btn btn-secondary" onclick="navigateTo('subjects')">Terug naar vakken</button>
+        <button class="btn btn-primary" onclick="renderPage_quiz();navigateTo('quiz')">Opnieuw quizzen</button>
+      </div>
+    </div>`;
+}
+
+// Patch navigateTo to call quiz setup
+const _origNav = navigateTo;
+function navigateTo(page) {
+  _origNav(page);
+  if (page === 'quiz') renderPage_quiz();
+}
+
 // Start the app
 initApp();
 </script>
