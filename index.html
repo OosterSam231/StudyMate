@@ -273,6 +273,7 @@
         <div style="flex:1;overflow:hidden">
           <div id="sidebar-name" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Student</div>
           <button onclick="editName()" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:0;text-align:left">✏️ naam wijzigen</button>
+
         </div>
         <button class="btn btn-sm" id="logout-btn" style="padding:4px 8px;font-size:11px" title="Uitloggen">↩</button>
       </div>
@@ -1411,6 +1412,15 @@ async function showResults() {
     </div>`;
 }
 
+
+async function editName() {
+  const newName = prompt('Jouw naam:');
+  if (!newName?.trim()) return;
+  await supabase.from('profiles').upsert({ id: currentUser.id, name: newName.trim(), email: currentUser.email });
+  document.getElementById('sidebar-name').textContent = newName.trim();
+  document.getElementById('sidebar-avatar').textContent = newName.trim()[0].toUpperCase();
+  showNotification('Naam opgeslagen!');
+}
 
 // Start the app
 initApp();
