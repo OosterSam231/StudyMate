@@ -638,6 +638,28 @@ async function openStudySession(sessionId) {
   activeSession = SESSIONS.find(s => s.id === sessionId);
   if (!activeSession) return;
 
+  // Vraag richting als die nog niet ingesteld is
+  if (!activeSession.direction || activeSession.direction === 'auto') {
+    const overlay = document.getElementById('study-overlay');
+    overlay.classList.remove('hidden');
+    overlay.innerHTML = `
+      <div style="text-align:center;max-width:420px;padding:32px;display:flex;flex-direction:column;gap:20px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800">Antwoorden in het…</h2>
+        <p style="color:var(--muted)">${(activeSession.subject_name||'').replace('Frans - ','')}</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-secondary btn-lg" onclick="beginSession('auto')">🔀 Gemengd</button>
+          <button class="btn btn-primary btn-lg" onclick="beginSession('fr')">🇫🇷 Frans — exam mode</button>
+          <button class="btn btn-secondary btn-lg" onclick="beginSession('nl')">🇧🇪 Nederlands</button>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">Annuleren</button>
+      </div>`;
+    return;
+  }
+  await beginSession(activeSession.direction);
+}
+
+async function beginSession(direction) {
+  activeSession.direction = direction;
   const { data: wrongData } = await supabase
     .from('wrong_answers').select('question_id')
     .eq('user_id', currentUser.id).eq('subject_id', activeSession.subject_id);
@@ -656,6 +678,7 @@ async function openStudySession(sessionId) {
   startStudyTimer();
   nextLearnCard();
 }
+
 
 function startStudyTimer() {
   clearInterval(studyTimer);
@@ -1298,6 +1321,14 @@ function renderPage_quiz() {
             <option value="open">Open</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">Antwoorden in het…</label>
+          <select class="form-input" id="quiz-direction-sel">
+            <option value="auto">🔀 Gemengd (automatisch)</option>
+            <option value="fr">🇫🇷 Frans — exam mode</option>
+            <option value="nl">🇧🇪 Nederlands</option>
+          </select>
+        </div>
         <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">🧠 Quiz starten</button>
       </div>
     </div>`;
@@ -1308,14 +1339,16 @@ function startQuiz() {
   const sid = parseInt(document.getElementById('quiz-subject-sel').value);
   const count = parseInt(document.getElementById('quiz-count-sel').value);
   const typeFilter = document.getElementById('quiz-type-sel').value;
+  const direction = document.getElementById('quiz-direction-sel').value;
   if (!sid) { showNotification('Kies eerst een vak', 'error'); return; }
 
   let pool = QUESTIONS.filter(q => q.subject_id === sid);
   if (typeFilter !== 'all') pool = pool.filter(q => q.type === typeFilter);
   if (!pool.length) { showNotification('Geen vragen gevonden voor deze selectie', 'error'); return; }
 
-  // Shuffle
-  pool = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
+  pool = pool.sort(() => Math.random() - 0.5)
+             .slice(0, Math.min(count, pool.length))
+             .map(q => applyDirection(q, direction));
 
   quizState = { questions: pool, current: 0, score: 0, wrongs: [], subjectId: sid };
   renderQuestion();
