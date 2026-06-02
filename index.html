@@ -1338,13 +1338,13 @@ function renderPage_quiz() {
             <option value="nl">🇧🇪 Nederlands</option>
           </select>
         </div>
-        <script>
-          (function(){ const d=localStorage.getItem('sm_direction'); if(d){ const s=document.getElementById('quiz-direction-sel'); if(s) s.value=d; }})();
-        </script>
         <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">🧠 Quiz starten</button>
       </div>
     </div>`;
   document.getElementById('quiz-start-btn').onclick = startQuiz;
+  // Zet opgeslagen richtingkeuze
+  const savedDir = localStorage.getItem('sm_direction');
+  if (savedDir) { const s = document.getElementById('quiz-direction-sel'); if(s) s.value = savedDir; }
 }
 
 function startQuiz() {
