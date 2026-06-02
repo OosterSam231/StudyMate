@@ -669,8 +669,12 @@ async function beginSession(direction) {
   const wrongPool  = allQ.filter(q => wrongIds.has(q.id)).map(q => ({...q, _priority: true}));
   const normalPool = allQ.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-.5);
 
+  // Max aantal kaarten per sessie (fouten eerst, dan aanvullen tot limiet)
+  const limit = activeSession.question_count || 20;
+  const combined = [...wrongPool, ...normalPool].slice(0, limit);
+
   const dir = activeSession.direction || 'auto';
-  learnPool    = [...wrongPool, ...normalPool].map(q => applyDirection(q, dir));
+  learnPool    = combined.map(q => applyDirection(q, dir));
   learnKnown   = [];
   studyRemaining = (activeSession.duration_min || 30) * 60;
 
