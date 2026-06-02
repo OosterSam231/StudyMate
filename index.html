@@ -638,19 +638,23 @@ async function openStudySession(sessionId) {
   activeSession = SESSIONS.find(s => s.id === sessionId);
   if (!activeSession) return;
 
-  // Vraag richting als die nog niet ingesteld is
-  if (!activeSession.direction || activeSession.direction === 'auto') {
+  // Vraag richting — toon vorige keuze als standaard
+  const savedDir = localStorage.getItem('sm_direction') || 'auto';
+  if (!activeSession.direction) {
     const overlay = document.getElementById('study-overlay');
     overlay.classList.remove('hidden');
+    const labels = { auto:'🔀 Gemengd', fr:'🇫🇷 Frans — exam mode', nl:'🇧🇪 Nederlands' };
     overlay.innerHTML = `
-      <div style="text-align:center;max-width:420px;padding:32px;display:flex;flex-direction:column;gap:20px">
+      <div style="text-align:center;max-width:420px;padding:32px;display:flex;flex-direction:column;gap:16px">
         <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800">Antwoorden in het…</h2>
         <p style="color:var(--muted)">${(activeSession.subject_name||'').replace('Frans - ','')}</p>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <button class="btn btn-secondary btn-lg" onclick="beginSession('auto')">🔀 Gemengd</button>
-          <button class="btn btn-primary btn-lg" onclick="beginSession('fr')">🇫🇷 Frans — exam mode</button>
-          <button class="btn btn-secondary btn-lg" onclick="beginSession('nl')">🇧🇪 Nederlands</button>
+          ${['auto','fr','nl'].map(d => `
+            <button class="btn ${d===savedDir?'btn-primary':'btn-secondary'} btn-lg" onclick="beginSession('${d}')">
+              ${labels[d]} ${d===savedDir?'<span style="font-size:11px;opacity:.7">(vorige keuze)</span>':''}
+            </button>`).join('')}
         </div>
+        <div style="font-size:11px;color:var(--muted)">Je keuze wordt onthouden</div>
         <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">Annuleren</button>
       </div>`;
     return;
@@ -660,6 +664,7 @@ async function openStudySession(sessionId) {
 
 async function beginSession(direction) {
   activeSession.direction = direction;
+  localStorage.setItem('sm_direction', direction);
   const { data: wrongData } = await supabase
     .from('wrong_answers').select('question_id')
     .eq('user_id', currentUser.id).eq('subject_id', activeSession.subject_id);
@@ -1333,6 +1338,9 @@ function renderPage_quiz() {
             <option value="nl">🇧🇪 Nederlands</option>
           </select>
         </div>
+        <script>
+          (function(){ const d=localStorage.getItem('sm_direction'); if(d){ const s=document.getElementById('quiz-direction-sel'); if(s) s.value=d; }})();
+        </script>
         <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">🧠 Quiz starten</button>
       </div>
     </div>`;
@@ -1344,6 +1352,7 @@ function startQuiz() {
   const count = parseInt(document.getElementById('quiz-count-sel').value);
   const typeFilter = document.getElementById('quiz-type-sel').value;
   const direction = document.getElementById('quiz-direction-sel').value;
+  localStorage.setItem('sm_direction', direction);
   if (!sid) { showNotification('Kies eerst een vak', 'error'); return; }
 
   let pool = QUESTIONS.filter(q => q.subject_id === sid);
