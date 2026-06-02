@@ -718,13 +718,14 @@ function applyDirection(q, direction) {
   if (!isVocab) return q;
 
   if (direction === 'fr') {
-    // NL→FR: toon het Nederlandse woord, antwoord = Frans
-    // Haal Frans deel op (voor " = ") en NL deel (na " = ")
+    // NL→FR: toon het Nederlandse woord (= origineel antwoord), antwoord = Frans woord (voor " = ")
     const parts = q.question.split(' = ');
     if (parts.length >= 2) {
-      const frPart = parts[0].trim();
-      const nlPart = parts.slice(1).join(' = ').replace('___','').trim().replace(/\s*\/.*$/,'').trim();
-      return { ...q, question: `${nlPart} = ___`, answer: frPart };
+      const frPart = parts[0].trim();                          // "l'émoticône (f)"
+      const article = parts[1].replace('___','').trim();       // "de" / "het" / ""
+      const nlWord  = q.answer;                                // "smiley"
+      const nlQuestion = article ? `${article} ${nlWord}` : nlWord;
+      return { ...q, question: `${nlQuestion} = ___`, answer: frPart };
     }
   }
   if (direction === 'nl') {
