@@ -272,7 +272,6 @@
         <div class="avatar" id="sidebar-avatar">S</div>
         <div style="flex:1;overflow:hidden">
           <div id="sidebar-name" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Student</div>
-          <button onclick="editName()" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:0;text-align:left">✏️ naam wijzigen</button>
 
         </div>
         <button class="btn btn-sm" id="logout-btn" style="padding:4px 8px;font-size:11px" title="Uitloggen">↩</button>
@@ -365,9 +364,17 @@
           <input class="form-input" type="number" id="sess-duration" value="45" min="15" max="240" />
         </div>
         <div class="form-group">
-          <label class="form-label">Aantal vragen</label>
+          <label class="form-label">Aantal vragen toets</label>
           <input class="form-input" type="number" id="sess-qcount" value="20" min="5" max="50" />
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Antwoorden in het…</label>
+        <select class="form-input" id="sess-direction">
+          <option value="auto">Automatisch (gemengd)</option>
+          <option value="fr">🇫🇷 Frans (moeilijkst — exam mode)</option>
+          <option value="nl">🇧🇪 Nederlands</option>
+        </select>
       </div>
       <div class="flex gap-10">
         <button class="btn btn-secondary" style="flex:1" id="cancel-session-modal">Annuleren</button>
@@ -640,7 +647,8 @@ async function openStudySession(sessionId) {
   const wrongPool  = allQ.filter(q => wrongIds.has(q.id)).map(q => ({...q, _priority: true}));
   const normalPool = allQ.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-.5);
 
-  learnPool    = [...wrongPool, ...normalPool];
+  const dir = activeSession.direction || 'auto';
+  learnPool    = [...wrongPool, ...normalPool].map(q => applyDirection(q, dir));
   learnKnown   = [];
   studyRemaining = (activeSession.duration_min || 30) * 60;
 
@@ -669,6 +677,31 @@ function startStudyTimer() {
 }
 
 // Kies welke modus past bij de vraag
+// Draai vraag om voor NL→FR richting (woordenschat subjects 9,10,11)
+function applyDirection(q, direction) {
+  if (direction === 'auto' || q.type !== 'fill') return q;
+  // Vraagformat: "le mot = de vertaling / het ___" → antwoord is NL
+  // of: "de vertaling = ___" → antwoord is FR
+  const isVocab = [9,10,11].includes(q.subject_id);
+  if (!isVocab) return q;
+
+  if (direction === 'fr') {
+    // NL→FR: toon het Nederlandse woord, antwoord = Frans
+    // Haal Frans deel op (voor " = ") en NL deel (na " = ")
+    const parts = q.question.split(' = ');
+    if (parts.length >= 2) {
+      const frPart = parts[0].trim();
+      const nlPart = parts.slice(1).join(' = ').replace('___','').trim().replace(/\s*\/.*$/,'').trim();
+      return { ...q, question: `${nlPart} = ___`, answer: frPart };
+    }
+  }
+  if (direction === 'nl') {
+    // FR→NL: standaard, laat zoals het is
+    return q;
+  }
+  return q;
+}
+
 function pickMode(q) {
   if (q.type === 'mc') return 'mc';
   if (q.type === 'fill') return Math.random() < .6 ? 'type' : 'mc_generated';
@@ -1145,6 +1178,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   const plannedAt = document.getElementById('sess-datetime').value;
   const duration = parseInt(document.getElementById('sess-duration').value);
   const qcount = parseInt(document.getElementById('sess-qcount').value);
+  const direction = document.getElementById('sess-direction').value;
 
   if (!plannedAt) { showNotification('Kies een datum en tijd', 'error'); return; }
 
@@ -1155,6 +1189,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
     planned_at: new Date(plannedAt).toISOString(),
     duration_min: duration,
     question_count: qcount,
+    direction: direction,
     status: 'planned'
   });
 
