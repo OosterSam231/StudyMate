@@ -1073,7 +1073,7 @@ async function renderKlas() {
         <div class="lb-avatar" style="background:${color}">${u.name[0].toUpperCase()}</div>
         <div class="lb-info">
           <div class="lb-name">${u.name} ${isMe?'<span class="lb-you">jij</span>':''}</div>
-          <div class="lb-sub">${u.count} toets${u.count===1?'':'en} gemaakt</div>
+          <div class="lb-sub">${u.count} toets${u.count===1?'':'en'} gemaakt</div>
         </div>
         <div class="lb-bars">
           <div class="lb-bar-row">
@@ -1089,7 +1089,7 @@ async function renderKlas() {
     <div class="klas-header-card">
       <div style="font-size:28px">🏆</div>
       <div><div style="font-size:16px;font-weight:800">Leaderboard</div>
-      <div style="font-size:13px;color:var(--muted)">${ranked.length} student${ranked.length===1?'':'en} actief</div></div>
+      <div style="font-size:13px;color:var(--muted)">${ranked.length} student${ranked.length===1?'':'en'} actief</div></div>
     </div>
     <div class="col-gap">${rows}</div>`;
 }
