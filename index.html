@@ -375,17 +375,6 @@
           <option value="nl">🇧🇪 Nederlands</option>
         </select>
       </div>
-      <div class="form-group">
-        <label class="form-label">Vraagtype oefeningen</label>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
-          ${[['mc','🔘 Meerkeuze'],['fill','⌨️ Invullen'],['open','📝 Open'],['gender','🏷️ Geslacht (le/la)']].map(([val,label]) => `
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-              <input type="checkbox" class="qtype-check" value="${val}" checked
-                style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
-              <span style="font-size:13px">${label}</span>
-            </label>`).join('')}
-        </div>
-      </div>
       <div class="flex gap-10">
         <button class="btn btn-secondary" style="flex:1" id="cancel-session-modal">Annuleren</button>
         <button class="btn btn-primary" style="flex:1" id="save-session-btn">Toevoegen</button>
@@ -681,21 +670,44 @@ async function openStudySession(sessionId) {
     overlay.classList.remove('hidden');
     const labels = { auto:'🔀 Gemengd', fr:'🇫🇷 Frans — exam mode', nl:'🇧🇪 Nederlands' };
     overlay.innerHTML = `
-      <div style="text-align:center;max-width:420px;padding:32px;display:flex;flex-direction:column;gap:16px">
-        <h2 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800">Antwoorden in het…</h2>
-        <p style="color:var(--muted)">${(activeSession.subject_name||'').replace('Frans - ','')}</p>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          ${['auto','fr','nl'].map(d => `
-            <button class="btn ${d===savedDir?'btn-primary':'btn-secondary'} btn-lg" onclick="beginSession('${d}')">
-              ${labels[d]} ${d===savedDir?'<span style="font-size:11px;opacity:.7">(vorige keuze)</span>':''}
-            </button>`).join('')}
+      <div style="max-width:440px;width:100%;padding:32px;display:flex;flex-direction:column;gap:16px">
+        <div style="text-align:center">
+          <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">Sessie starten</h2>
+          <p style="color:var(--muted);margin-top:4px">${(activeSession.subject_name||'').replace('Frans - ','')}</p>
         </div>
-        <div style="font-size:11px;color:var(--muted)">Je keuze wordt onthouden</div>
-        <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">Annuleren</button>
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Antwoorden in het…</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${['auto','fr','nl'].map(d => `
+              <button class="btn ${d===savedDir?'btn-primary':'btn-secondary'}" id="dir-btn-${d}" onclick="selectDir('${d}')">
+                ${labels[d]} ${d===savedDir?'<span style=\'font-size:11px;opacity:.7\'>(vorige)</span>':''}
+              </button>`).join('')}
+          </div>
+        </div>
+        ${qtypeCheckboxHTML()}
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-secondary" style="flex:1" onclick="stopStudySession()">Annuleren</button>
+          <button class="btn btn-primary" style="flex:1" onclick="confirmBeginSession()">▶ Starten</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:center">Keuzes worden onthouden</div>
       </div>`;
     return;
   }
   await beginSession(activeSession.direction);
+}
+
+let _selectedDir = localStorage.getItem('sm_direction') || 'auto';
+function selectDir(d) {
+  _selectedDir = d;
+  ['auto','fr','nl'].forEach(x => {
+    const btn = document.getElementById('dir-btn-'+x);
+    if (btn) btn.className = 'btn ' + (x===d ? 'btn-primary' : 'btn-secondary');
+  });
+}
+function confirmBeginSession() {
+  const qtype = getSelectedQtypes();
+  activeSession.qtype = qtype;
+  beginSession(_selectedDir);
 }
 
 async function beginSession(direction) {
@@ -816,6 +828,28 @@ function applyDirection(q, direction) {
   if (direction === 'fr' && qLang === 'fr_nl') return q; // wil FR antwoord maar vraag is al FR→NL: skip, gebruik nl_fr versie
   if (direction === 'nl' && qLang === 'nl_fr') return null; // skip nl_fr vragen bij NL richting
   return q;
+}
+
+function qtypeCheckboxHTML(savedKey='sm_qtypes') {
+  const saved = (localStorage.getItem(savedKey)||'mc,fill,open,gender').split(',');
+  return `
+    <div style="margin-top:12px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Vraagtype</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        ${[['mc','🔘 Meerkeuze'],['fill','⌨️ Invullen'],['open','📝 Open'],['gender','🏷️ Geslacht']].map(([v,l]) => `
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <input type="checkbox" class="qtype-check" value="${v}" ${saved.includes(v)?'checked':''} style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer">
+            <span style="font-size:12px">${l}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+}
+
+function getSelectedQtypes(savedKey='sm_qtypes') {
+  const checked = [...document.querySelectorAll('.qtype-check:checked')].map(c => c.value);
+  const result = checked.length === 0 ? 'all' : checked.join(',');
+  localStorage.setItem(savedKey, result === 'all' ? 'mc,fill,open,gender' : result);
+  return result;
 }
 
 function generateGenderQuestions(subjectId) {
@@ -1489,8 +1523,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   const plannedAt = document.getElementById('sess-datetime').value;
   const duration = parseInt(document.getElementById('sess-duration').value);
   const direction = document.getElementById('sess-direction').value;
-  const checked = [...document.querySelectorAll('.qtype-check:checked')].map(c => c.value);
-  const qtype = checked.length === 4 || checked.length === 0 ? 'all' : checked.join(',');
+  const qtype = 'all'; // wordt gekozen bij start
 
   if (!subjectId) { showNotification('Kies een hoofdstuk', 'error'); return; }
   if (!plannedAt) { showNotification('Kies een datum en tijd', 'error'); return; }
@@ -1602,21 +1635,33 @@ function renderPage_quiz() {
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Vraagtype</label>
-          <select class="form-input" id="quiz-type-sel">
-            <option value="all">Alle types</option>
-            <option value="mc">Meerkeuze</option>
-            <option value="fill">Invullen</option>
-            <option value="open">Open</option>
-          </select>
-        </div>
-        <div class="form-group">
           <label class="form-label">Antwoorden in het…</label>
           <select class="form-input" id="quiz-direction-sel">
             <option value="auto">🔀 Gemengd (automatisch)</option>
             <option value="fr">🇫🇷 Frans — exam mode</option>
             <option value="nl">🇧🇪 Nederlands</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vraagtype</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+              <input type="checkbox" class="qtype-check" value="mc" checked style="width:15px;height:15px;accent-color:var(--accent)">
+              <span style="font-size:12px">🔘 Meerkeuze</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+              <input type="checkbox" class="qtype-check" value="fill" checked style="width:15px;height:15px;accent-color:var(--accent)">
+              <span style="font-size:12px">⌨️ Invullen</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+              <input type="checkbox" class="qtype-check" value="open" checked style="width:15px;height:15px;accent-color:var(--accent)">
+              <span style="font-size:12px">📝 Open</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+              <input type="checkbox" class="qtype-check" value="gender" checked style="width:15px;height:15px;accent-color:var(--accent)">
+              <span style="font-size:12px">🏷️ Geslacht</span>
+            </label>
+          </div>
         </div>
         <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">🧠 Quiz starten</button>
       </div>
@@ -1630,14 +1675,22 @@ function renderPage_quiz() {
 function startQuiz() {
   const sid = parseInt(document.getElementById('quiz-subject-sel').value);
   const count = parseInt(document.getElementById('quiz-count-sel').value);
-  const typeFilter = document.getElementById('quiz-type-sel').value;
   const direction = document.getElementById('quiz-direction-sel').value;
+  const qtype = getSelectedQtypes();
   localStorage.setItem('sm_direction', direction);
   if (!sid) { showNotification('Kies eerst een vak', 'error'); return; }
 
   let pool = QUESTIONS.filter(q => q.subject_id === sid);
-  if (typeFilter !== 'all') pool = pool.filter(q => q.type === typeFilter);
-  if (!pool.length) { showNotification('Geen vragen gevonden voor deze selectie', 'error'); return; }
+  // Filter op geselecteerde types
+  const qtypes = qtype === 'all' ? null : qtype.split(',');
+  if (qtypes) {
+    let filtered = [];
+    if (qtypes.includes('gender')) filtered = filtered.concat(generateGenderQuestions(sid));
+    const others = qtypes.filter(t => t !== 'gender');
+    if (others.length) filtered = filtered.concat(pool.filter(q => others.includes(q.type)));
+    pool = filtered;
+  }
+  if (!pool.length) { showNotification('Geen vragen voor deze selectie', 'error'); return; }
 
   pool = filterByDirection(pool, direction)
              .sort(() => Math.random() - 0.5)
