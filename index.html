@@ -608,14 +608,29 @@ function renderPlanner() {
       return sd.getTime() === date.getTime();
     });
 
+    const now = new Date();
     const sessHTML = daySessions.map(s => {
-      const t = new Date(s.planned_at).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-      const done = s.status === 'done';
-      const name = (s.subject_name||'').replace('Frans - ','');
-      return `<div style="margin-top:4px;background:${done?'rgba(67,233,123,.12)':'rgba(108,99,255,.12)'};border-left:3px solid ${done?'var(--accent3)':'var(--accent)'};border-radius:0 6px 6px 0;padding:4px 6px;font-size:10px;cursor:pointer" onclick="openStudySession(${s.id})">
-        <div style="font-weight:700;color:${done?'var(--accent3)':'var(--accent)'};">${t}</div>
-        <div style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${name}</div>
-        ${done?`<div style="color:var(--accent3)">✅ ${s.score??'-'}%</div>`:`<div style="color:var(--accent)">▶ Starten</div>`}
+      const dt = new Date(s.planned_at);
+      // Toon lokale tijd correct
+      const t = dt.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone});
+      const done   = s.status === 'done';
+      const missed = s.status !== 'done' && dt < now;
+      const name   = (s.subject_name||'').replace('Frans - ','');
+
+      const bg     = done   ? 'rgba(67,233,123,.12)'  : missed ? 'rgba(255,107,107,.10)' : 'rgba(108,99,255,.10)';
+      const border = done   ? 'var(--accent3)'         : missed ? 'var(--accent2)'        : 'var(--accent)';
+      const col    = done   ? 'var(--accent3)'         : missed ? 'var(--accent2)'        : 'var(--accent)';
+
+      const bottom = done
+        ? `<div style="color:var(--accent3);font-weight:700">✅ ${s.score??'-'}%</div>`
+        : missed
+        ? `<div style="color:var(--accent2)">⚠️ Gemist</div>`
+        : `<div style="color:var(--accent)">▶ Starten</div>`;
+
+      return `<div style="margin-top:4px;background:${bg};border-left:3px solid ${border};border-radius:0 6px 6px 0;padding:5px 7px;font-size:10px;cursor:pointer" onclick="${done||missed?'':'openStudySession('+s.id+')'}">
+        <div style="font-weight:700;color:${col}">${t} · ${s.duration_min}min</div>
+        <div style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+        ${bottom}
       </div>`;
     }).join('');
 
@@ -718,9 +733,13 @@ async function beginSession(direction) {
 }
 
 
+let timerPaused = false;
+
 function startStudyTimer() {
   clearInterval(studyTimer);
+  timerPaused = false;
   studyTimer = setInterval(() => {
+    if (timerPaused) return;
     studyRemaining--;
     const el = document.getElementById('study-timer-val');
     if (el) {
@@ -735,6 +754,22 @@ function startStudyTimer() {
       if (btn) btn.textContent = '📝 Tijd om! Start toets';
     }
   }, 1000);
+}
+
+function togglePause() {
+  timerPaused = !timerPaused;
+  const btn = document.getElementById('pause-btn');
+  const lbl = document.getElementById('pause-label');
+  const val = document.getElementById('study-timer-val');
+  if (timerPaused) {
+    if (btn) btn.textContent = '▶';
+    if (lbl) lbl.textContent = '▶ klik om te hervatten';
+    if (val) val.style.opacity = '0.4';
+  } else {
+    if (btn) btn.textContent = '⏸';
+    if (lbl) lbl.textContent = '⏸ klik om te pauzeren';
+    if (val) val.style.opacity = '1';
+  }
 }
 
 // Kies welke modus past bij de vraag
@@ -871,11 +906,13 @@ function renderLearnCard() {
             <div style="height:100%;width:${pct}%;background:var(--accent3);border-radius:3px;transition:width .4s"></div>
           </div>
         </div>
-        <div style="text-align:center;min-width:70px">
-          <div id="study-timer-val" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent)">${m}:${s}</div>
+        <div style="text-align:center;min-width:80px">
+          <div id="study-timer-val" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);cursor:pointer" onclick="togglePause()" title="Pauzeren/Hervatten">${m}:${s}</div>
+          <div id="pause-label" style="font-size:9px;color:var(--muted)">⏸ klik om te pauzeren</div>
         </div>
         <div style="display:flex;gap:8px">
           <button id="study-toets-btn" class="btn btn-primary btn-sm">📝 Toets</button>
+          <button class="btn btn-secondary btn-sm" onclick="togglePause()" id="pause-btn">⏸</button>
           <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">✕</button>
         </div>
       </div>
@@ -973,17 +1010,33 @@ function checkLearnType() {
   setTimeout(() => learnResult(isCorrect), 1400);
 }
 
+let learnWrong = []; // foute kaarten deze sessie
+
 function learnResult(known) {
-  // Verwijder huidige vraag uit pool
   learnPool = learnPool.filter(q => q.id !== learnCurrent.id);
   if (known) {
     learnKnown.push(learnCurrent);
   } else {
-    // Zet achteraan, iets minder prioriteit
     learnCurrent._priority = false;
+    if (!learnWrong.find(w => w.id === learnCurrent.id)) learnWrong.push(learnCurrent);
     learnPool.push(learnCurrent);
   }
+  // Auto-save voortgang
+  autoSaveProgress();
   nextLearnCard();
+}
+
+let _autoSaveTimer = null;
+function autoSaveProgress() {
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(async () => {
+    if (!activeSession?.id) return;
+    await supabase.from('sessions').update({
+      known_count:   learnKnown.length,
+      unknown_count: learnWrong.length,
+      total_count:   learnKnown.length + learnPool.length + learnWrong.length,
+    }).eq('id', activeSession.id);
+  }, 2000); // sla op na 2s inactiviteit
 }
 
 function renderLearnComplete() {
@@ -1215,21 +1268,86 @@ async function finishToets() {
     </div>`;
 }
 
-function renderProgress() {
+async function renderProgress() {
+  // Laad scores + sessies
+  const [scoresRes, sessionsRes] = await Promise.all([
+    supabase.from('scores').select('*').eq('user_id', currentUser.id),
+    supabase.from('sessions').select('*').eq('user_id', currentUser.id),
+  ]);
+  const scores   = scoresRes.data  || [];
+  const sessions = sessionsRes.data || [];
+
+  const done     = sessions.filter(s => s.status === 'done');
+  const avgScore = scores.length
+    ? Math.round(scores.reduce((a,s) => a + (s.score||0), 0) / scores.length)
+    : 0;
+  const studyMins = done.reduce((a,s) => a + (s.duration_min||0), 0);
+
+  // Stats bovenaan
   document.getElementById('progress-stats').innerHTML = `
-    <div class="stat-card c-purple">
-      <div class="stat-label">Totale Vragen Beantwoord</div>
-      <div class="stat-value">0</div>
-    </div>
     <div class="stat-card c-green">
-      <div class="stat-label">Correcte Antwoorden</div>
-      <div class="stat-value">0%</div>
+      <div class="stat-label">Gemiddelde toetsscore</div>
+      <div class="stat-value">${avgScore}%</div>
+      <div class="stat-sub">${scores.length} toetsen gemaakt</div>
+    </div>
+    <div class="stat-card c-purple">
+      <div class="stat-label">Sessies afgerond</div>
+      <div class="stat-value">${done.length}</div>
+      <div class="stat-sub">van ${sessions.length} geplande sessies</div>
     </div>
     <div class="stat-card c-orange">
-      <div class="stat-label">Studieuren</div>
-      <div class="stat-value">0h</div>
+      <div class="stat-label">Studietijd</div>
+      <div class="stat-value">${Math.floor(studyMins/60)}u${studyMins%60}m</div>
+      <div class="stat-sub">totaal bestudeerd</div>
     </div>
   `;
+
+  // Per hoofdstuk: groen/rood/paars balk
+  const lower = document.getElementById('progress-lower');
+  const COLORS = ['#6c63ff','#ff6b6b','#43e97b','#f59e0b','#06b6d4','#ec4899'];
+
+  const subjHTML = SUBJECTS.map((subj, i) => {
+    const subjScores = scores.filter(s => s.subject_id === subj.id);
+    const subjSess   = sessions.filter(s => s.subject_id === subj.id && s.status === 'done');
+    const latestScore = subjScores.length
+      ? subjScores.sort((a,b) => new Date(b.played_at)-new Date(a.played_at))[0]
+      : null;
+
+    // Voortgang uit sessies (known_count / total_count)
+    const latestSess = subjSess.sort((a,b) => new Date(b.planned_at)-new Date(a.planned_at))[0];
+    const known   = latestSess?.known_count   || 0;
+    const unknown = latestSess?.unknown_count || 0;
+    const total   = subj.question_count || 1;
+    const todo    = Math.max(0, total - known - unknown);
+
+    const pctKnown   = Math.round(known   / total * 100);
+    const pctUnknown = Math.round(unknown / total * 100);
+    const pctTodo    = Math.max(0, 100 - pctKnown - pctUnknown);
+
+    const color = COLORS[i % COLORS.length];
+    const name  = subj.name.replace('Frans - ','');
+
+    return `
+      <div class="card" style="padding:16px 20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-weight:700;font-size:14px">${name}</div>
+          ${latestScore ? `<div style="font-size:13px;font-weight:700;color:${latestScore.score>=70?'var(--accent3)':latestScore.score>=50?'var(--orange)':'var(--accent2)'}">${latestScore.score}%</div>` : '<div style="font-size:12px;color:var(--muted)">Nog niet getoetst</div>'}
+        </div>
+        <!-- Voortgangsbalk: groen=gekend / rood=fout / paars=nog te doen -->
+        <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px">
+          ${pctKnown   > 0 ? `<div style="flex:${pctKnown};background:#43e97b;border-radius:6px 0 0 6px" title="${known} gekend"></div>` : ''}
+          ${pctUnknown > 0 ? `<div style="flex:${pctUnknown};background:#ff6b6b" title="${unknown} fout"></div>` : ''}
+          ${pctTodo    > 0 ? `<div style="flex:${pctTodo};background:#6c63ff;border-radius:${pctKnown+pctUnknown===0?'6px':'0 6px 6px 0'}" title="${todo} nog te doen"></div>` : ''}
+        </div>
+        <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted)">
+          <span>🟢 ${known} gekend</span>
+          <span>🔴 ${unknown} fout</span>
+          <span>🟣 ${todo} te doen</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  lower.innerHTML = `<div class="col-gap">${subjHTML}</div><div></div>`;
 }
 
 async function renderKlas() {
