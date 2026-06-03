@@ -371,9 +371,19 @@
       <div class="form-group">
         <label class="form-label">Antwoorden in het…</label>
         <select class="form-input" id="sess-direction">
-          <option value="auto">Automatisch (gemengd)</option>
-          <option value="fr">🇫🇷 Frans (moeilijkst — exam mode)</option>
+          <option value="auto">🔀 Gemengd (automatisch)</option>
+          <option value="fr">🇫🇷 Frans — exam mode</option>
           <option value="nl">🇧🇪 Nederlands</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vraagtype oefeningen</label>
+        <select class="form-input" id="sess-qtype">
+          <option value="all">Alle types (aanbevolen)</option>
+          <option value="mc">Enkel meerkeuze</option>
+          <option value="fill">Enkel invullen</option>
+          <option value="open">Enkel open</option>
+          <option value="gender">Enkel geslacht (le/la)</option>
         </select>
       </div>
       <div class="flex gap-10">
@@ -670,16 +680,24 @@ async function beginSession(direction) {
     .eq('user_id', currentUser.id).eq('subject_id', activeSession.subject_id);
   const wrongIds = new Set((wrongData||[]).map(w => w.question_id));
 
-  const allQ = QUESTIONS.filter(q => q.subject_id === activeSession.subject_id);
+  let allQ = QUESTIONS.filter(q => q.subject_id === activeSession.subject_id);
+
+  // Geslachtsvragen genereren als qtype === 'gender'
+  const qt = activeSession.qtype || 'all';
+  if (qt === 'gender') {
+    allQ = generateGenderQuestions(activeSession.subject_id);
+  } else if (qt !== 'all') {
+    allQ = allQ.filter(q => q.type === qt);
+  }
+
   const wrongPool  = allQ.filter(q => wrongIds.has(q.id)).map(q => ({...q, _priority: true}));
   const normalPool = allQ.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-.5);
 
-  // Max aantal kaarten per sessie (fouten eerst, dan aanvullen tot limiet)
   const limit = activeSession.question_count || 20;
   const combined = [...wrongPool, ...normalPool].slice(0, limit);
 
   const dir = activeSession.direction || 'auto';
-  learnPool    = combined.map(q => applyDirection(q, dir));
+  learnPool = filterByDirection(combined, dir);
   learnKnown   = [];
   studyRemaining = (activeSession.duration_min || 30) * 60;
 
@@ -710,29 +728,82 @@ function startStudyTimer() {
 
 // Kies welke modus past bij de vraag
 // Draai vraag om voor NL→FR richting (woordenschat subjects 9,10,11)
-function applyDirection(q, direction) {
-  if (direction === 'auto' || q.type !== 'fill') return q;
-  // Vraagformat: "le mot = de vertaling / het ___" → antwoord is NL
-  // of: "de vertaling = ___" → antwoord is FR
-  const isVocab = [9,10,11].includes(q.subject_id);
-  if (!isVocab) return q;
+// Accepteert alle varianten gesplitst op "/" of " / "
+// bv. antwoord "inventeur / inventrice" → "inventeur" én "inventrice" zijn juist
+// bv. antwoord "praktisch / handig" → beide juist
+function isCorrectAnswer(userInput, correctAnswer) {
+  const user = userInput.trim().toLowerCase()
+    .replace(/[()]/g, '')   // haal (e)(s) etc weg
+    .replace(/\s+/g, ' ')
+    .trim();
 
+  const variants = correctAnswer.split(/\s*\/\s*|\s*\|\s*/)
+    .map(v => v.trim().toLowerCase()
+      .replace(/[()]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    )
+    .filter(Boolean);
+
+  // Exacte match op een van de varianten
+  if (variants.some(v => v === user)) return true;
+
+  // Accepteer ook zonder lidwoord (bv. "l'abonnement" → antwoord "abonnement")
+  const userNoArticle = user.replace(/^(le |la |les |l'|l')/i, '').trim();
+  if (variants.some(v => v.replace(/^(le |la |les |l'|l')/i,'').trim() === userNoArticle)) return true;
+
+  return false;
+}
+
+function applyDirection(q, direction) {
+  if (direction === 'auto') return q;
+  // Gebruik 'lang' kolom als die beschikbaar is
+  const qLang = q.lang || 'fr_nl';
+  if (direction === 'fr' && qLang === 'fr_nl') return q; // wil FR antwoord maar vraag is al FR→NL: skip, gebruik nl_fr versie
+  if (direction === 'nl' && qLang === 'nl_fr') return null; // skip nl_fr vragen bij NL richting
+  return q;
+}
+
+function generateGenderQuestions(subjectId) {
+  // Haal fr_nl fill vragen op waarvan de vraag begint met "l'", "le ", "la ", "les "
+  const vocabQ = QUESTIONS.filter(q =>
+    q.subject_id === subjectId &&
+    q.type === 'fill' &&
+    (q.lang || 'fr_nl') === 'fr_nl'
+  );
+  return vocabQ.map(q => {
+    // Extraheer het woord en het lidwoord uit de vraag
+    const match = q.question.match(/^(l['']|le |la |les )([^=]+)/i);
+    if (!match) return null;
+    const article = match[1].trim().replace('',"'");
+    const word = match[2].trim().replace(/\s*\(.*\)/, '').trim();
+    const correctArticle = article === "l'" ? "l'" : article;
+    return {
+      id: q.id + 90000,
+      subject_id: subjectId,
+      type: 'gender',
+      topic: q.topic,
+      question: word,
+      answer: correctArticle,
+      options: ['le', 'la', 'les', "l'"],
+      lang: 'fr_nl'
+    };
+  }).filter(Boolean);
+}
+
+function filterByDirection(pool, direction) {
+  if (direction === 'auto') return pool;
   if (direction === 'fr') {
-    // NL→FR: toon het Nederlandse woord (= origineel antwoord), antwoord = Frans woord (voor " = ")
-    const parts = q.question.split(' = ');
-    if (parts.length >= 2) {
-      const frPart = parts[0].trim();                          // "l'émoticône (f)"
-      const article = parts[1].replace('___','').trim();       // "de" / "het" / ""
-      const nlWord  = q.answer;                                // "smiley"
-      const nlQuestion = article ? `${article} ${nlWord}` : nlWord;
-      return { ...q, question: `${nlQuestion} = ___`, answer: frPart };
-    }
+    // Gebruik nl_fr vragen (antwoord in FR), of fr_nl als geen nl_fr bestaat
+    const nlFr = pool.filter(q => (q.lang || 'fr_nl') === 'nl_fr');
+    const frNl = pool.filter(q => (q.lang || 'fr_nl') === 'fr_nl');
+    return nlFr.length > 0 ? nlFr : frNl;
   }
   if (direction === 'nl') {
-    // FR→NL: standaard, laat zoals het is
-    return q;
+    // Gebruik fr_nl vragen (antwoord in NL)
+    return pool.filter(q => (q.lang || 'fr_nl') === 'fr_nl');
   }
-  return q;
+  return pool;
 }
 
 function pickMode(q) {
@@ -880,7 +951,7 @@ function checkLearnType() {
   const userVal = inp?.value?.trim() || '';
   if (!userVal) { showNotification('Typ een antwoord of klik "Ik weet het niet"', 'error'); return; }
   const correct = learnCurrent.answer;
-  const isCorrect = userVal.toLowerCase() === correct.toLowerCase();
+  const isCorrect = isCorrectAnswer(userVal, correct);
   inp.disabled = true;
   inp.style.borderColor = isCorrect ? 'var(--accent3)' : 'var(--accent2)';
   const area = document.getElementById('learn-input-area');
@@ -958,75 +1029,134 @@ function renderToetsQuestion() {
   const pct = Math.round(current / questions.length * 100);
   const page = document.getElementById('page-quiz');
 
+  // Progressbalk: groen=juist, rood=fout, grijs=nog niet
+  const segBar = questions.map((_,i) => {
+    const res = toetsState.results?.[i];
+    const col = res === true ? '#43e97b' : res === false ? '#ff6b6b' : i===current ? 'var(--accent)' : 'var(--border)';
+    return `<div style="flex:1;height:6px;border-radius:3px;background:${col};transition:background .3s"></div>`;
+  }).join('');
+
   page.innerHTML = `
-    <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.3);border-radius:12px;padding:12px 18px;margin-bottom:24px;font-size:13px;color:var(--accent)">
-      📝 Toets na studiesessie — ${(session.subject_name||'').replace('Frans - ','')}
+    <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.3);border-radius:12px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--accent);display:flex;align-items:center;justify-content:space-between">
+      <span>📝 Toets — ${(session.subject_name||'').replace('Frans - ','')}</span>
+      <span style="font-weight:700">${current+1} / ${questions.length}</span>
     </div>
+    <div style="display:flex;gap:3px;margin-bottom:20px">${segBar}</div>
     <div class="quiz-wrap">
-      <div class="quiz-progress">
-        <div class="quiz-bar"><div class="quiz-fill" style="width:${pct}%"></div></div>
-        <span class="quiz-counter">${current+1} / ${questions.length}</span>
-      </div>
       <div class="question-card">
-        <span class="q-type ${q.type}">${q.type==='mc'?'Meerkeuze':q.type==='fill'?'Invullen':'Open'}</span>
-        <div class="question-text">${q.type==='fill'?q.question.replace('___','<input id="fill-ans" class="fill-input" autocomplete="off"/>'):q.question}</div>
+        <span class="q-type ${q.type}">${q.type==='mc'?'Meerkeuze':q.type==='fill'?'Invullen':q.type==='gender'?'Geslacht':'Open'}</span>
+        <div class="question-text">${
+          q.type==='fill' ? q.question.replace('___','<input id="fill-ans" class="fill-input" autocomplete="off" style="min-width:160px"/>') :
+          q.type==='gender' ? `<span style="font-size:28px;font-weight:800">${q.question}</span>` :
+          q.question
+        }</div>
         ${q.type==='mc' ? `<div class="mc-options">${(Array.isArray(q.options)?q.options:JSON.parse(q.options||'[]')).map(o=>`<button class="mc-opt">${o}</button>`).join('')}</div>` : ''}
-        ${q.type==='open' ? `<textarea id="open-ans" class="form-input" rows="3" placeholder="Jouw antwoord..."></textarea>` : ''}
+        ${q.type==='gender' ? `<div style="display:flex;gap:12px;margin-top:16px">
+          <button class="mc-opt" style="flex:1;font-size:18px;font-weight:700">le</button>
+          <button class="mc-opt" style="flex:1;font-size:18px;font-weight:700">la</button>
+          <button class="mc-opt" style="flex:1;font-size:18px;font-weight:700">les</button>
+          <button class="mc-opt" style="flex:1;font-size:18px;font-weight:700">l'</button>
+        </div>` : ''}
+        ${q.type==='open' ? `
+          <textarea id="open-ans" class="form-input" rows="3" placeholder="Jouw antwoord..."></textarea>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">Vergelijk daarna met het modelantwoord en beoordeel zelf.</div>
+        ` : ''}
         <div id="qfeedback"></div>
       </div>
-      <div style="display:flex;gap:12px;justify-content:flex-end">
-        <button class="btn btn-danger" onclick="toetsSkip()" style="font-size:13px">✗ Ik weet het niet</button>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-danger btn-sm" onclick="toetsSkip()">✗ Weet ik niet</button>
         <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren →</button>
       </div>
     </div>`;
 
-  if (q.type==='mc') {
+  if (q.type==='mc' || q.type==='gender') {
     document.querySelectorAll('.mc-opt').forEach(btn => {
       btn.onclick = () => { document.querySelectorAll('.mc-opt').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); };
     });
   }
+  if (q.type==='fill') document.getElementById('fill-ans')?.focus();
 }
 
 function toetsCheck() {
   const q = toetsState.questions[toetsState.current];
+  if (!toetsState.results) toetsState.results = {};
   let correct = false, userAns = '';
 
-  if (q.type==='mc') {
+  if (q.type==='mc' || q.type==='gender') {
     const sel = document.querySelector('.mc-opt.selected');
     if (!sel) { showNotification('Kies een optie','error'); return; }
-    userAns = sel.textContent;
+    userAns = sel.textContent.trim();
     correct = userAns === q.answer;
     document.querySelectorAll('.mc-opt').forEach(btn => {
       btn.disabled = true;
-      if (btn.textContent===q.answer) btn.classList.add('correct');
+      if (btn.textContent.trim()===q.answer) btn.classList.add('correct');
       else if (btn.classList.contains('selected')) btn.classList.add('wrong');
     });
   } else if (q.type==='fill') {
     userAns = document.getElementById('fill-ans')?.value?.trim()||'';
-    if (!userAns) { showNotification('Typ een antwoord of klik "Ik weet het niet"', 'error'); return; }
-    correct = userAns.toLowerCase()===q.answer.toLowerCase();
+    if (!userAns) { showNotification('Typ een antwoord of klik "Weet ik niet"','error'); return; }
+    correct = isCorrectAnswer(userAns, q.answer);
     const inp=document.getElementById('fill-ans');
     if(inp){inp.disabled=true;inp.style.borderColor=correct?'var(--accent3)':'var(--accent2)';}
-  } else {
+  } else if (q.type==='open') {
     userAns = document.getElementById('open-ans')?.value?.trim()||'';
-    if (!userAns) { showNotification('Typ een antwoord of klik "Ik weet het niet"', 'error'); return; }
-    correct = false; // open vragen: gebruiker beoordeelt zelf via knoppen
+    if (!userAns) { showNotification('Typ een antwoord of klik "Weet ik niet"','error'); return; }
+    // Open: toon modelantwoord, laat gebruiker zelf beoordelen
+    document.getElementById('open-ans').disabled = true;
+    document.getElementById('qfeedback').innerHTML = `
+      <div class="feedback info" style="margin-top:12px">
+        <div style="font-size:11px;font-weight:700;margin-bottom:6px">MODELANTWOORD</div>
+        <div>${q.answer}</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn btn-danger" style="flex:1" onclick="openSelfJudge(false)">✗ Fout</button>
+        <button class="btn" style="flex:1;background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)" onclick="openSelfJudge(true)">~ Deels juist</button>
+        <button class="btn" style="flex:1;background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3)" onclick="openSelfJudge(true)">✓ Juist</button>
+      </div>`;
+    document.getElementById('check-btn').style.display='none';
+    return;
   }
 
+  toetsState.results[toetsState.current] = correct;
   if (correct) {
     toetsState.score++;
-    document.getElementById('qfeedback').innerHTML=`<div class="feedback correct">✅ Correct!</div>`;
+    document.getElementById('qfeedback').innerHTML=`
+      <div class="feedback correct" style="margin-top:12px">✅ Correct!</div>`;
+    setTimeout(()=>{ toetsState.current++; renderToetsQuestion(); }, 800);
   } else {
     toetsState.wrongs.push({ questionId: q.id, q: q.question, wrong: userAns, correct: q.answer });
-    document.getElementById('qfeedback').innerHTML=`<div class="feedback wrong">❌ Fout — correct: <strong>${q.answer}</strong></div>`;
+    document.getElementById('qfeedback').innerHTML=`
+      <div class="feedback wrong" style="margin-top:12px">
+        ❌ Fout — correct: <strong>${q.answer}</strong>
+        <button onclick="toetsTochJuist()" style="margin-left:12px;background:rgba(67,233,123,.15);border:1px solid rgba(67,233,123,.3);color:var(--accent3);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px">Toch juist ✓</button>
+      </div>`;
+    document.getElementById('check-btn').textContent='Volgende →';
+    document.getElementById('check-btn').onclick=()=>{ toetsState.current++; renderToetsQuestion(); };
   }
+}
 
-  document.getElementById('check-btn').textContent='Volgende →';
-  document.getElementById('check-btn').onclick=()=>{ toetsState.current++; renderToetsQuestion(); };
+function openSelfJudge(correct) {
+  toetsState.results[toetsState.current] = correct;
+  if (correct) toetsState.score++;
+  else toetsState.wrongs.push({ questionId: toetsState.questions[toetsState.current].id, q: toetsState.questions[toetsState.current].question, wrong:'(open)', correct: toetsState.questions[toetsState.current].answer });
+  toetsState.current++;
+  renderToetsQuestion();
+}
+
+function toetsTochJuist() {
+  const cur = toetsState.current - 1;
+  const wrong = toetsState.wrongs.find(w => w.questionId === toetsState.questions[toetsState.current-1]?.id);
+  if (wrong) toetsState.wrongs = toetsState.wrongs.filter(w => w !== wrong);
+  toetsState.score++;
+  toetsState.results[toetsState.current-1] = true;
+  showNotification('Als juist gemarkeerd ✓','success');
 }
 
 function toetsSkip() {
-  toetsState.wrongs.push({ questionId: toetsState.questions[toetsState.current].id, q: toetsState.questions[toetsState.current].question, wrong:'(overgeslagen)', correct: toetsState.questions[toetsState.current].answer });
+  if (!toetsState.results) toetsState.results = {};
+  const q = toetsState.questions[toetsState.current];
+  toetsState.results[toetsState.current] = false;
+  toetsState.wrongs.push({ questionId: q.id, q: q.question, wrong:'(overgeslagen)', correct: q.answer });
   toetsState.current++;
   renderToetsQuestion();
 }
@@ -1212,6 +1342,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   const duration = parseInt(document.getElementById('sess-duration').value);
   const qcount = parseInt(document.getElementById('sess-qcount').value);
   const direction = document.getElementById('sess-direction').value;
+  const qtype = document.getElementById('sess-qtype').value;
 
   if (!plannedAt) { showNotification('Kies een datum en tijd', 'error'); return; }
 
@@ -1223,6 +1354,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
     duration_min: duration,
     question_count: qcount,
     direction: direction,
+    qtype: qtype,
     status: 'planned'
   });
 
@@ -1360,9 +1492,9 @@ function startQuiz() {
   if (typeFilter !== 'all') pool = pool.filter(q => q.type === typeFilter);
   if (!pool.length) { showNotification('Geen vragen gevonden voor deze selectie', 'error'); return; }
 
-  pool = pool.sort(() => Math.random() - 0.5)
-             .slice(0, Math.min(count, pool.length))
-             .map(q => applyDirection(q, direction));
+  pool = filterByDirection(pool, direction)
+             .sort(() => Math.random() - 0.5)
+             .slice(0, Math.min(count, pool.length));
 
   quizState = { questions: pool, current: 0, score: 0, wrongs: [], subjectId: sid };
   renderQuestion();
