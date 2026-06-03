@@ -443,19 +443,30 @@ async function initApp() {
 
 async function loadData() {
   try {
-    const [subjectsRes, sessionsRes, questionsRes] = await Promise.all([
-      supabase.from('subjects').select('*'),
-      supabase.from('sessions').select('*'),
-      supabase.from('questions').select('*')
+    // Subjects + sessions (eigen sessies)
+    const [subjectsRes, sessionsRes] = await Promise.all([
+      supabase.from('subjects').select('*').order('id'),
+      supabase.from('sessions').select('*')
+        .eq('user_id', currentUser.id)
+        .order('planned_at'),
     ]);
-
     if (subjectsRes.error) throw subjectsRes.error;
     if (sessionsRes.error) throw sessionsRes.error;
-    if (questionsRes.error) throw questionsRes.error;
-
     SUBJECTS = subjectsRes.data || [];
     SESSIONS = sessionsRes.data || [];
-    QUESTIONS = questionsRes.data || [];
+
+    // Vragen laden in batches (Supabase limiet = 1000 per request)
+    QUESTIONS = [];
+    let from = 0;
+    const BATCH = 1000;
+    while (true) {
+      const { data, error } = await supabase.from('questions').select('*')
+        .order('id').range(from, from + BATCH - 1);
+      if (error) throw error;
+      QUESTIONS = QUESTIONS.concat(data || []);
+      if (!data || data.length < BATCH) break;
+      from += BATCH;
+    }
 
     console.log('✅ Data loaded:', { subjects: SUBJECTS.length, sessions: SESSIONS.length, questions: QUESTIONS.length });
   } catch (error) {
@@ -988,6 +999,12 @@ function renderLearnComplete() {
     </div>`;
 }
 
+async function reloadSessions() {
+  const { data } = await supabase.from('sessions').select('*')
+    .eq('user_id', currentUser.id).order('planned_at');
+  SESSIONS = data || [];
+}
+
 function stopStudySession() {
   clearInterval(studyTimer);
   document.getElementById('study-overlay').classList.add('hidden');
@@ -1180,9 +1197,8 @@ async function finishToets() {
     );
   }
 
-  // Update lokale sessie
-  const s = SESSIONS.find(x=>x.id===session.id);
-  if(s){ s.status='done'; s.score=pct; }
+  // Herlaad sessies vanuit DB
+  await reloadSessions();
 
   document.getElementById('page-quiz').innerHTML = `
     <div class="results-wrap">
@@ -1362,9 +1378,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
 
   document.getElementById('session-modal').classList.add('hidden');
   showNotification('Sessie gepland!');
-  // Herlaad sessions
-  const { data } = await supabase.from('sessions').select('*').eq('user_id', currentUser.id);
-  SESSIONS = data || [];
+  await reloadSessions();
   renderPlanner();
 });
 
