@@ -606,19 +606,21 @@ function renderPlanner() {
       const dt = new Date(raw);
       // Toon lokale tijd correct
       const t = dt.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone});
-      const done   = s.status === 'done';
-      const missed = s.status !== 'done' && dt < now;
-      const name   = (s.subject_name||'').replace('Frans - ','');
+      const done    = s.status === 'done';
+      const missed  = s.status !== 'done' && dt < now;
+      const review  = s.session_type === 'review';
+      const name    = (s.subject_name||'').replace('Frans - ','');
 
-      const bg     = done   ? 'rgba(67,233,123,.12)'  : missed ? 'rgba(255,107,107,.10)' : 'rgba(108,99,255,.10)';
-      const border = done   ? 'var(--accent3)'         : missed ? 'var(--accent2)'        : 'var(--accent)';
-      const col    = done   ? 'var(--accent3)'         : missed ? 'var(--accent2)'        : 'var(--accent)';
+      const bg     = done ? 'rgba(67,233,123,.12)' : missed ? 'rgba(255,107,107,.10)' : review ? 'rgba(245,158,11,.10)' : 'rgba(108,99,255,.10)';
+      const border = done ? 'var(--accent3)'        : missed ? 'var(--accent2)'        : review ? 'var(--orange)'        : 'var(--accent)';
+      const col    = done ? 'var(--accent3)'        : missed ? 'var(--accent2)'        : review ? 'var(--orange)'        : 'var(--accent)';
 
       const bottom = done
         ? `<div style="color:var(--accent3);font-weight:700">✅ ${s.score??'-'}%</div>`
         : missed
         ? `<div style="color:var(--accent2)">⚠️ Gemist</div>`
-        : `<div style="color:var(--accent)">▶ Starten</div>`;
+        : review ? `<div style="color:var(--orange)">🔁 Herhaling — starten</div>`
+                 : `<div style="color:var(--accent)">▶ Starten</div>`;
 
       return `<div style="margin-top:4px;background:${bg};border-left:3px solid ${border};border-radius:0 6px 6px 0;padding:5px 7px;font-size:10px;cursor:pointer" onclick="${done||missed?'':'openStudySession('+s.id+')'}">
         <div style="font-weight:700;color:${col}">${t} · ${s.duration_min}min</div>
@@ -1293,6 +1295,13 @@ function toetsSkip() {
 
 async function finishToets() {
   const { questions, score, wrongs, session } = toetsState;
+
+  // Basistest apart afhandelen
+  if (toetsState.isBasistest) {
+    await finalizeBasistest(score, questions.length, wrongs);
+    return;
+  }
+
   const pct = Math.round(score/questions.length*100);
   const color = pct>=70?'var(--accent3)':pct>=50?'var(--orange)':'var(--accent2)';
 
@@ -1546,38 +1555,45 @@ async function showAutoPlanModal() {
     return { subj, avgScore, knownPct, neverDone, subjWrongs, priority };
   });
 
-  const today = new Date().toISOString().slice(0,10);
-  const examDefault = '2026-06-10'; // standaard
+  const todayStr = new Date().toISOString().slice(0,10);
+  const examDefault = '2026-06-10';
 
-  // Modal inhoud
+  // Standaard tijden per weekdag (0=zo..6=za)
+  const defaults = {0:null,1:['16:00','20:00'],2:['16:00','20:00'],3:['12:00','15:00'],4:['16:00','20:00'],5:['16:00','20:00'],6:['10:00','17:00']};
+  const dagNamen = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
+
+  // Genereer dag-per-dag rijen voor de komende 30 dagen
+  const dagRows = [];
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
+    const jsDay = d.getDay();
+    const def = defaults[jsDay];
+    const ds = d.toISOString().slice(0,10);
+    dagRows.push({ ds, label: d.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}), def, jsDay });
+  }
+
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.id = 'auto-plan-modal';
   modal.innerHTML = `
-    <div class="modal" style="max-width:560px">
+    <div class="modal" style="max-width:620px">
       <div class="modal-header">
         <h2 class="modal-title">🤖 Smart Auto-planner</h2>
         <button class="close-btn" onclick="document.getElementById('auto-plan-modal').remove()">×</button>
       </div>
       <div class="col-gap">
+
+        <!-- Stap 1: Basistest -->
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:14px 18px">
+          <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:6px">⚡ Stap 1 — Basistest (aanbevolen)</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Doe eerst een korte test (5 vragen/hoofdstuk) zodat het systeem weet hoe goed je elk hoofdstuk al kent. Dit maakt de planning veel accurater.</div>
+          <button class="btn btn-sm" style="background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)" onclick="startBasistest()">▶ Basistest starten (±10 min)</button>
+        </div>
+
         <div class="grid-2">
           <div class="form-group">
             <label class="form-label">Examendatum</label>
-            <input class="form-input" type="date" id="ap-exam-date" value="${examDefault}" min="${today}">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Starttijd sessies</label>
-            <input class="form-input" type="time" id="ap-start-time" value="17:00">
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Sessies per dag (max)</label>
-            <select class="form-input" id="ap-per-day">
-              <option value="1">1 per dag</option>
-              <option value="2" selected>2 per dag</option>
-              <option value="3">3 per dag</option>
-            </select>
+            <input class="form-input" type="date" id="ap-exam-date" value="${examDefault}" min="${todayStr}" onchange="updateDagRows()">
           </div>
           <div class="form-group">
             <label class="form-label">Duur per sessie (min)</label>
@@ -1592,23 +1608,45 @@ async function showAutoPlanModal() {
 
         <!-- Analyse per subject -->
         <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Analyse per hoofdstuk</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Analyse per hoofdstuk</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
             ${analysis.map(a => {
-              const col = a.avgScore===null ? 'var(--muted)' : a.avgScore>=70 ? 'var(--accent3)' : a.avgScore>=50 ? 'var(--orange)' : 'var(--accent2)';
-              const badge = a.neverDone ? '🆕 Nooit gedaan' : a.avgScore>=70 ? `✅ ${a.avgScore}%` : a.avgScore!==null ? `⚠️ ${a.avgScore}%` : '📖 Bezig';
-              const stars = '★'.repeat(Math.min(a.priority,7)) + '☆'.repeat(Math.max(0,7-a.priority));
-              return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--surface2);border-radius:10px">
+              const col = a.avgScore===null?'var(--muted)':a.avgScore>=70?'var(--accent3)':a.avgScore>=50?'var(--orange)':'var(--accent2)';
+              const badge = a.neverDone?'🆕 Nooit':a.avgScore>=70?`✅ ${a.avgScore}%`:a.avgScore!==null?`⚠️ ${a.avgScore}%`:'📖 Bezig';
+              const stars = '★'.repeat(Math.min(a.priority,7))+'☆'.repeat(Math.max(0,7-a.priority));
+              return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--surface2);border-radius:8px">
                 <div style="flex:1;font-size:12px;font-weight:600">${a.subj.name.replace('Frans - ','')}</div>
                 <div style="font-size:11px;color:${col}">${badge}</div>
-                <div style="font-size:11px;color:var(--orange)" title="Prioriteit">${stars}</div>
+                <div style="font-size:10px;color:var(--orange)">${stars}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Dag-per-dag beschikbaarheid -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Beschikbaarheid per dag</div>
+          <div id="dag-rows" style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto">
+            ${dagRows.map(({ds,label,def,jsDay}) => {
+              const isSun = jsDay===0;
+              const checked = !isSun && !!def;
+              const van = def?def[0]:'';
+              const tot = def?def[1]:'';
+              return `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--surface2);border-radius:8px">
+                <label style="display:flex;align-items:center;gap:6px;min-width:100px;cursor:pointer">
+                  <input type="checkbox" class="dag-check" data-date="${ds}" ${checked?'checked':''} style="accent-color:var(--accent);width:13px;height:13px">
+                  <span style="font-size:12px;font-weight:${jsDay===3?'700':'500'};color:${jsDay===0?'var(--muted)':'var(--text)'}">${label}</span>
+                </label>
+                <input type="time" class="dag-van" data-date="${ds}" value="${van}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px;width:82px">
+                <span style="color:var(--muted);font-size:11px">–</span>
+                <input type="time" class="dag-tot" data-date="${ds}" value="${tot}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px;width:82px">
               </div>`;
             }).join('')}
           </div>
         </div>
 
         <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted)">
-          ⚠️ Bestaande geplande (niet afgeronde) sessies worden verwijderd en herplanned op basis van je huidige voortgang.
+          ⚠️ Toekomstige ongemaakte sessies worden verwijderd en herplanned. Sessies die je al gedaan hebt blijven bewaard.
         </div>
 
         <div style="display:flex;gap:10px">
@@ -1623,11 +1661,66 @@ async function showAutoPlanModal() {
   window._apAnalysis = analysis;
 }
 
+async function startBasistest() {
+  document.getElementById('auto-plan-modal').remove();
+
+  // 5 vragen per subject, random
+  const pool = [];
+  for (const subj of SUBJECTS) {
+    const subjQ = QUESTIONS.filter(q => q.subject_id === subj.id && q.type === 'mc')
+      .sort(() => Math.random()-.5).slice(0,5);
+    pool.push(...subjQ);
+  }
+  pool.sort(() => Math.random()-.5);
+
+  // Start een speciale quiz
+  toetsState = {
+    questions: pool,
+    current: 0, score: 0, wrongs: [], results: {},
+    session: { id: null, subject_name: 'Basistest', subject_id: null, direction: 'auto' },
+    isBasistest: true
+  };
+  navigateTo('quiz');
+  renderToetsQuestion();
+
+  showNotification('⚡ Basistest gestart — beantwoord alle vragen eerlijk!');
+}
+
+async function finalizeBasistest(score, total, wrongs) {
+  // Sla scores op per subject
+  const subjScores = {};
+  toetsState.questions.forEach((q, i) => {
+    if (!subjScores[q.subject_id]) subjScores[q.subject_id] = { correct:0, total:0 };
+    subjScores[q.subject_id].total++;
+    if (toetsState.results[i]) subjScores[q.subject_id].correct++;
+  });
+  const inserts = Object.entries(subjScores).map(([sid,s]) => ({
+    user_id: currentUser.id,
+    subject_id: parseInt(sid),
+    subject_name: SUBJECTS.find(x=>x.id===parseInt(sid))?.name,
+    score: Math.round(s.correct/s.total*100),
+    total: s.total,
+  }));
+  await supabase.from('scores').insert(inserts);
+  showNotification('✅ Basistest klaar! Open Auto-planner voor je planning.');
+  navigateTo('planner');
+}
+
+function _dummy_autoPlan_placeholder() {
+}
+
 async function runAutoPlan() {
   const examDate   = document.getElementById('ap-exam-date').value;
-  const startTime  = document.getElementById('ap-start-time').value;
-  const perDay     = parseInt(document.getElementById('ap-per-day').value);
-  const duration   = parseInt(document.getElementById('ap-duration').value);
+  const duration = parseInt(document.getElementById('ap-duration').value);
+
+  // Dag-per-dag beschikbaarheid lezen
+  const dagSlots = {}; // 'YYYY-MM-DD' → {van, tot}
+  document.querySelectorAll('.dag-check:checked').forEach(cb => {
+    const ds = cb.dataset.date;
+    const van = document.querySelector(`.dag-van[data-date="${ds}"]`)?.value;
+    const tot = document.querySelector(`.dag-tot[data-date="${ds}"]`)?.value;
+    if (van && tot) dagSlots[ds] = { van, tot };
+  });
   const analysis   = window._apAnalysis;
 
   if (!examDate) { showNotification('Kies een examendatum','error'); return; }
@@ -1643,51 +1736,56 @@ async function runAutoPlan() {
     await supabase.from('sessions').delete().in('id', futureIds);
   }
 
-  // 2. Bereken totale prioriteit en sessies per subject
-  const totalPriority = analysis.reduce((a,x) => a + x.priority, 0);
+  // 2. Bereken beschikbare slots uit dag-per-dag invoer
   const today = new Date(); today.setHours(0,0,0,0);
   const exam  = new Date(examDate); exam.setHours(0,0,0,0);
-  const daysLeft = Math.max(1, Math.round((exam - today) / 86400000));
-  const totalSlots = daysLeft * perDay;
 
-  // Wijs sessies toe per subject (min 1, proportioneel aan prioriteit)
+  const availableSlots = [];
+  for (const [ds, sched] of Object.entries(dagSlots)) {
+    const d = new Date(ds + 'T00:00:00');
+    if (d < today || d >= exam) continue;
+    const [vanH, vanM] = sched.van.split(':').map(Number);
+    const [totH, totM] = sched.tot.split(':').map(Number);
+    const availMins = (totH*60+totM) - (vanH*60+vanM);
+    const slotsThisDay = Math.floor(availMins / (duration + 15));
+    for (let i = 0; i < slotsThisDay; i++) {
+      const totalMin = vanH*60 + vanM + i*(duration+15);
+      availableSlots.push({ date: new Date(d), startH: Math.floor(totalMin/60), startM: totalMin%60 });
+    }
+  }
+  // Sorteer chronologisch
+  availableSlots.sort((a,b) => a.date - b.date);
+
+  const totalSlots = availableSlots.length;
+  const totalPriority = analysis.reduce((a,x) => a + x.priority, 0);
+
+  // Wijs sessies toe per subject proportioneel aan prioriteit
   const sessionsPerSubject = analysis.map(a => ({
     subj: a.subj,
     count: Math.max(1, Math.round(a.priority / totalPriority * totalSlots)),
     priority: a.priority,
-    direction: a.avgScore !== null && a.avgScore < 60 ? 'fr' : 'auto', // zwakke subjects → exam mode
+    direction: a.avgScore !== null && a.avgScore < 60 ? 'fr' : 'auto',
   }));
 
-  // 3. Bouw planning dag per dag
-  const insertRows = [];
-  let dayOffset = 0;
-  let slotInDay  = 0;
-  const [startH, startM] = startTime.split(':').map(Number);
-
-  // Sorteer: meest urgent eerst
-  const queue = sessionsPerSubject.flatMap(s =>
-    Array.from({length: s.count}, (_, i) => ({ ...s, sessionIdx: i }))
-  ).sort((a,b) => b.priority - a.priority);
-
-  // Interleave subjects zodat niet alle sessies van 1 subject achter elkaar staan
+  // Interleave: meest urgent eerst, afgewisseld
   const interleaved = [];
   const maxRounds = Math.max(...sessionsPerSubject.map(s=>s.count));
   for (let round = 0; round < maxRounds; round++) {
-    for (const s of sessionsPerSubject.sort((a,b)=>b.priority-a.priority)) {
+    for (const s of [...sessionsPerSubject].sort((a,b)=>b.priority-a.priority)) {
       if (round < s.count) interleaved.push(s);
     }
   }
 
-  for (const s of interleaved) {
-    // Skip zondag (dag 0 = maandag in JS: 0=zo,1=ma,...,6=za → skip 0)
-    let d = new Date(today);
-    d.setDate(today.getDate() + dayOffset);
-    while (d.getDay() === 0) { dayOffset++; d.setDate(today.getDate() + dayOffset); }
-    if (d >= exam) break;
+  // 3. Koppel sessies aan tijdslots
+  const insertRows = [];
+  for (let i = 0; i < Math.min(interleaved.length, availableSlots.length); i++) {
+    const s    = interleaved[i];
+    const slot = availableSlots[i];
+    const sessionTime = new Date(slot.date);
+    sessionTime.setHours(slot.startH, slot.startM, 0, 0);
 
-    const sessionTime = new Date(d);
-    sessionTime.setHours(startH + Math.floor(slotInDay * (duration + 15) / 60),
-                         startM + (slotInDay * (duration + 15)) % 60, 0, 0);
+    // Herhalingssessie als score al goed is (>= 70%)
+    const sessType = (s.avgScore !== null && s.avgScore >= 70) ? 'review' : 'learn';
 
     insertRows.push({
       user_id:      currentUser.id,
@@ -1697,11 +1795,9 @@ async function runAutoPlan() {
       duration_min: duration,
       direction:    s.direction,
       qtype:        'all',
+      session_type: sessType,
       status:       'planned',
     });
-
-    slotInDay++;
-    if (slotInDay >= perDay) { slotInDay = 0; dayOffset++; }
   }
 
   if (insertRows.length) {
