@@ -360,13 +360,12 @@
       </div>
       <div class="grid-2">
         <div class="form-group">
-          <label class="form-label">Duur (min)</label>
-          <input class="form-input" type="number" id="sess-duration" value="45" min="15" max="240" />
+          <label class="form-label">Studieduur (min)</label>
+          <input class="form-input" type="number" id="sess-duration" value="30" min="5" max="240" />
         </div>
-        <div class="form-group">
-          <label class="form-label">Aantal vragen toets</label>
-          <input class="form-input" type="number" id="sess-qcount" value="20" min="5" max="50" />
-        </div>
+      </div>
+      <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted)">
+        📖 Oefenen tot de tijd op is of alles gekend → daarna automatisch toets
       </div>
       <div class="form-group">
         <label class="form-label">Antwoorden in het…</label>
@@ -378,13 +377,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">Vraagtype oefeningen</label>
-        <select class="form-input" id="sess-qtype">
-          <option value="all">Alle types (aanbevolen)</option>
-          <option value="mc">Enkel meerkeuze</option>
-          <option value="fill">Enkel invullen</option>
-          <option value="open">Enkel open</option>
-          <option value="gender">Enkel geslacht (le/la)</option>
-        </select>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          ${[['mc','🔘 Meerkeuze'],['fill','⌨️ Invullen'],['open','📝 Open'],['gender','🏷️ Geslacht (le/la)']].map(([val,label]) => `
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+              <input type="checkbox" class="qtype-check" value="${val}" checked
+                style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+              <span style="font-size:13px">${label}</span>
+            </label>`).join('')}
+        </div>
       </div>
       <div class="flex gap-10">
         <button class="btn btn-secondary" style="flex:1" id="cancel-session-modal">Annuleren</button>
@@ -708,19 +708,27 @@ async function beginSession(direction) {
 
   let allQ = QUESTIONS.filter(q => q.subject_id === activeSession.subject_id);
 
-  // Geslachtsvragen genereren als qtype === 'gender'
+  // Filter op geselecteerde vraagtypes (komma-gescheiden of 'all')
   const qt = activeSession.qtype || 'all';
-  if (qt === 'gender') {
-    allQ = generateGenderQuestions(activeSession.subject_id);
-  } else if (qt !== 'all') {
-    allQ = allQ.filter(q => q.type === qt);
+  const qtypes = qt === 'all' ? null : qt.split(',').map(t => t.trim());
+
+  if (qtypes) {
+    let filtered = [];
+    if (qtypes.includes('gender')) {
+      filtered = filtered.concat(generateGenderQuestions(activeSession.subject_id));
+    }
+    const otherTypes = qtypes.filter(t => t !== 'gender');
+    if (otherTypes.length) {
+      filtered = filtered.concat(allQ.filter(q => otherTypes.includes(q.type)));
+    }
+    allQ = filtered;
   }
 
   const wrongPool  = allQ.filter(q => wrongIds.has(q.id)).map(q => ({...q, _priority: true}));
   const normalPool = allQ.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-.5);
 
-  const limit = activeSession.question_count || 20;
-  const combined = [...wrongPool, ...normalPool].slice(0, limit);
+  // Geen limiet — alle vragen tot alles gekend of tijd op
+  const combined = [...wrongPool, ...normalPool];
 
   const dir = activeSession.direction || 'auto';
   learnPool = filterByDirection(combined, dir);
@@ -1084,8 +1092,14 @@ async function startToets(session) {
   const wrongPool   = pool.filter(q => wrongIds.has(q.id));
   const normalPool  = pool.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-0.5);
 
-  // Max 20 vragen: fouten eerst, dan random aanvullen
-  const selected = [...wrongPool, ...normalPool].slice(0, 20);
+  // Toets = ALLE vragen van het hoofdstuk (richting toepassen)
+  const dir = session.direction || 'auto';
+  const allFiltered = filterByDirection(pool, dir);
+  // Fouten eerst, dan de rest random
+  const selected = [
+    ...allFiltered.filter(q => wrongIds.has(q.id)).sort(() => Math.random()-.5),
+    ...allFiltered.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-.5),
+  ];
 
   toetsState = { questions: selected, current: 0, score: 0, wrongs: [], session };
   navigateTo('quiz');
@@ -1474,11 +1488,13 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   const subjectName = sel.options[sel.selectedIndex]?.dataset.name || '';
   const plannedAt = document.getElementById('sess-datetime').value;
   const duration = parseInt(document.getElementById('sess-duration').value);
-  const qcount = parseInt(document.getElementById('sess-qcount').value);
   const direction = document.getElementById('sess-direction').value;
-  const qtype = document.getElementById('sess-qtype').value;
+  const checked = [...document.querySelectorAll('.qtype-check:checked')].map(c => c.value);
+  const qtype = checked.length === 4 || checked.length === 0 ? 'all' : checked.join(',');
 
+  if (!subjectId) { showNotification('Kies een hoofdstuk', 'error'); return; }
   if (!plannedAt) { showNotification('Kies een datum en tijd', 'error'); return; }
+  if (!duration || duration < 5) { showNotification('Vul een geldige duur in', 'error'); return; }
 
   const { error } = await supabase.from('sessions').insert({
     user_id: currentUser.id,
@@ -1486,7 +1502,6 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
     subject_name: subjectName,
     planned_at: new Date(plannedAt).toISOString(),
     duration_min: duration,
-    question_count: qcount,
     direction: direction,
     qtype: qtype,
     status: 'planned'
