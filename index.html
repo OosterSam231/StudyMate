@@ -6,7 +6,7 @@
   <title>StudyMate</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -142,9 +142,9 @@
     .q-type.mc   { background:rgba(108,99,255,.15); color:var(--accent); }
     .q-type.open { background:rgba(67,233,123,.15);  color:var(--accent3); }
     .q-type.fill { background:rgba(245,158,11,.15);  color:var(--orange); }
-    .question-text { font-family:'Syne',sans-serif; font-size:19px; font-weight:700; line-height:1.5; margin-bottom:24px; }
+    .question-text { font-family:'Nunito',sans-serif; font-size:20px; font-weight:700; line-height:1.6; margin-bottom:24px; letter-spacing:.01em; }
     .mc-options { display:flex; flex-direction:column; gap:10px; }
-    .mc-opt { background:var(--surface2); border:2px solid var(--border); border-radius:12px; padding:14px 18px; cursor:pointer; font-size:14px; transition:all .15s; text-align:left; color:var(--text); }
+    .mc-opt { background:var(--surface2); border:2px solid var(--border); border-radius:12px; padding:14px 18px; cursor:pointer; font-size:15px; font-family:'Nunito',sans-serif; font-weight:600; transition:all .15s; text-align:left; color:var(--text); }
     .mc-opt:hover:not(:disabled) { border-color:var(--accent); background:rgba(108,99,255,.08); }
     .mc-opt.selected { border-color:var(--accent); background:rgba(108,99,255,.15); }
     .mc-opt.correct  { border-color:var(--accent3)!important; background:rgba(67,233,123,.15)!important; color:var(--accent3); }
@@ -298,7 +298,8 @@
     <div id="page-planner" class="hidden">
       <div class="flex items-center justify-between mb-24">
         <div class="page-header" style="margin-bottom:0"><h1>Planner</h1><p>Plan je studiesessies en toets je kennis</p></div>
-        <button class="btn btn-secondary" id="auto-plan-btn" style="font-size:13px">🤖 Auto-plan</button>
+        <button class="btn btn-secondary btn-sm" onclick="showBeschikbaarheden()" style="font-size:12px">🕐 Beschikbaarheden</button>
+        <button class="btn btn-secondary btn-sm" id="auto-plan-btn" style="font-size:12px">🤖 Auto-plan</button>
         <button class="btn btn-primary" id="add-session-btn">+ Sessie plannen</button>
       </div>
       <div id="week-nav" style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
@@ -618,11 +619,12 @@ function renderPlanner() {
       const bottom = done
         ? `<div style="color:var(--accent3);font-weight:700">✅ ${s.score??'-'}%</div>`
         : missed
-        ? `<div style="color:var(--accent2)">⚠️ Gemist</div>`
-        : review ? `<div style="color:var(--orange)">🔁 Herhaling — starten</div>`
+        ? `<div style="color:var(--accent2)">⚠️ Gemist — toch doen?</div>`
+        : review ? `<div style="color:var(--orange)">🔁 Herhaling starten</div>`
                  : `<div style="color:var(--accent)">▶ Starten</div>`;
 
-      return `<div style="margin-top:4px;background:${bg};border-left:3px solid ${border};border-radius:0 6px 6px 0;padding:5px 7px;font-size:10px;cursor:pointer" onclick="${done||missed?'':'openStudySession('+s.id+')'}">
+      // Gemiste sessies blijven klikbaar
+      return `<div style="margin-top:4px;background:${bg};border-left:3px solid ${border};border-radius:0 6px 6px 0;padding:5px 7px;font-size:10px;cursor:pointer" onclick="${done?'':'openStudySession('+s.id+')'}">
         <div style="font-weight:700;color:${col}">${t} · ${s.duration_min}min</div>
         <div style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
         ${bottom}
@@ -1524,6 +1526,85 @@ function showNotification(msg, type = 'success') {
 
 document.getElementById('auto-plan-btn').addEventListener('click', showAutoPlanModal);
 
+const DEFAULT_BESCHIKB = {1:['16:00','20:00'],2:['16:00','20:00'],3:['12:00','15:00'],4:['16:00','20:00'],5:['16:00','20:00'],6:['10:00','17:00'],0:null};
+const DAG_NAMEN = {0:'Zondag',1:'Maandag',2:'Dinsdag',3:'Woensdag',4:'Donderdag',5:'Vrijdag',6:'Zaterdag'};
+
+function loadBeschikb() {
+  const saved = localStorage.getItem('sm_beschikb');
+  return saved ? JSON.parse(saved) : DEFAULT_BESCHIKB;
+}
+function saveBeschikb(b) { localStorage.setItem('sm_beschikb', JSON.stringify(b)); }
+
+function showBeschikbaarheden() {
+  const b = loadBeschikb();
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay'; modal.id = 'beschikb-modal';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header">
+        <h2 class="modal-title">🕐 Beschikbaarheden</h2>
+        <button class="close-btn" onclick="document.getElementById('beschikb-modal').remove()">×</button>
+      </div>
+      <div class="col-gap">
+        <div style="font-size:12px;color:var(--muted)">Stel je standaard beschikbaarheid per weekdag in. Je kan dit per dag aanpassen in de auto-planner.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${[1,2,3,4,5,6,0].map(jsDay => {
+            const def = b[jsDay];
+            return `<div style="display:flex;align-items:center;gap:10px">
+              <label style="display:flex;align-items:center;gap:6px;width:100px;cursor:pointer">
+                <input type="checkbox" class="b-check" data-day="${jsDay}" ${def?'checked':''} style="accent-color:var(--accent);width:14px;height:14px">
+                <span style="font-size:13px;font-weight:${jsDay===3?'700':'500'}">${DAG_NAMEN[jsDay]}</span>
+              </label>
+              <input type="time" class="b-van" data-day="${jsDay}" value="${def?def[0]:''}" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:13px;width:88px">
+              <span style="color:var(--muted);font-size:12px">–</span>
+              <input type="time" class="b-tot" data-day="${jsDay}" value="${def?def[1]:''}" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:13px;width:88px">
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" style="flex:1" onclick="document.getElementById('beschikb-modal').remove()">Annuleren</button>
+          <button class="btn btn-primary" style="flex:1" onclick="saveBeschikbModal()">Opslaan</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function filterDagRows() {
+  // Zoek de vroegste examendatum van geselecteerde vakken
+  const dates = [];
+  document.querySelectorAll('.ap-subj-check:checked').forEach(cb => {
+    const sid = cb.dataset.sid;
+    const examInp = document.querySelector(`.ap-exam-subj[data-sid="${sid}"]`);
+    if (examInp?.value) dates.push(new Date(examInp.value + 'T23:59:00'));
+  });
+  const maxExam = dates.length ? new Date(Math.max(...dates)) : null;
+
+  // Verberg/toon dag-rijen
+  document.querySelectorAll('.dag-row-item').forEach(row => {
+    const ds = row.dataset.date;
+    const d = new Date(ds + 'T00:00:00');
+    if (maxExam && d > maxExam) {
+      row.style.display = 'none';
+    } else {
+      row.style.display = 'flex';
+    }
+  });
+}
+
+function saveBeschikbModal() {
+  const result = {};
+  [1,2,3,4,5,6,0].forEach(jsDay => {
+    const checked = document.querySelector(`.b-check[data-day="${jsDay}"]`)?.checked;
+    const van = document.querySelector(`.b-van[data-day="${jsDay}"]`)?.value;
+    const tot = document.querySelector(`.b-tot[data-day="${jsDay}"]`)?.value;
+    result[jsDay] = (checked && van && tot) ? [van, tot] : null;
+  });
+  saveBeschikb(result);
+  document.getElementById('beschikb-modal').remove();
+  showNotification('Beschikbaarheden opgeslagen!');
+}
+
 async function showAutoPlanModal() {
   // Haal progress op
   const [scoresRes, sessRes, wrongRes] = await Promise.all([
@@ -1558,16 +1639,15 @@ async function showAutoPlanModal() {
   const todayStr = new Date().toISOString().slice(0,10);
   const examDefault = '2026-06-10';
 
-  // Standaard tijden per weekdag (0=zo..6=za)
-  const defaults = {0:null,1:['16:00','20:00'],2:['16:00','20:00'],3:['12:00','15:00'],4:['16:00','20:00'],5:['16:00','20:00'],6:['10:00','17:00']};
-  const dagNamen = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
+  // Laad opgeslagen beschikbaarheden
+  const beschikb = loadBeschikb();
 
-  // Genereer dag-per-dag rijen voor de komende 30 dagen
+  // Genereer dag-per-dag rijen voor de komende 60 dagen
   const dagRows = [];
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 60; i++) {
     const d = new Date(); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
     const jsDay = d.getDay();
-    const def = defaults[jsDay];
+    const def = beschikb[jsDay];
     const ds = d.toISOString().slice(0,10);
     dagRows.push({ ds, label: d.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}), def, jsDay });
   }
@@ -1590,34 +1670,33 @@ async function showAutoPlanModal() {
           <button class="btn btn-sm" style="background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)" onclick="startBasistest()">▶ Basistest starten (±10 min)</button>
         </div>
 
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Examendatum</label>
-            <input class="form-input" type="date" id="ap-exam-date" value="${examDefault}" min="${todayStr}" onchange="updateDagRows()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Duur per sessie (min)</label>
-            <select class="form-input" id="ap-duration">
-              <option value="20">20 min</option>
-              <option value="30" selected>30 min</option>
-              <option value="45">45 min</option>
-              <option value="60">60 min</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label class="form-label">Duur per sessie (min)</label>
+          <select class="form-input" id="ap-duration" style="max-width:200px">
+            <option value="20">20 min</option>
+            <option value="30" selected>30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">60 min</option>
+          </select>
         </div>
 
-        <!-- Analyse per subject -->
+        <!-- Vakken selecteren + examendatum per vak -->
         <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Analyse per hoofdstuk</div>
-          <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">✅ Vakken & examendatum</div>
+          <div style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto">
             ${analysis.map(a => {
               const col = a.avgScore===null?'var(--muted)':a.avgScore>=70?'var(--accent3)':a.avgScore>=50?'var(--orange)':'var(--accent2)';
-              const badge = a.neverDone?'🆕 Nooit':a.avgScore>=70?`✅ ${a.avgScore}%`:a.avgScore!==null?`⚠️ ${a.avgScore}%`:'📖 Bezig';
-              const stars = '★'.repeat(Math.min(a.priority,7))+'☆'.repeat(Math.max(0,7-a.priority));
-              return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--surface2);border-radius:8px">
+              const badge = a.neverDone?'🆕':a.avgScore>=70?`✅${a.avgScore}%`:a.avgScore!==null?`⚠️${a.avgScore}%`:'📖';
+              return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:8px">
+                <input type="checkbox" class="ap-subj-check" data-sid="${a.subj.id}" checked
+                  onchange="filterDagRows()"
+                  style="accent-color:var(--accent);width:15px;height:15px;flex-shrink:0;cursor:pointer">
                 <div style="flex:1;font-size:12px;font-weight:600">${a.subj.name.replace('Frans - ','')}</div>
-                <div style="font-size:11px;color:${col}">${badge}</div>
-                <div style="font-size:10px;color:var(--orange)">${stars}</div>
+                <div style="font-size:10px;color:${col}">${badge}</div>
+                <div style="font-size:10px;color:var(--orange)">${'★'.repeat(Math.min(a.priority,5))}</div>
+                <input type="date" class="ap-exam-subj" data-sid="${a.subj.id}" value="${examDefault}" min="${todayStr}"
+                  onchange="filterDagRows()"
+                  style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:11px;width:125px">
               </div>`;
             }).join('')}
           </div>
@@ -1625,17 +1704,16 @@ async function showAutoPlanModal() {
 
         <!-- Dag-per-dag beschikbaarheid -->
         <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Beschikbaarheid per dag</div>
-          <div id="dag-rows" style="display:flex;flex-direction:column;gap:5px;max-height:280px;overflow-y:auto">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">📅 Beschikbaarheid per dag</div>
+          <div id="dag-rows" style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto">
             ${dagRows.map(({ds,label,def,jsDay}) => {
-              const isSun = jsDay===0;
-              const checked = !isSun && !!def;
+              const checked = !!def;
               const van = def?def[0]:'';
               const tot = def?def[1]:'';
-              return `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--surface2);border-radius:8px">
-                <label style="display:flex;align-items:center;gap:6px;min-width:100px;cursor:pointer">
+              return `<div class="dag-row-item" data-date="${ds}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--surface2);border-radius:8px">
+                <label style="display:flex;align-items:center;gap:6px;min-width:105px;cursor:pointer">
                   <input type="checkbox" class="dag-check" data-date="${ds}" ${checked?'checked':''} style="accent-color:var(--accent);width:13px;height:13px">
-                  <span style="font-size:12px;font-weight:${jsDay===3?'700':'500'};color:${jsDay===0?'var(--muted)':'var(--text)'}">${label}</span>
+                  <span style="font-size:12px;font-weight:${jsDay===3?'700':'400'};color:${jsDay===0?'var(--muted)':'var(--text)'}">${label}</span>
                 </label>
                 <input type="time" class="dag-van" data-date="${ds}" value="${van}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px;width:82px">
                 <span style="color:var(--muted);font-size:11px">–</span>
@@ -1659,6 +1737,8 @@ async function showAutoPlanModal() {
 
   // Sla analyse op voor gebruik in runAutoPlan
   window._apAnalysis = analysis;
+  // Filter dag-rijen op examendatum na modal opent
+  setTimeout(filterDagRows, 50);
 }
 
 async function startBasistest() {
@@ -1757,34 +1837,56 @@ async function runAutoPlan() {
   availableSlots.sort((a,b) => a.date - b.date);
 
   const totalSlots = availableSlots.length;
-  const totalPriority = analysis.reduce((a,x) => a + x.priority, 0);
+  // Lees geselecteerde vakken + examendatum per vak
+  const selectedSids = [...document.querySelectorAll('.ap-subj-check:checked')].map(c => parseInt(c.dataset.sid));
+  const examPerSubj = {};
+  document.querySelectorAll('.ap-exam-subj').forEach(inp => {
+    examPerSubj[parseInt(inp.dataset.sid)] = new Date(inp.value+'T23:59:00');
+  });
 
-  // Wijs sessies toe per subject proportioneel aan prioriteit
-  const sessionsPerSubject = analysis.map(a => ({
-    subj: a.subj,
-    count: Math.max(1, Math.round(a.priority / totalPriority * totalSlots)),
-    priority: a.priority,
-    direction: a.avgScore !== null && a.avgScore < 60 ? 'fr' : 'auto',
-  }));
+  const filteredAnalysis = analysis.filter(a => selectedSids.includes(a.subj.id));
+  const totalPriority = filteredAnalysis.reduce((a,x) => a + x.priority, 0) || 1;
 
-  // Interleave: meest urgent eerst, afgewisseld
+  // Wijs sessies per subject toe (proportioneel, min 1)
+  const sessionsPerSubject = filteredAnalysis.map(a => {
+    const subjExam = examPerSubj[a.subj.id] || exam;
+    const subjSlots = availableSlots.filter(sl => sl.date < subjExam).length;
+    return {
+      subj: a.subj,
+      count: Math.max(1, Math.round(a.priority / totalPriority * subjSlots)),
+      priority: a.priority,
+      direction: a.avgScore !== null && a.avgScore < 60 ? 'fr' : 'auto',
+      avgScore: a.avgScore,
+      examDate: subjExam,
+    };
+  });
+
+  // Interleave: meest urgent eerst
   const interleaved = [];
-  const maxRounds = Math.max(...sessionsPerSubject.map(s=>s.count));
+  const maxRounds = Math.max(...sessionsPerSubject.map(s=>s.count), 0);
   for (let round = 0; round < maxRounds; round++) {
     for (const s of [...sessionsPerSubject].sort((a,b)=>b.priority-a.priority)) {
       if (round < s.count) interleaved.push(s);
     }
   }
 
-  // 3. Koppel sessies aan tijdslots
+  // 3. Koppel sessies aan tijdslots (rekening houdend met examendatum per vak)
   const insertRows = [];
-  for (let i = 0; i < Math.min(interleaved.length, availableSlots.length); i++) {
-    const s    = interleaved[i];
-    const slot = availableSlots[i];
+  let slotIdx = 0;
+  for (const s of interleaved) {
+    // Zoek volgende slot vóór examendatum van dit vak
+    while (slotIdx < availableSlots.length && availableSlots[slotIdx].date >= s.examDate) slotIdx++;
+    // Zoek slot dat vóór examen van dit vak ligt
+    let found = -1;
+    for (let j = 0; j < availableSlots.length; j++) {
+      if (!availableSlots[j]._used && availableSlots[j].date < s.examDate) { found = j; break; }
+    }
+    if (found === -1) continue;
+    availableSlots[found]._used = true;
+    const slot = availableSlots[found];
     const sessionTime = new Date(slot.date);
     sessionTime.setHours(slot.startH, slot.startM, 0, 0);
 
-    // Herhalingssessie als score al goed is (>= 70%)
     const sessType = (s.avgScore !== null && s.avgScore >= 70) ? 'review' : 'learn';
 
     insertRows.push({
