@@ -477,7 +477,7 @@ function navigateTo(page) {
   if (page === 'subjects') renderSubjects();
   if (page === 'planner') renderPlanner();
   if (page === 'quiz') renderPage_quiz();
-  if (page === 'progress') renderProgress();
+  if (page === 'progress') { document.getElementById('progress-lower').innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Laden...</div>'; renderProgress(); }
   if (page === 'klas') renderKlas();
 }
 
@@ -805,6 +805,12 @@ function togglePause() {
 // Accepteert alle varianten gesplitst op "/" of " / "
 // bv. antwoord "inventeur / inventrice" → "inventeur" én "inventrice" zijn juist
 // bv. antwoord "praktisch / handig" → beide juist
+function parseOpts(q) {
+  const opts = parseOpts(q);
+  // Shuffle zodat het juiste antwoord niet altijd eerste staat
+  return [...opts].sort(() => Math.random() - .5);
+}
+
 function isCorrectAnswer(userInput, correctAnswer) {
   const user = userInput.trim().toLowerCase()
     .replace(/[()]/g, '')   // haal (e)(s) etc weg
@@ -940,7 +946,7 @@ function renderLearnCard() {
 
   // Genereer opties voor mc_generated
   const mcOpts = (learnMode === 'mc_generated') ? generateMCOptions(q)
-    : (q.type === 'mc' ? (Array.isArray(q.options) ? q.options : JSON.parse(q.options||'[]')) : []);
+    : (q.type === 'mc' ? parseOpts(q) : []);
 
   // Hint: eerste letters van antwoord
   const hint = q.answer.split('').map((c,i) => i===0 ? c : c===' ' ? ' ' : '_').join('');
@@ -1184,7 +1190,7 @@ function renderToetsQuestion() {
           <input id="fill-ans" class="form-input" autocomplete="off" placeholder="Jouw antwoord…"
             style="font-size:18px;font-weight:600;margin-top:12px;text-align:center"
             onkeydown="if(event.key==='Enter') toetsCheck()">` : ''}
-        ${q.type==='mc' ? `<div class="mc-options">${(Array.isArray(q.options)?q.options:JSON.parse(q.options||'[]')).map(o=>`<button class="mc-opt">${o}</button>`).join('')}</div>` : ''}
+        ${q.type==='mc' ? `<div class="mc-options">${parseOpts(q).map(o=>`<button class="mc-opt">${o}</button>`).join('')}</div>` : ''}
         ${q.type==='gender' ? `<div style="display:flex;gap:12px;margin-top:16px">
           <button class="mc-opt" style="flex:1;font-size:18px;font-weight:700">le</button>
           <button class="mc-opt" style="flex:1;font-size:18px;font-weight:700">la</button>
@@ -1296,6 +1302,7 @@ function toetsSkip() {
 }
 
 async function finishToets() {
+  if (!toetsState) return;
   const { questions, score, wrongs, session } = toetsState;
 
   // Basistest apart afhandelen
@@ -1418,7 +1425,8 @@ async function renderProgress() {
       </div>`;
   }).join('');
 
-  lower.innerHTML = `<div class="col-gap">${subjHTML}</div><div></div>`;
+  lower.style.display = 'block'; // override grid-2 zodat het vol breed is
+  lower.innerHTML = `<div class="col-gap">${subjHTML}</div>`;
 }
 
 async function renderKlas() {
@@ -1744,10 +1752,22 @@ async function showAutoPlanModal() {
 async function startBasistest() {
   document.getElementById('auto-plan-modal').remove();
 
-  // 5 vragen per subject, random
+  // Praktische fill-vragen per subject — geen regels/definities
+  const metaPatterns = [
+    /regel/i, /gebruik van/i, /wanneer gebruik/i, /leg uit/i,
+    /wat betekent het ezels/i, /wat staat.*voor/i, /geef.*lijst/i,
+    /welke categorie/i, /welke tijd.*gebruik/i, /hulpwerkwoord\?$/i,
+    /geef de volledige lijst/i, /wat is spartmandvem/i,
+  ];
+  const isPractical = q =>
+    q.type === 'fill' &&
+    (q.lang || 'fr_nl') === 'fr_nl' &&
+    !metaPatterns.some(p => p.test(q.question)) &&
+    q.answer.length < 40; // geen lange modelantwoorden
+
   const pool = [];
   for (const subj of SUBJECTS) {
-    const subjQ = QUESTIONS.filter(q => q.subject_id === subj.id && q.type === 'mc')
+    const subjQ = QUESTIONS.filter(q => q.subject_id === subj.id && isPractical(q))
       .sort(() => Math.random()-.5).slice(0,5);
     pool.push(...subjQ);
   }
@@ -1782,6 +1802,7 @@ async function finalizeBasistest(score, total, wrongs) {
     total: s.total,
   }));
   await supabase.from('scores').insert(inserts);
+  toetsState = null; // reset zodat volgende toets niet als basistest behandeld wordt
   showNotification('✅ Basistest klaar! Open Auto-planner voor je planning.');
   navigateTo('planner');
 }
@@ -2160,7 +2181,7 @@ function renderQuestionText(q) {
 
 function renderInput(q) {
   if (q.type === 'mc') {
-    const opts = Array.isArray(q.options) ? q.options : JSON.parse(q.options || '[]');
+    const opts = parseOpts(q);
     return `<div class="mc-options">${opts.map(o => `<button class="mc-opt">${o}</button>`).join('')}</div>`;
   }
   if (q.type === 'open') return `<textarea id="open-ans" class="form-input" placeholder="Jouw antwoord..." rows="3"></textarea>`;
