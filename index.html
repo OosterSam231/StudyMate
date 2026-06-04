@@ -270,7 +270,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v04/06/2026 11:30</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v04/06/2026 11:45</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -667,7 +667,7 @@ function renderPlanner() {
       const bottom = done
         ? `<div style="color:var(--accent3);font-weight:700">... ${s.score??'-'}%</div>`
         : missed
-        ? `<div style="color:var(--accent2)">  Gemist " toch doen?</div>`
+        ? `<div style="color:var(--accent2)"> Gemist " toch doen?</div>`
         : review ? `<div style="color:var(--orange)">" Herhaling starten</div>`
                  : `<div style="color:var(--accent)"> -  Starten</div>`;
 
@@ -1021,7 +1021,7 @@ function renderLearnCard() {
         </div>
       </div>
 
-      ${q._priority ? `<div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--accent2)">  Vorige keer fout " extra aandacht!</div>` : ''}
+      ${q._priority ? `<div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--accent2)"> Vorige keer fout " extra aandacht!</div>` : ''}
 
       <!-- Vraagkaart -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px">
@@ -1318,7 +1318,7 @@ function toetsCheck() {
          Fout " correct: <strong>${q.answer}</strong>
         <button onclick="toetsTochJuist()" style="margin-left:12px;background:rgba(67,233,123,.15);border:1px solid rgba(67,233,123,.3);color:var(--accent3);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px">Toch juist "</button>
       </div>`;
-    document.getElementById('check-btn').textContent='Volgende '';
+    document.getElementById('check-btn').textContent='Volgende ->';
     document.getElementById('check-btn').onclick=()=>{ toetsState.current++; renderToetsQuestion(); };
   }
 }
@@ -1332,12 +1332,16 @@ function openSelfJudge(correct) {
 }
 
 function toetsTochJuist() {
-  const cur = toetsState.current - 1;
-  const wrong = toetsState.wrongs.find(w => w.questionId === toetsState.questions[toetsState.current-1]?.id);
-  if (wrong) toetsState.wrongs = toetsState.wrongs.filter(w => w !== wrong);
+  const cur = toetsState.current;
+  const q = toetsState.questions[cur];
+  // Verwijder uit fouten
+  toetsState.wrongs = toetsState.wrongs.filter(w => w.questionId !== q?.id);
+  // Voeg punt toe (was al als fout geteld, dus +1 correctie)
   toetsState.score++;
-  toetsState.results[toetsState.current-1] = true;
-  showNotification('Als juist gemarkeerd "','success');
+  toetsState.results[cur] = true;
+  // Ga automatisch door naar volgende vraag
+  toetsState.current++;
+  renderToetsQuestion();
 }
 
 function toetsSkip() {
@@ -1386,7 +1390,7 @@ async function finishToets() {
         <div class="score-pct" style="color:${color}">${pct}%</div>
         <div class="score-lbl">${score}/${questions.length}</div>
       </div>
-      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ':pct>=60?'Goed gedaan! '':'Blijf oefenen ''}</p>
+      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ':pct>=60?'Goed gedaan!':'Blijf oefenen'}</p>
       ${wrongs.length?`<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px"> ${wrongs.length} fouten " komen terug in je volgende sessie</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">Jij: ${w.wrong}</div><div class="wc">... ${w.correct}</div></div>`).join('')}</div></div>`:'<div class="card mb-20" style="color:var(--accent3);text-align:center;padding:24px"> Geen fouten! Perfect gescoord.</div>'}
       <div style="display:flex;gap:12px;justify-content:center">
         <button class="btn btn-secondary" onclick="navigateTo(\'planner\')">Terug naar planner</button>
@@ -1742,7 +1746,7 @@ async function showAutoPlanModal() {
           <div style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto">
             ${analysis.map(a => {
               const col = a.avgScore===null?'var(--muted)':a.avgScore>=70?'var(--accent3)':a.avgScore>=50?'var(--orange)':'var(--accent2)';
-              const badge = a.neverDone?'*':a.avgScore>=70?`...${a.avgScore}%`:a.avgScore!==null?` ${a.avgScore}%`:'" - ';
+              const badge = a.neverDone?'*':a.avgScore>=70?`...${a.avgScore}%`:a.avgScore!==null?`${a.avgScore}%`:'" - ';
               return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:8px">
                 <input type="checkbox" class="ap-subj-check" data-sid="${a.subj.id}" checked
                   onchange="filterDagRows()"
@@ -1780,7 +1784,7 @@ async function showAutoPlanModal() {
         </div>
 
         <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted)">
-            Toekomstige ongemaakte sessies worden verwijderd en herplanned. Sessies die je al gedaan hebt blijven bewaard.
+           Toekomstige ongemaakte sessies worden verwijderd en herplanned. Sessies die je al gedaan hebt blijven bewaard.
         </div>
 
         <div style="display:flex;gap:10px">
@@ -2144,7 +2148,7 @@ function renderPage_quiz() {
             </label>
           </div>
         </div>
-        <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">  Quiz starten</button>
+        <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn"> Quiz starten</button>
       </div>
     </div>`;
   document.getElementById('quiz-start-btn').onclick = startQuiz;
@@ -2273,7 +2277,7 @@ function checkAnswer() {
     fb.innerHTML = `<div class="feedback wrong"> Fout " correct: <strong>${q.answer}</strong></div>`;
   }
 
-  document.getElementById('check-btn').textContent = 'Volgende '';
+  document.getElementById('check-btn').textContent = 'Volgende';
   document.getElementById('check-btn').onclick = nextQuestion;
 }
 
@@ -2306,7 +2310,7 @@ async function showResults() {
         <div class="score-pct" style="color:${color}">${pct}%</div>
         <div class="score-lbl">${score}/${questions.length}</div>
       </div>
-      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ':pct>=60?'Goed gedaan! '':'Blijf oefenen ''}</p>
+      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ':pct>=60?'Goed gedaan!':'Blijf oefenen'}</p>
       ${wrongs.length ? `<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px">Foute antwoorden</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa"> ${w.wrong}</div><div class="wc">... ${w.correct}</div></div>`).join('')}</div></div>` : ''}
       <div style="display:flex;gap:12px;justify-content:center">
         <button class="btn btn-secondary" onclick="navigateTo('subjects')">Terug naar vakken</button>
