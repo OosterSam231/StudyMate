@@ -231,7 +231,7 @@
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-tag">StudyMate</div>
-    <h1 class="auth-title" id="auth-title">Welkom terug &#x1F44B;</h1>
+    <h1 class="auth-title" id="auth-title">Welkom terug</h1>
     <p class="auth-sub" id="auth-sub">Log in op je studeeraccount</p>
     <div id="auth-error" class="error-msg hidden"></div>
     <div class="col-gap">
@@ -245,7 +245,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Wachtwoord</label>
-        <input class="form-input" id="inp-pw" type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+        <input class="form-input" id="inp-pw" type="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" />
       </div>
       <button class="btn btn-primary btn-lg btn-full" id="auth-btn">Inloggen</button>
     </div>
@@ -278,7 +278,7 @@
           <div id="sidebar-name" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Student</div>
 
         </div>
-        <button class="btn btn-sm" id="logout-btn" style="padding:4px 8px;font-size:11px" title="Uitloggen">â†©</button>
+        <button class="btn btn-sm" id="logout-btn" style="padding:4px 8px;font-size:11px" title="Uitloggen">&#8617;</button>
       </div>
     </div>
   </nav>
@@ -1235,7 +1235,7 @@ function renderToetsQuestion() {
             : q.question
         }</div>
         ${q.type==='fill' && !q.question.includes('___') ? `
-          <input id="fill-ans" autocomplete="off" placeholder="Typ je antwoord hierâ€¦"
+          <input id="fill-ans" autocomplete="off" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
             style="display:block;width:100%;margin-top:16px;padding:14px 18px;font-size:18px;font-family:'Nunito',sans-serif;font-weight:600;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;color:var(--text);outline:none"
             onkeydown="if(event.key==='Enter') toetsCheck()">` : ''}
         ${q.type==='mc' ? `<div class="mc-options">${parseOpts(q).map(o=>`<button class="mc-opt">${o}</button>`).join('')}</div>` : ''}
@@ -2073,7 +2073,7 @@ async function handleAuth() {
 function toggleAuthMode() {
   const isSignup = document.getElementById('field-name').style.display !== 'none';
   document.getElementById('field-name').style.display = isSignup ? 'none' : 'flex';
-  document.getElementById('auth-title').textContent = isSignup ? 'Welkom terug ðŸ‘‹' : 'Nieuw account ðŸŽ‰';
+  document.getElementById('auth-title').textContent = isSignup ? 'Welkom terug' : 'Nieuw account';
   document.getElementById('auth-sub').textContent = isSignup ? 'Log in op je studeeraccount' : 'Maak een nieuw account aan';
   document.getElementById('auth-btn').textContent = isSignup ? 'Inloggen' : 'Registreren';
   document.getElementById('auth-switch-text').textContent = isSignup ? 'Nog geen account? ' : 'Al een account? ';
@@ -2233,7 +2233,7 @@ function renderInput(q) {
     return `<div class="mc-options">${opts.map(o => `<button class="mc-opt">${o}</button>`).join('')}</div>`;
   }
   if (q.type === 'fill' && !q.question.includes('___')) {
-    return `<input id="fill-ans" autocomplete="off" placeholder="Typ je antwoord hierâ€¦"
+    return `<input id="fill-ans" autocomplete="off" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
       style="display:block;width:100%;margin-top:16px;padding:14px 18px;font-size:18px;font-family:'Nunito',sans-serif;font-weight:600;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;color:var(--text);outline:none">`;
   }
   if (q.type === 'open') return `<textarea id="open-ans" class="form-input" placeholder="Jouw antwoord..." rows="3"></textarea>`;
