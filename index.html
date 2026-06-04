@@ -17,7 +17,7 @@
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
     h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
 
-    /* â”€â”€ Layout â”€â”€ */
+    /* â"€â"€ Layout â"€â"€ */
     #app { display: flex; min-height: 100vh; }
     .sidebar {
       width: 240px; background: var(--surface); border-right: 1px solid var(--border);
@@ -40,7 +40,7 @@
     .avatar { width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; }
     .main { margin-left:240px; flex:1; padding:40px; max-width:calc(100vw - 240px); }
 
-    /* â”€â”€ Auth â”€â”€ */
+    /* â"€â"€ Auth â"€â"€ */
     #auth-screen {
       min-height:100vh; display:flex; align-items:center; justify-content:center;
       background:var(--bg); position:relative; overflow:hidden;
@@ -54,7 +54,7 @@
     .auth-switch { text-align:center; margin-top:20px; font-size:13px; color:var(--muted); }
     .auth-switch button { background:none; border:none; color:var(--accent); cursor:pointer; font-weight:600; font-size:13px; }
 
-    /* â”€â”€ Forms â”€â”€ */
+    /* â"€â"€ Forms â"€â"€ */
     .form-group { display:flex; flex-direction:column; gap:6px; }
     .form-label { font-size:13px; font-weight:500; color:var(--muted); }
     .form-input {
@@ -66,7 +66,7 @@
     select.form-input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
     textarea.form-input { resize:vertical; min-height:100px; }
 
-    /* â”€â”€ Buttons â”€â”€ */
+    /* â"€â"€ Buttons â"€â"€ */
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
     .btn-primary { background:var(--accent); color:#fff; }
     .btn-primary:hover { background:#5a52e0; transform:translateY(-1px); }
@@ -78,7 +78,7 @@
     .btn:disabled { opacity:.5; cursor:not-allowed; }
     .btn-full { width:100%; }
 
-    /* â”€â”€ Cards â”€â”€ */
+    /* â"€â"€ Cards â"€â"€ */
     .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; }
     .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; position:relative; overflow:hidden; }
     .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
@@ -90,16 +90,16 @@
     .stat-value { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; }
     .stat-sub { font-size:12px; color:var(--muted); margin-top:4px; }
 
-    /* â”€â”€ Grid â”€â”€ */
+    /* â"€â"€ Grid â"€â"€ */
     .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
     .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
     .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
 
-    /* â”€â”€ Progress bar â”€â”€ */
+    /* â"€â"€ Progress bar â"€â"€ */
     .progress-bar { height:4px; background:var(--border); border-radius:2px; margin-top:14px; }
     .progress-fill { height:100%; border-radius:2px; transition:width .6s ease; }
 
-    /* â”€â”€ Session card â”€â”€ */
+    /* â"€â"€ Session card â"€â"€ */
     .session-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 20px; display:flex; align-items:center; gap:16px; }
     .session-date { background:var(--surface2); border-radius:10px; padding:8px 12px; text-align:center; min-width:58px; flex-shrink:0; }
     .session-date .day { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; line-height:1; }
@@ -112,13 +112,13 @@
     .badge-done    { background:rgba(67,233,123,.15);  color:var(--accent3); }
     .badge-missed  { background:rgba(255,107,107,.15); color:var(--accent2); }
 
-    /* â”€â”€ Subject card â”€â”€ */
+    /* â"€â"€ Subject card â"€â"€ */
     .subject-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
     .subject-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 32px rgba(108,99,255,.15); }
     .subject-card .accent-bar { position:absolute; top:0; left:0; right:0; height:4px; }
     .subject-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; margin-bottom:6px; margin-top:8px; }
 
-    /* â”€â”€ Modal â”€â”€ */
+    /* â"€â"€ Modal â"€â"€ */
     .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:1000; backdrop-filter:blur(4px); }
     .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.5); }
     .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
@@ -126,12 +126,12 @@
     .close-btn { background:var(--surface2); border:none; color:var(--muted); width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center; }
     .close-btn:hover { color:var(--text); }
 
-    /* â”€â”€ Tabs â”€â”€ */
+    /* â"€â"€ Tabs â"€â"€ */
     .tabs { display:flex; gap:4px; background:var(--surface2); border-radius:10px; padding:4px; margin-bottom:24px; width:fit-content; }
     .tab { padding:7px 16px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; color:var(--muted); transition:all .15s; font-family:'DM Sans',sans-serif; }
     .tab.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.3); }
 
-    /* â”€â”€ Quiz â”€â”€ */
+    /* â"€â"€ Quiz â"€â"€ */
     .quiz-wrap { max-width:680px; margin:0 auto; }
     .quiz-progress { display:flex; align-items:center; gap:16px; margin-bottom:32px; }
     .quiz-bar { flex:1; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; }
@@ -156,7 +156,7 @@
     .feedback.wrong   { background:rgba(255,107,107,.1); border:1px solid rgba(255,107,107,.3); color:var(--accent2); }
     .feedback.info    { background:rgba(108,99,255,.1);  border:1px solid rgba(108,99,255,.3);  color:var(--accent); }
 
-    /* â”€â”€ Results â”€â”€ */
+    /* â"€â"€ Results â"€â"€ */
     .results-wrap { max-width:600px; margin:0 auto; text-align:center; }
     .score-circle { width:140px; height:140px; border-radius:50%; border:6px solid var(--accent); display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto 24px; }
     .score-pct { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; }
@@ -167,7 +167,7 @@
     .wrong-item .wa { color:var(--accent2); }
     .wrong-item .wc { color:var(--accent3); }
 
-    /* â”€â”€ Utils â”€â”€ */
+    /* â"€â"€ Utils â"€â"€ */
     .page-header { margin-bottom:32px; }
     .page-header h1 { font-size:28px; font-weight:800; letter-spacing:-.5px; }
     .page-header p  { color:var(--muted); margin-top:4px; font-size:14px; }
@@ -189,7 +189,7 @@
     .hidden { display:none!important; }
     .col-gap { display:flex; flex-direction:column; gap:16px; }
 
-    /* â”€â”€ Klas / Leaderboard â”€â”€ */
+    /* â"€â"€ Klas / Leaderboard â"€â"€ */
     .lb-row {
       display:flex; align-items:center; gap:16px;
       background:var(--surface); border:1px solid var(--border);
@@ -227,7 +227,7 @@
 </head>
 <body>
 
-<!-- â•â•â• AUTH â•â•â• -->
+<!-- â*â*â* AUTH â*â*â* -->
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-tag">StudyMate</div>
@@ -245,7 +245,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Wachtwoord</label>
-        <input class="form-input" id="inp-pw" type="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" />
+        <input class="form-input" id="inp-pw" type="password" placeholder="Typ je antwoord hier..." />
       </div>
       <button class="btn btn-primary btn-lg btn-full" id="auth-btn">Inloggen</button>
     </div>
@@ -256,7 +256,7 @@
   </div>
 </div>
 
-<!-- â•â•â• APP â•â•â• -->
+<!-- â*â*â* APP â*â*â* -->
 <div id="app" class="hidden">
   <!-- Sidebar -->
   <nav class="sidebar">
@@ -270,7 +270,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v04/06/2026 11:15</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v04/06/2026 11:30</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -302,14 +302,14 @@
     <div id="page-planner" class="hidden">
       <div class="flex items-center justify-between mb-24">
         <div class="page-header" style="margin-bottom:0"><h1>Planner</h1><p>Plan je studiesessies en toets je kennis</p></div>
-        <button class="btn btn-secondary btn-sm" onclick="showBeschikbaarheden()" style="font-size:12px">ðŸ• Beschikbaarheden</button>
-        <button class="btn btn-secondary btn-sm" id="auto-plan-btn" style="font-size:12px">ðŸ¤– Auto-plan</button>
+        <button class="btn btn-secondary btn-sm" onclick="showBeschikbaarheden()" style="font-size:12px">ðŸ* Beschikbaarheden</button>
+        <button class="btn btn-secondary btn-sm" id="auto-plan-btn" style="font-size:12px">ðŸ¤ -  Auto-plan</button>
         <button class="btn btn-primary" id="add-session-btn">+ Sessie plannen</button>
       </div>
       <div id="week-nav" style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-        <button class="btn btn-secondary btn-sm" id="week-prev">â†</button>
+        <button class="btn btn-secondary btn-sm" id="week-prev">â†</button>
         <span id="week-label" style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px"></span>
-        <button class="btn btn-secondary btn-sm" id="week-next">â†’</button>
+        <button class="btn btn-secondary btn-sm" id="week-next">â†'</button>
         <button class="btn btn-secondary btn-sm" id="week-today">Vandaag</button>
       </div>
       <div id="agenda-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px"></div>
@@ -323,8 +323,8 @@
         <div style="font-size:14px;color:var(--muted);margin-top:8px">resterende studietijd</div>
       </div>
       <div style="display:flex;gap:16px">
-        <button class="btn btn-secondary" id="study-stop-btn">âœ• Stoppen</button>
-        <button class="btn btn-primary btn-lg" id="study-toets-btn">ðŸ“ Toets starten</button>
+        <button class="btn btn-secondary" id="study-stop-btn">âœ* Stoppen</button>
+        <button class="btn btn-primary btn-lg" id="study-toets-btn">ðŸ" Toets starten</button>
       </div>
     </div>
 
@@ -396,7 +396,7 @@
   <div class="modal">
     <div class="modal-header">
       <h2 class="modal-title">Sessie plannen</h2>
-      <button class="close-btn" id="close-session-modal">Ã—</button>
+      <button class="close-btn" id="close-session-modal">Ã - </button>
     </div>
     <div class="col-gap">
       <div class="form-group">
@@ -414,14 +414,14 @@
         </div>
       </div>
       <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted)">
-        ðŸ“– Oefenen tot de tijd op is of alles gekend â†’ daarna automatisch toets
+        ðŸ" -  Oefenen tot de tijd op is of alles gekend â†' daarna automatisch toets
       </div>
       <div class="form-group">
-        <label class="form-label">Antwoorden in hetâ€¦</label>
+        <label class="form-label">Antwoorden in het...</label>
         <select class="form-input" id="sess-direction">
-          <option value="auto">ðŸ”€ Gemengd (automatisch)</option>
-          <option value="fr">ðŸ‡«ðŸ‡· Frans â€” exam mode</option>
-          <option value="nl">ðŸ‡§ðŸ‡ª Nederlands</option>
+          <option value="auto">Gemengd (automatisch)</option>
+          <option value="fr">Frans - exam mode</option>
+          <option value="nl">Nederlands</option>
         </select>
       </div>
       <div class="flex gap-10">
@@ -436,9 +436,9 @@
 <div class="notification hidden" id="notif"></div>
 
 <script>
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 //  SUPABASE CONFIG
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 const SUPABASE_URL  = 'https://vadrkhlpzrhydaunyede.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhZHJraGxwenJoeWRhdW55ZWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjQ0NDEsImV4cCI6MjA5NTkwMDQ0MX0.JX3OLrQgK7h3OSKCsjc7HybJ2hrq1Q4sfSKDS_Dh3yQ';
 
@@ -458,9 +458,9 @@ let QUESTIONS = [];
 let currentUser = null;
 let currentPage = 'dashboard';
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 //  MAIN APP LOGIC
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 
 async function initApp() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -506,9 +506,9 @@ async function loadData() {
       from += BATCH;
     }
 
-    console.log('âœ… Data loaded:', { subjects: SUBJECTS.length, sessions: SESSIONS.length, questions: QUESTIONS.length });
+    console.log('... Data loaded:', { subjects: SUBJECTS.length, sessions: SESSIONS.length, questions: QUESTIONS.length });
   } catch (error) {
-    console.error('âŒ Error loading data:', error);
+    console.error(' Error loading data:', error);
     showNotification('Fout bij laden van data: ' + error.message, 'error');
   }
 }
@@ -562,11 +562,11 @@ function renderSubjects() {
   grid.innerHTML = `
     <div class="subject-card" onclick="renderHoofdstukken()" style="border-left:4px solid #6c63ff">
       <div class="accent-bar" style="background:#6c63ff"></div>
-      <div style="font-size:32px">ðŸ‡«ðŸ‡·</div>
+      <div style="font-size:32px"><<</div>
       <div class="subject-title">Frans</div>
-      <div style="font-size:12px;color:var(--muted)">Nouveau Quartier franÃ§ais 4 â€” Examen 2</div>
-      <div style="margin-top:12px;font-size:13px;font-weight:600;color:#6c63ff">${SUBJECTS.length} hoofdstukken Â· ${SUBJECTS.reduce((a,s)=>a+(s.question_count||0),0)} vragen</div>
-      <div style="margin-top:8px;font-size:12px;color:var(--muted)">Klik om hoofdstukken te zien â†’</div>
+      <div style="font-size:12px;color:var(--muted)">Nouveau Quartier franais 4 " Examen 2</div>
+      <div style="margin-top:12px;font-size:13px;font-weight:600;color:#6c63ff">${SUBJECTS.length} hoofdstukken  ${SUBJECTS.reduce((a,s)=>a+(s.question_count||0),0)} vragen</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted)">Klik om hoofdstukken te zien '</div>
     </div>
   `;
 }
@@ -574,8 +574,8 @@ function renderSubjects() {
 function renderHoofdstukken() {
   document.getElementById('subjects-header').innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
-      <button onclick="renderSubjects()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:13px">â† Vakken</button>
-      <h1>Frans â€” Hoofdstukken</h1>
+      <button onclick="renderSubjects()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:13px"> Vakken</button>
+      <h1>Frans " Hoofdstukken</h1>
     </div>
     <p>Klik op een hoofdstuk om de quiz te starten</p>
   `;
@@ -585,11 +585,11 @@ function renderHoofdstukken() {
     return `
       <div class="subject-card" onclick="startQuizForSubject(${s.id})" style="border-left:4px solid ${color.bg}">
         <div class="accent-bar" style="background:${color.bg}"></div>
-        <div style="font-size:22px">ðŸ“–</div>
+        <div style="font-size:22px">" - </div>
         <div class="subject-title">${s.name.replace('Frans - ', '')}</div>
         <div style="font-size:12px;color:var(--muted)">${s.description}</div>
         <div style="margin-top:12px;font-size:13px;font-weight:600;color:${color.bg}">${s.question_count || 0} vragen</div>
-        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Klik om te oefenen â†’</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Klik om te oefenen '</div>
       </div>
     `;
   }).join('');
@@ -603,7 +603,7 @@ function startQuizForSubject(subjectId) {
   }, 50);
 }
 
-// â”€â”€ Maand kalender â”€â”€
+// "" Maand kalender ""
 let calOffset = 0; // maanden tov vandaag
 
 function renderPlanner() {
@@ -615,7 +615,7 @@ function renderPlanner() {
   document.getElementById('week-label').textContent =
     ref.toLocaleDateString('nl-NL', {month:'long', year:'numeric'}).replace(/^\w/, c => c.toUpperCase());
 
-  // Eerste dag van de maand (0=zo â†’ omzetten naar ma=0)
+  // Eerste dag van de maand (0=zo ' omzetten naar ma=0)
   const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrev  = new Date(year, month, 0).getDate();
@@ -650,7 +650,7 @@ function renderPlanner() {
 
     const now = new Date();
     const sessHTML = daySessions.map(s => {
-      // Supabase geeft timestamp zonder 'Z' â†’ behandel als UTC door 'Z' toe te voegen
+      // Supabase geeft timestamp zonder 'Z' ' behandel als UTC door 'Z' toe te voegen
       const raw = s.planned_at.endsWith('Z') || s.planned_at.includes('+') ? s.planned_at : s.planned_at + 'Z';
       const dt = new Date(raw);
       // Toon lokale tijd correct
@@ -665,15 +665,15 @@ function renderPlanner() {
       const col    = done ? 'var(--accent3)'        : missed ? 'var(--accent2)'        : review ? 'var(--orange)'        : 'var(--accent)';
 
       const bottom = done
-        ? `<div style="color:var(--accent3);font-weight:700">âœ… ${s.score??'-'}%</div>`
+        ? `<div style="color:var(--accent3);font-weight:700">... ${s.score??'-'}%</div>`
         : missed
-        ? `<div style="color:var(--accent2)">âš ï¸ Gemist â€” toch doen?</div>`
-        : review ? `<div style="color:var(--orange)">ðŸ” Herhaling starten</div>`
-                 : `<div style="color:var(--accent)">â–¶ Starten</div>`;
+        ? `<div style="color:var(--accent2)">  Gemist " toch doen?</div>`
+        : review ? `<div style="color:var(--orange)">" Herhaling starten</div>`
+                 : `<div style="color:var(--accent)"> -  Starten</div>`;
 
       // Gemiste sessies blijven klikbaar
       return `<div style="margin-top:4px;background:${bg};border-left:3px solid ${border};border-radius:0 6px 6px 0;padding:5px 7px;font-size:10px;cursor:pointer" onclick="${done?'':'openStudySession('+s.id+')'}">
-        <div style="font-weight:700;color:${col}">${t} Â· ${s.duration_min}min</div>
+        <div style="font-weight:700;color:${col}">${t}  ${s.duration_min}min</div>
         <div style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
         ${bottom}
       </div>`;
@@ -697,18 +697,18 @@ function renderPlanner() {
   grid.innerHTML = html;
 }
 
-// â”€â”€ Maand navigatie â”€â”€
+// "" Maand navigatie ""
 document.getElementById('week-prev').addEventListener('click',  () => { calOffset--; renderPlanner(); });
 document.getElementById('week-next').addEventListener('click',  () => { calOffset++; renderPlanner(); });
 document.getElementById('week-today').addEventListener('click', () => { calOffset=0;  renderPlanner(); });
 
-// â”€â”€ Studeer sessie + timer â”€â”€
+// "" Studeer sessie + timer ""
 let studyTimer = null;
 let activeSession = null;
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  STUDEER SESSIE â€” Adaptief leersysteem
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
+//  STUDEER SESSIE " Adaptief leersysteem
+// ******************************************************
 let learnPool     = [];   // vragen die nog geleerd moeten worden
 let learnKnown    = [];   // vragen die je kent
 let learnCurrent  = null;
@@ -719,12 +719,12 @@ async function openStudySession(sessionId) {
   activeSession = SESSIONS.find(s => s.id === sessionId);
   if (!activeSession) return;
 
-  // Vraag richting â€” toon vorige keuze als standaard
+  // Vraag richting " toon vorige keuze als standaard
   const savedDir = localStorage.getItem('sm_direction') || 'auto';
   if (!activeSession.direction) {
     const overlay = document.getElementById('study-overlay');
     overlay.classList.remove('hidden');
-    const labels = { auto:'ðŸ”€ Gemengd', fr:'ðŸ‡«ðŸ‡· Frans â€” exam mode', nl:'ðŸ‡§ðŸ‡ª Nederlands' };
+    const labels = { auto:'Gemengd', fr:'Frans - exam mode', nl:'Nederlands' };
     overlay.innerHTML = `
       <div style="max-width:440px;width:100%;padding:32px;display:flex;flex-direction:column;gap:16px">
         <div style="text-align:center">
@@ -732,7 +732,7 @@ async function openStudySession(sessionId) {
           <p style="color:var(--muted);margin-top:4px">${(activeSession.subject_name||'').replace('Frans - ','')}</p>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Antwoorden in hetâ€¦</div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Antwoorden in het</div>
           <div style="display:flex;flex-direction:column;gap:8px">
             ${['auto','fr','nl'].map(d => `
               <button class="btn ${d===savedDir?'btn-primary':'btn-secondary'}" id="dir-btn-${d}" onclick="selectDir('${d}')">
@@ -743,7 +743,7 @@ async function openStudySession(sessionId) {
         ${qtypeCheckboxHTML()}
         <div style="display:flex;gap:10px;margin-top:4px">
           <button class="btn btn-secondary" style="flex:1" onclick="stopStudySession()">Annuleren</button>
-          <button class="btn btn-primary" style="flex:1" onclick="confirmBeginSession()">â–¶ Starten</button>
+          <button class="btn btn-primary" style="flex:1" onclick="confirmBeginSession()"> -  Starten</button>
         </div>
         <div style="font-size:11px;color:var(--muted);text-align:center">Keuzes worden onthouden</div>
       </div>`;
@@ -795,7 +795,7 @@ async function beginSession(direction) {
   const wrongPool  = allQ.filter(q => wrongIds.has(q.id)).map(q => ({...q, _priority: true}));
   const normalPool = allQ.filter(q => !wrongIds.has(q.id)).sort(() => Math.random()-.5);
 
-  // Geen limiet â€” alle vragen tot alles gekend of tijd op
+  // Geen limiet " alle vragen tot alles gekend of tijd op
   const combined = [...wrongPool, ...normalPool];
 
   const dir = activeSession.direction || 'auto';
@@ -827,7 +827,7 @@ function startStudyTimer() {
     if (studyRemaining <= 0) {
       clearInterval(studyTimer);
       const btn = document.getElementById('study-toets-btn');
-      if (btn) btn.textContent = 'ðŸ“ Tijd om! Start toets';
+      if (btn) btn.textContent = '" Tijd om! Start toets';
     }
   }, 1000);
 }
@@ -838,21 +838,21 @@ function togglePause() {
   const lbl = document.getElementById('pause-label');
   const val = document.getElementById('study-timer-val');
   if (timerPaused) {
-    if (btn) btn.textContent = 'â–¶';
-    if (lbl) lbl.textContent = 'â–¶ klik om te hervatten';
+    if (btn) btn.textContent = ' - ';
+    if (lbl) lbl.textContent = ' -  klik om te hervatten';
     if (val) val.style.opacity = '0.4';
   } else {
-    if (btn) btn.textContent = 'â¸';
-    if (lbl) lbl.textContent = 'â¸ klik om te pauzeren';
+    if (btn) btn.textContent = '';
+    if (lbl) lbl.textContent = ' klik om te pauzeren';
     if (val) val.style.opacity = '1';
   }
 }
 
 // Kies welke modus past bij de vraag
-// Draai vraag om voor NLâ†’FR richting (woordenschat subjects 9,10,11)
+// Draai vraag om voor NL'FR richting (woordenschat subjects 9,10,11)
 // Accepteert alle varianten gesplitst op "/" of " / "
-// bv. antwoord "inventeur / inventrice" â†’ "inventeur" Ã©n "inventrice" zijn juist
-// bv. antwoord "praktisch / handig" â†’ beide juist
+// bv. antwoord "inventeur / inventrice" ' "inventeur" n "inventrice" zijn juist
+// bv. antwoord "praktisch / handig" ' beide juist
 function parseOpts(q) {
   const opts = parseOpts(q);
   // Shuffle zodat het juiste antwoord niet altijd eerste staat
@@ -876,7 +876,7 @@ function isCorrectAnswer(userInput, correctAnswer) {
   // Exacte match op een van de varianten
   if (variants.some(v => v === user)) return true;
 
-  // Accepteer ook zonder lidwoord (bv. "l'abonnement" â†’ antwoord "abonnement")
+  // Accepteer ook zonder lidwoord (bv. "l'abonnement" ' antwoord "abonnement")
   const userNoArticle = user.replace(/^(le |la |les |l'|l')/i, '').trim();
   if (variants.some(v => v.replace(/^(le |la |les |l'|l')/i,'').trim() === userNoArticle)) return true;
 
@@ -887,7 +887,7 @@ function applyDirection(q, direction) {
   if (direction === 'auto') return q;
   // Gebruik 'lang' kolom als die beschikbaar is
   const qLang = q.lang || 'fr_nl';
-  if (direction === 'fr' && qLang === 'fr_nl') return q; // wil FR antwoord maar vraag is al FRâ†’NL: skip, gebruik nl_fr versie
+  if (direction === 'fr' && qLang === 'fr_nl') return q; // wil FR antwoord maar vraag is al FR'NL: skip, gebruik nl_fr versie
   if (direction === 'nl' && qLang === 'nl_fr') return null; // skip nl_fr vragen bij NL richting
   return q;
 }
@@ -898,7 +898,7 @@ function qtypeCheckboxHTML(savedKey='sm_qtypes') {
     <div style="margin-top:12px">
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Vraagtype</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        ${[['mc','ðŸ”˜ Meerkeuze'],['fill','âŒ¨ï¸ Invullen'],['open','ðŸ“ Open'],['gender','ðŸ·ï¸ Geslacht']].map(([v,l]) => `
+        ${[['mc','Meerkeuze'],['fill','Invullen'],['open','Open'],['gender','Geslacht']].map(([v,l]) => `
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
             <input type="checkbox" class="qtype-check" value="${v}" ${saved.includes(v)?'checked':''} style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer">
             <span style="font-size:12px">${l}</span>
@@ -1005,29 +1005,29 @@ function renderLearnCard() {
       <!-- Topbalk -->
       <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
         <div style="flex:1">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${(activeSession.subject_name||'').replace('Frans - ','')} Â· ${known}/${total} gekend</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${(activeSession.subject_name||'').replace('Frans - ','')}  ${known}/${total} gekend</div>
           <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
             <div style="height:100%;width:${pct}%;background:var(--accent3);border-radius:3px;transition:width .4s"></div>
           </div>
         </div>
         <div style="text-align:center;min-width:80px">
           <div id="study-timer-val" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);cursor:pointer" onclick="togglePause()" title="Pauzeren/Hervatten">${m}:${s}</div>
-          <div id="pause-label" style="font-size:9px;color:var(--muted)">â¸ klik om te pauzeren</div>
+          <div id="pause-label" style="font-size:9px;color:var(--muted)"> klik om te pauzeren</div>
         </div>
         <div style="display:flex;gap:8px">
-          <button id="study-toets-btn" class="btn btn-primary btn-sm">ðŸ“ Toets</button>
-          <button class="btn btn-secondary btn-sm" onclick="togglePause()" id="pause-btn">â¸</button>
-          <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">âœ•</button>
+          <button id="study-toets-btn" class="btn btn-primary btn-sm">" Toets</button>
+          <button class="btn btn-secondary btn-sm" onclick="togglePause()" id="pause-btn"></button>
+          <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">*</button>
         </div>
       </div>
 
-      ${q._priority ? `<div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--accent2)">âš ï¸ Vorige keer fout â€” extra aandacht!</div>` : ''}
+      ${q._priority ? `<div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--accent2)">  Vorige keer fout " extra aandacht!</div>` : ''}
 
       <!-- Vraagkaart -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
           <span style="background:${learnMode==='mc'||learnMode==='mc_generated'?'rgba(108,99,255,.15)':learnMode==='type'?'rgba(245,158,11,.15)':'rgba(67,233,123,.15)'};color:${learnMode==='mc'||learnMode==='mc_generated'?'var(--accent)':learnMode==='type'?'var(--orange)':'var(--accent3)'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">
-            ${learnMode==='mc'||learnMode==='mc_generated'?'ðŸ”˜ Meerkeuze':learnMode==='type'?'âŒ¨ï¸ Typ het antwoord':'ðŸƒ Flashcard'}
+            ${learnMode==='mc'||learnMode==='mc_generated'?'" Meerkeuze':learnMode==='type'?' Typ het antwoord':' Flashcard'}
           </span>
           <span style="font-size:11px;color:var(--muted)">${q.topic||''}</span>
         </div>
@@ -1052,9 +1052,9 @@ function renderLearnCard() {
               <input id="learn-type-inp" class="form-input" placeholder="Typ je antwoord..." autocomplete="off" style="font-size:16px;padding:12px 16px"
                 onkeydown="if(event.key==='Enter') checkLearnType()"/>
               <div style="display:flex;gap:8px">
-                <button class="btn btn-danger btn-sm" onclick="learnResult(false)">âœ— Ik weet het niet</button>
-                <button class="btn btn-secondary btn-sm" onclick="showLearnHint()">ðŸ’¡ Hint</button>
-                <button class="btn btn-primary" onclick="checkLearnType()">Controleren â†’</button>
+                <button class="btn btn-danger btn-sm" onclick="learnResult(false)"> -  Ik weet het niet</button>
+                <button class="btn btn-secondary btn-sm" onclick="showLearnHint()">' Hint</button>
+                <button class="btn btn-primary" onclick="checkLearnType()">Controleren '</button>
               </div>
               <div id="learn-hint" style="display:none;font-size:13px;color:var(--orange)">Hint: <strong>${hint}</strong></div>
             </div>` : ''}
@@ -1066,17 +1066,17 @@ function renderLearnCard() {
                 <div style="font-size:20px;font-weight:700">${q.answer}</div>
               </div>
               <div id="flash-btns-reveal" style="display:flex;gap:10px;justify-content:center">
-                <button class="btn btn-secondary" onclick="document.getElementById('flash-answer').classList.remove('hidden');document.getElementById('flash-btns-reveal').style.display='none';document.getElementById('flash-btns-judge').style.display='flex'">ðŸ‘ Toon antwoord</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('flash-answer').classList.remove('hidden');document.getElementById('flash-btns-reveal').style.display='none';document.getElementById('flash-btns-judge').style.display='flex'">' Toon antwoord</button>
               </div>
               <div id="flash-btns-judge" style="display:none;gap:10px;justify-content:center">
-                <button class="btn btn-danger" onclick="learnResult(false)" style="flex:1">âœ— Kende ik niet</button>
-                <button class="btn" style="flex:1;background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3)" onclick="learnResult(true)">âœ“ Kende ik wel</button>
+                <button class="btn btn-danger" onclick="learnResult(false)" style="flex:1"> -  Kende ik niet</button>
+                <button class="btn" style="flex:1;background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3)" onclick="learnResult(true)">" Kende ik wel</button>
               </div>
             </div>` : ''}
         </div>
       </div>
 
-      <div style="text-align:center;font-size:12px;color:var(--muted)">${learnPool.length} nog te leren Â· ${learnKnown.length} gekend</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted)">${learnPool.length} nog te leren  ${learnKnown.length} gekend</div>
     </div>`;
 
   document.getElementById('study-toets-btn')?.addEventListener('click', () => {
@@ -1111,7 +1111,7 @@ function checkLearnType() {
   const area = document.getElementById('learn-input-area');
   area.insertAdjacentHTML('beforeend', `
     <div class="feedback ${isCorrect?'correct':'wrong'}" style="margin-top:10px">
-      ${isCorrect ? 'âœ… Correct!' : `âŒ Fout â€” correct: <strong>${correct}</strong>`}
+      ${isCorrect ? '... Correct!' : ` Fout " correct: <strong>${correct}</strong>`}
     </div>`);
   setTimeout(() => learnResult(isCorrect), 1400);
 }
@@ -1148,12 +1148,12 @@ function autoSaveProgress() {
 function renderLearnComplete() {
   document.getElementById('study-overlay').innerHTML = `
     <div style="text-align:center;max-width:480px;padding:32px">
-      <div style="font-size:64px;margin-bottom:16px">ðŸŽ‰</div>
+      <div style="font-size:64px;margin-bottom:16px"></div>
       <h2 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px">Alles gekend!</h2>
       <p style="color:var(--muted);margin-bottom:32px">Je hebt alle ${learnKnown.length} kaarten correct beantwoord. Tijd voor de toets!</p>
       <div style="display:flex;gap:12px;justify-content:center">
         <button class="btn btn-secondary" onclick="stopStudySession()">Stoppen</button>
-        <button class="btn btn-primary btn-lg" onclick="clearInterval(studyTimer);document.getElementById('study-overlay').classList.add('hidden');startToets(activeSession)">ðŸ“ Toets starten</button>
+        <button class="btn btn-primary btn-lg" onclick="clearInterval(studyTimer);document.getElementById('study-overlay').classList.add('hidden');startToets(activeSession)">" Toets starten</button>
       </div>
     </div>`;
 }
@@ -1172,14 +1172,14 @@ function stopStudySession() {
 
 document.getElementById('study-stop-btn')?.addEventListener('click', stopStudySession);
 
-// â”€â”€ Toets na sessie â”€â”€
+// "" Toets na sessie ""
 let toetsState = null;
 
 async function startToets(session) {
   const subjectId = session.subject_id;
   let pool = QUESTIONS.filter(q => q.subject_id === subjectId);
 
-  // Laad eerder gemaakte fouten â†’ die komen eerst
+  // Laad eerder gemaakte fouten ' die komen eerst
   const { data: wrongData } = await supabase
     .from('wrong_answers')
     .select('question_id')
@@ -1220,7 +1220,7 @@ function renderToetsQuestion() {
 
   page.innerHTML = `
     <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.3);border-radius:12px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--accent);display:flex;align-items:center;justify-content:space-between">
-      <span>ðŸ“ Toets â€” ${(session.subject_name||'').replace('Frans - ','')}</span>
+      <span>" Toets " ${(session.subject_name||'').replace('Frans - ','')}</span>
       <span style="font-weight:700">${current+1} / ${questions.length}</span>
     </div>
     <div style="display:flex;gap:3px;margin-bottom:20px">${segBar}</div>
@@ -1235,7 +1235,7 @@ function renderToetsQuestion() {
             : q.question
         }</div>
         ${q.type==='fill' && !q.question.includes('___') ? `
-          <input id="fill-ans" autocomplete="off" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
+          <input id="fill-ans" autocomplete="off" placeholder="Typ je antwoord hier..."
             style="display:block;width:100%;margin-top:16px;padding:14px 18px;font-size:18px;font-family:'Nunito',sans-serif;font-weight:600;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;color:var(--text);outline:none"
             onkeydown="if(event.key==='Enter') toetsCheck()">` : ''}
         ${q.type==='mc' ? `<div class="mc-options">${parseOpts(q).map(o=>`<button class="mc-opt">${o}</button>`).join('')}</div>` : ''}
@@ -1252,8 +1252,8 @@ function renderToetsQuestion() {
         <div id="qfeedback"></div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
-        <button class="btn btn-danger btn-sm" onclick="toetsSkip()">âœ— Weet ik niet</button>
-        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren â†’</button>
+        <button class="btn btn-danger btn-sm" onclick="toetsSkip()"> -  Weet ik niet</button>
+        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren '</button>
       </div>
     </div>`;
 
@@ -1297,9 +1297,9 @@ function toetsCheck() {
         <div>${q.answer}</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:12px">
-        <button class="btn btn-danger" style="flex:1" onclick="openSelfJudge(false)">âœ— Fout</button>
+        <button class="btn btn-danger" style="flex:1" onclick="openSelfJudge(false)"> -  Fout</button>
         <button class="btn" style="flex:1;background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)" onclick="openSelfJudge(true)">~ Deels juist</button>
-        <button class="btn" style="flex:1;background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3)" onclick="openSelfJudge(true)">âœ“ Juist</button>
+        <button class="btn" style="flex:1;background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3)" onclick="openSelfJudge(true)">" Juist</button>
       </div>`;
     document.getElementById('check-btn').style.display='none';
     return;
@@ -1309,16 +1309,16 @@ function toetsCheck() {
   if (correct) {
     toetsState.score++;
     document.getElementById('qfeedback').innerHTML=`
-      <div class="feedback correct" style="margin-top:12px">âœ… Correct!</div>`;
+      <div class="feedback correct" style="margin-top:12px">... Correct!</div>`;
     setTimeout(()=>{ toetsState.current++; renderToetsQuestion(); }, 800);
   } else {
     toetsState.wrongs.push({ questionId: q.id, q: q.question, wrong: userAns, correct: q.answer });
     document.getElementById('qfeedback').innerHTML=`
       <div class="feedback wrong" style="margin-top:12px">
-        âŒ Fout â€” correct: <strong>${q.answer}</strong>
-        <button onclick="toetsTochJuist()" style="margin-left:12px;background:rgba(67,233,123,.15);border:1px solid rgba(67,233,123,.3);color:var(--accent3);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px">Toch juist âœ“</button>
+         Fout " correct: <strong>${q.answer}</strong>
+        <button onclick="toetsTochJuist()" style="margin-left:12px;background:rgba(67,233,123,.15);border:1px solid rgba(67,233,123,.3);color:var(--accent3);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px">Toch juist "</button>
       </div>`;
-    document.getElementById('check-btn').textContent='Volgende â†’';
+    document.getElementById('check-btn').textContent='Volgende '';
     document.getElementById('check-btn').onclick=()=>{ toetsState.current++; renderToetsQuestion(); };
   }
 }
@@ -1337,7 +1337,7 @@ function toetsTochJuist() {
   if (wrong) toetsState.wrongs = toetsState.wrongs.filter(w => w !== wrong);
   toetsState.score++;
   toetsState.results[toetsState.current-1] = true;
-  showNotification('Als juist gemarkeerd âœ“','success');
+  showNotification('Als juist gemarkeerd "','success');
 }
 
 function toetsSkip() {
@@ -1386,8 +1386,8 @@ async function finishToets() {
         <div class="score-pct" style="color:${color}">${pct}%</div>
         <div class="score-lbl">${score}/${questions.length}</div>
       </div>
-      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ðŸŽ‰':pct>=60?'Goed gedaan! ðŸ‘':'Blijf oefenen ðŸ’ª'}</p>
-      ${wrongs.length?`<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px">âŒ ${wrongs.length} fouten â€” komen terug in je volgende sessie</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">Jij: ${w.wrong}</div><div class="wc">âœ… ${w.correct}</div></div>`).join('')}</div></div>`:'<div class="card mb-20" style="color:var(--accent3);text-align:center;padding:24px">ðŸŽ‰ Geen fouten! Perfect gescoord.</div>'}
+      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ':pct>=60?'Goed gedaan! '':'Blijf oefenen ''}</p>
+      ${wrongs.length?`<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px"> ${wrongs.length} fouten " komen terug in je volgende sessie</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">Jij: ${w.wrong}</div><div class="wc">... ${w.correct}</div></div>`).join('')}</div></div>`:'<div class="card mb-20" style="color:var(--accent3);text-align:center;padding:24px"> Geen fouten! Perfect gescoord.</div>'}
       <div style="display:flex;gap:12px;justify-content:center">
         <button class="btn btn-secondary" onclick="navigateTo(\'planner\')">Terug naar planner</button>
       </div>
@@ -1466,9 +1466,9 @@ async function renderProgress() {
           ${pctTodo    > 0 ? `<div style="flex:${pctTodo};background:#6c63ff;border-radius:${pctKnown+pctUnknown===0?'6px':'0 6px 6px 0'}" title="${todo} nog te doen"></div>` : ''}
         </div>
         <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted)">
-          <span>ðŸŸ¢ ${known} gekend</span>
-          <span>ðŸ”´ ${unknown} fout</span>
-          <span>ðŸŸ£ ${todo} te doen</span>
+          <span> ${known} gekend</span>
+          <span>" ${unknown} fout</span>
+          <span> ${todo} te doen</span>
         </div>
       </div>`;
   }).join('');
@@ -1480,7 +1480,7 @@ async function renderProgress() {
 async function renderKlas() {
   document.getElementById('klas-content').innerHTML = `
     <div class="klas-header-card">
-      <div style="font-size:28px">ðŸ†</div>
+      <div style="font-size:28px"></div>
       <div><div style="font-size:16px;font-weight:800">Leaderboard</div>
       <div style="font-size:13px;color:var(--muted)">Competitie met je klasgenoten</div></div>
     </div>
@@ -1516,7 +1516,7 @@ async function renderKlas() {
     return { uid, name, avg, count: d.count };
   }).sort((a,b) => b.avg - a.avg);
 
-  const MEDALS = ['ðŸ¥‡','ðŸ¥ˆ','ðŸ¥‰'];
+  const MEDALS = ['','',''];
   const colors = ['#f59e0b','#9ca3af','#cd7c3f'];
   const SUBJECT_COLORS_HEX = ['#6c63ff','#ff6b6b','#43e97b','#f59e0b','#06b6d4','#ec4899'];
 
@@ -1544,7 +1544,7 @@ async function renderKlas() {
 
   document.getElementById('klas-content').innerHTML = `
     <div class="klas-header-card">
-      <div style="font-size:28px">ðŸ†</div>
+      <div style="font-size:28px"></div>
       <div><div style="font-size:16px;font-weight:800">Leaderboard</div>
       <div style="font-size:13px;color:var(--muted)">${ranked.length} student${ranked.length===1?'':'en'} actief</div></div>
     </div>
@@ -1576,9 +1576,9 @@ function showNotification(msg, type = 'success') {
   setTimeout(() => notif.classList.add('hidden'), 4000);
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 //  PLANNER HANDLERS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 
 document.getElementById('auto-plan-btn').addEventListener('click', showAutoPlanModal);
 
@@ -1598,8 +1598,8 @@ function showBeschikbaarheden() {
   modal.innerHTML = `
     <div class="modal" style="max-width:420px">
       <div class="modal-header">
-        <h2 class="modal-title">ðŸ• Beschikbaarheden</h2>
-        <button class="close-btn" onclick="document.getElementById('beschikb-modal').remove()">Ã—</button>
+        <h2 class="modal-title">* Beschikbaarheden</h2>
+        <button class="close-btn" onclick="document.getElementById('beschikb-modal').remove()"> - </button>
       </div>
       <div class="col-gap">
         <div style="font-size:12px;color:var(--muted)">Stel je standaard beschikbaarheid per weekdag in. Je kan dit per dag aanpassen in de auto-planner.</div>
@@ -1612,7 +1612,7 @@ function showBeschikbaarheden() {
                 <span style="font-size:13px;font-weight:${jsDay===3?'700':'500'}">${DAG_NAMEN[jsDay]}</span>
               </label>
               <input type="time" class="b-van" data-day="${jsDay}" value="${def?def[0]:''}" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:13px;width:88px">
-              <span style="color:var(--muted);font-size:12px">â€“</span>
+              <span style="color:var(--muted);font-size:12px">"</span>
               <input type="time" class="b-tot" data-day="${jsDay}" value="${def?def[1]:''}" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:13px;width:88px">
             </div>`;
           }).join('')}
@@ -1685,7 +1685,7 @@ async function showAutoPlanModal() {
     // Prioriteitsscore (hoe hoger, hoe meer sessies nodig)
     let priority = 3; // basis
     if (neverDone)          priority += 4;   // nooit bestudeerd
-    if (avgScore !== null)  priority += Math.round((100 - avgScore) / 20); // lage score â†’ hoger
+    if (avgScore !== null)  priority += Math.round((100 - avgScore) / 20); // lage score ' hoger
     if (subjWrongs > 10)    priority += 2;   // veel fouten
     if (knownPct !== null && knownPct < 50) priority += 2; // weinig gekend
 
@@ -1714,16 +1714,16 @@ async function showAutoPlanModal() {
   modal.innerHTML = `
     <div class="modal" style="max-width:620px">
       <div class="modal-header">
-        <h2 class="modal-title">ðŸ¤– Smart Auto-planner</h2>
-        <button class="close-btn" onclick="document.getElementById('auto-plan-modal').remove()">Ã—</button>
+        <h2 class="modal-title"> -  Smart Auto-planner</h2>
+        <button class="close-btn" onclick="document.getElementById('auto-plan-modal').remove()"> - </button>
       </div>
       <div class="col-gap">
 
         <!-- Stap 1: Basistest -->
         <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:14px 18px">
-          <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:6px">âš¡ Stap 1 â€” Basistest (aanbevolen)</div>
+          <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:6px"> Stap 1 " Basistest (aanbevolen)</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Doe eerst een korte test (5 vragen/hoofdstuk) zodat het systeem weet hoe goed je elk hoofdstuk al kent. Dit maakt de planning veel accurater.</div>
-          <button class="btn btn-sm" style="background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)" onclick="startBasistest()">â–¶ Basistest starten (Â±10 min)</button>
+          <button class="btn btn-sm" style="background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)" onclick="startBasistest()"> -  Basistest starten (10 min)</button>
         </div>
 
         <div class="form-group">
@@ -1738,18 +1738,18 @@ async function showAutoPlanModal() {
 
         <!-- Vakken selecteren + examendatum per vak -->
         <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">âœ… Vakken & examendatum</div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">... Vakken & examendatum</div>
           <div style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto">
             ${analysis.map(a => {
               const col = a.avgScore===null?'var(--muted)':a.avgScore>=70?'var(--accent3)':a.avgScore>=50?'var(--orange)':'var(--accent2)';
-              const badge = a.neverDone?'ðŸ†•':a.avgScore>=70?`âœ…${a.avgScore}%`:a.avgScore!==null?`âš ï¸${a.avgScore}%`:'ðŸ“–';
+              const badge = a.neverDone?'*':a.avgScore>=70?`...${a.avgScore}%`:a.avgScore!==null?` ${a.avgScore}%`:'" - ';
               return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:8px">
                 <input type="checkbox" class="ap-subj-check" data-sid="${a.subj.id}" checked
                   onchange="filterDagRows()"
                   style="accent-color:var(--accent);width:15px;height:15px;flex-shrink:0;cursor:pointer">
                 <div style="flex:1;font-size:12px;font-weight:600">${a.subj.name.replace('Frans - ','')}</div>
                 <div style="font-size:10px;color:${col}">${badge}</div>
-                <div style="font-size:10px;color:var(--orange)">${'â˜…'.repeat(Math.min(a.priority,5))}</div>
+                <div style="font-size:10px;color:var(--orange)">${'...'.repeat(Math.min(a.priority,5))}</div>
                 <input type="date" class="ap-exam-subj" data-sid="${a.subj.id}" value="${examDefault}" min="${todayStr}"
                   onchange="filterDagRows()"
                   style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:11px;width:125px">
@@ -1760,7 +1760,7 @@ async function showAutoPlanModal() {
 
         <!-- Dag-per-dag beschikbaarheid -->
         <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">ðŸ“… Beschikbaarheid per dag</div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">"... Beschikbaarheid per dag</div>
           <div id="dag-rows" style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto">
             ${dagRows.map(({ds,label,def,jsDay}) => {
               const checked = !!def;
@@ -1772,7 +1772,7 @@ async function showAutoPlanModal() {
                   <span style="font-size:12px;font-weight:${jsDay===3?'700':'400'};color:${jsDay===0?'var(--muted)':'var(--text)'}">${label}</span>
                 </label>
                 <input type="time" class="dag-van" data-date="${ds}" value="${van}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px;width:82px">
-                <span style="color:var(--muted);font-size:11px">â€“</span>
+                <span style="color:var(--muted);font-size:11px">"</span>
                 <input type="time" class="dag-tot" data-date="${ds}" value="${tot}" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px;width:82px">
               </div>`;
             }).join('')}
@@ -1780,12 +1780,12 @@ async function showAutoPlanModal() {
         </div>
 
         <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted)">
-          âš ï¸ Toekomstige ongemaakte sessies worden verwijderd en herplanned. Sessies die je al gedaan hebt blijven bewaard.
+            Toekomstige ongemaakte sessies worden verwijderd en herplanned. Sessies die je al gedaan hebt blijven bewaard.
         </div>
 
         <div style="display:flex;gap:10px">
           <button class="btn btn-secondary" style="flex:1" onclick="document.getElementById('auto-plan-modal').remove()">Annuleren</button>
-          <button class="btn btn-primary" style="flex:1" onclick="runAutoPlan()">ðŸ¤– Plan automatisch</button>
+          <button class="btn btn-primary" style="flex:1" onclick="runAutoPlan()"> -  Plan automatisch</button>
         </div>
       </div>
     </div>`;
@@ -1800,7 +1800,7 @@ async function showAutoPlanModal() {
 async function startBasistest() {
   document.getElementById('auto-plan-modal').remove();
 
-  // Praktische fill-vragen per subject â€” geen regels/definities
+  // Praktische fill-vragen per subject " geen regels/definities
   const metaPatterns = [
     /regel/i, /gebruik van/i, /wanneer gebruik/i, /leg uit/i,
     /wat betekent het ezels/i, /wat staat.*voor/i, /geef.*lijst/i,
@@ -1831,7 +1831,7 @@ async function startBasistest() {
   navigateTo('quiz');
   renderToetsQuestion();
 
-  showNotification('âš¡ Basistest gestart â€” beantwoord alle vragen eerlijk!');
+  showNotification(' Basistest gestart " beantwoord alle vragen eerlijk!');
 }
 
 async function finalizeBasistest(score, total, wrongs) {
@@ -1851,7 +1851,7 @@ async function finalizeBasistest(score, total, wrongs) {
   }));
   await supabase.from('scores').insert(inserts);
   toetsState = null; // reset zodat volgende toets niet als basistest behandeld wordt
-  showNotification('âœ… Basistest klaar! Open Auto-planner voor je planning.');
+  showNotification('... Basistest klaar! Open Auto-planner voor je planning.');
   navigateTo('planner');
 }
 
@@ -1863,7 +1863,7 @@ async function runAutoPlan() {
   const duration = parseInt(document.getElementById('ap-duration').value);
 
   // Dag-per-dag beschikbaarheid lezen
-  const dagSlots = {}; // 'YYYY-MM-DD' â†’ {van, tot}
+  const dagSlots = {}; // 'YYYY-MM-DD' ' {van, tot}
   document.querySelectorAll('.dag-check:checked').forEach(cb => {
     const ds = cb.dataset.date;
     const van = document.querySelector(`.dag-van[data-date="${ds}"]`)?.value;
@@ -1943,9 +1943,9 @@ async function runAutoPlan() {
   const insertRows = [];
   let slotIdx = 0;
   for (const s of interleaved) {
-    // Zoek volgende slot vÃ³Ã³r examendatum van dit vak
+    // Zoek volgende slot vr examendatum van dit vak
     while (slotIdx < availableSlots.length && availableSlots[slotIdx].date >= s.examDate) slotIdx++;
-    // Zoek slot dat vÃ³Ã³r examen van dit vak ligt
+    // Zoek slot dat vr examen van dit vak ligt
     let found = -1;
     for (let j = 0; j < availableSlots.length; j++) {
       if (!availableSlots[j]._used && availableSlots[j].date < s.examDate) { found = j; break; }
@@ -1973,13 +1973,13 @@ async function runAutoPlan() {
 
   if (insertRows.length) {
     const { error } = await supabase.from('sessions').insert(insertRows);
-    if (error) { showNotification('Fout: '+error.message,'error'); btn.textContent='ðŸ¤– Plan automatisch'; btn.disabled=false; return; }
+    if (error) { showNotification('Fout: '+error.message,'error'); btn.textContent=' -  Plan automatisch'; btn.disabled=false; return; }
   }
 
   document.getElementById('auto-plan-modal').remove();
   await reloadSessions();
   renderPlanner();
-  showNotification(`âœ… ${insertRows.length} sessies ingepland tot ${examDate}!`);
+  showNotification(`... ${insertRows.length} sessies ingepland tot ${examDate}!`);
 }
 
 document.getElementById('add-session-btn').addEventListener('click', () => {
@@ -2029,9 +2029,9 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   renderPlanner();
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 //  AUTH HANDLERS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 
 document.getElementById('auth-btn').addEventListener('click', handleAuth);
 document.getElementById('auth-switch-btn').addEventListener('click', toggleAuthMode);
@@ -2054,7 +2054,7 @@ async function handleAuth() {
       if (data?.user) {
         await supabase.from('profiles').upsert({ id: data.user.id, email, name });
       }
-      showNotification('âœ… Account aangemaakt!');
+      showNotification('... Account aangemaakt!');
       toggleAuthMode();
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -2065,7 +2065,7 @@ async function handleAuth() {
     }
   } catch (error) {
     const errorDiv = document.getElementById('auth-error');
-    errorDiv.textContent = 'âŒ ' + error.message;
+    errorDiv.textContent = 'Fout: ' + error.message;
     errorDiv.classList.remove('hidden');
   }
 }
@@ -2088,9 +2088,9 @@ async function handleLogout() {
   showAuth();
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 //  QUIZ
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ******************************************************
 let quizState = null;
 
 function renderPage_quiz() {
@@ -2102,7 +2102,7 @@ function renderPage_quiz() {
         <div class="form-group">
           <label class="form-label">Vak</label>
           <select class="form-input" id="quiz-subject-sel">
-            <option value="">â€” Kies een vak â€”</option>
+            <option value="">" Kies een vak "</option>
             ${SUBJECTS.map(s => `<option value="${s.id}">${s.name} (${s.question_count} vragen)</option>`).join('')}
           </select>
         </div>
@@ -2116,11 +2116,11 @@ function renderPage_quiz() {
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Antwoorden in hetâ€¦</label>
+          <label class="form-label">Antwoorden in het</label>
           <select class="form-input" id="quiz-direction-sel">
-            <option value="auto">ðŸ”€ Gemengd (automatisch)</option>
-            <option value="fr">ðŸ‡«ðŸ‡· Frans â€” exam mode</option>
-            <option value="nl">ðŸ‡§ðŸ‡ª Nederlands</option>
+            <option value="auto">Gemengd (automatisch)</option>
+            <option value="fr">Frans - exam mode</option>
+            <option value="nl">Nederlands</option>
           </select>
         </div>
         <div class="form-group">
@@ -2128,23 +2128,23 @@ function renderPage_quiz() {
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
               <input type="checkbox" class="qtype-check" value="mc" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px">ðŸ”˜ Meerkeuze</span>
+              <span style="font-size:12px">" Meerkeuze</span>
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
               <input type="checkbox" class="qtype-check" value="fill" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px">âŒ¨ï¸ Invullen</span>
+              <span style="font-size:12px"> Invullen</span>
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
               <input type="checkbox" class="qtype-check" value="open" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px">ðŸ“ Open</span>
+              <span style="font-size:12px">" Open</span>
             </label>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
               <input type="checkbox" class="qtype-check" value="gender" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px">ðŸ·ï¸ Geslacht</span>
+              <span style="font-size:12px"> Geslacht</span>
             </label>
           </div>
         </div>
-        <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">ðŸ§  Quiz starten</button>
+        <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn">  Quiz starten</button>
       </div>
     </div>`;
   document.getElementById('quiz-start-btn').onclick = startQuiz;
@@ -2233,7 +2233,7 @@ function renderInput(q) {
     return `<div class="mc-options">${opts.map(o => `<button class="mc-opt">${o}</button>`).join('')}</div>`;
   }
   if (q.type === 'fill' && !q.question.includes('___')) {
-    return `<input id="fill-ans" autocomplete="off" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
+    return `<input id="fill-ans" autocomplete="off" placeholder="Typ je antwoord hier..."
       style="display:block;width:100%;margin-top:16px;padding:14px 18px;font-size:18px;font-family:'Nunito',sans-serif;font-weight:600;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;color:var(--text);outline:none">`;
   }
   if (q.type === 'open') return `<textarea id="open-ans" class="form-input" placeholder="Jouw antwoord..." rows="3"></textarea>`;
@@ -2267,13 +2267,13 @@ function checkAnswer() {
 
   if (correct) {
     quizState.score++;
-    fb.innerHTML = `<div class="feedback correct">âœ… Correct!</div>`;
+    fb.innerHTML = `<div class="feedback correct">... Correct!</div>`;
   } else {
     quizState.wrongs.push({ q: q.question, wrong: userAns, correct: q.answer });
-    fb.innerHTML = `<div class="feedback wrong">âŒ Fout â€” correct: <strong>${q.answer}</strong></div>`;
+    fb.innerHTML = `<div class="feedback wrong"> Fout " correct: <strong>${q.answer}</strong></div>`;
   }
 
-  document.getElementById('check-btn').textContent = 'Volgende â†’';
+  document.getElementById('check-btn').textContent = 'Volgende '';
   document.getElementById('check-btn').onclick = nextQuestion;
 }
 
@@ -2306,8 +2306,8 @@ async function showResults() {
         <div class="score-pct" style="color:${color}">${pct}%</div>
         <div class="score-lbl">${score}/${questions.length}</div>
       </div>
-      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ðŸŽ‰':pct>=60?'Goed gedaan! ðŸ‘':'Blijf oefenen ðŸ’ª'}</p>
-      ${wrongs.length ? `<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px">Foute antwoorden</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">âŒ ${w.wrong}</div><div class="wc">âœ… ${w.correct}</div></div>`).join('')}</div></div>` : ''}
+      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ':pct>=60?'Goed gedaan! '':'Blijf oefenen ''}</p>
+      ${wrongs.length ? `<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px">Foute antwoorden</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa"> ${w.wrong}</div><div class="wc">... ${w.correct}</div></div>`).join('')}</div></div>` : ''}
       <div style="display:flex;gap:12px;justify-content:center">
         <button class="btn btn-secondary" onclick="navigateTo('subjects')">Terug naar vakken</button>
         <button class="btn btn-primary" onclick="renderPage_quiz();navigateTo('quiz')">Opnieuw quizzen</button>
@@ -2326,9 +2326,9 @@ async function editName() {
 }
 
 
-// ════════════════════════════════════════════════════════
-//  MATCH — koppelspel
-// ════════════════════════════════════════════════════════
+// ========================================================
+//  MATCH  -  koppelspel
+// ========================================================
 let matchState = null;
 let matchTimerInterval = null;
 let matchSeconds = 0;
@@ -2365,7 +2365,7 @@ function startMatch() {
 
   const pairs = vocabQ.map(q => {
     // Frans = vraag vereenvoudigd, NL = antwoord
-    let fr = q.question.replace(/→/g, '').replace(/=\s*___/, '').replace(/___\s*$/, '').trim();
+    let fr = q.question.replace(/->/g, '').replace(/=\s*___/, '').replace(/___\s*$/, '').trim();
     fr = fr.replace(/\(.*?\)/g, '').trim(); // verwijder (présent) etc
     if (fr.length > 35) fr = fr.substring(0, 35) + '...';
     return { fr, nl: q.answer.trim(), id: q.id, matched: false };
@@ -2391,7 +2391,7 @@ function startMatch() {
 function renderMatchGrid() {
   const { pairs, matched, errors, total } = matchState;
   document.getElementById('match-info').textContent =
-    matched+'/'+total+' gevonden · '+errors+' fouten';
+    matched+'/'+total+' gevonden  '+errors+' fouten';
 
   const remaining = pairs.filter(p => !p.matched);
   const frShuf = [...remaining].sort(() => Math.random()-.5);
@@ -2450,12 +2450,58 @@ function onMatchCard(div, pair, side) {
     matchState.selected = null;
     if (matchState.matched === matchState.total) {
       clearInterval(matchTimerInterval);
-      setTimeout(() => {
+      setTimeout(async () => {
         document.getElementById('match-game').classList.add('hidden');
         document.getElementById('match-done').classList.remove('hidden');
         const m = Math.floor(matchSeconds/60), s = String(matchSeconds%60).padStart(2,'0');
-        document.getElementById('match-result').textContent =
-          'Tijd: '+m+':'+s+' · '+matchState.errors+' fouten';
+        document.getElementById('match-result').innerHTML =
+          '<div style="font-size:20px;margin-bottom:8px">Tijd: <strong>'+m+':'+s+'</strong> &nbsp;&nbsp; '+matchState.errors+' fouten</div>';
+
+        // Sla op in Supabase
+        const sid = parseInt(document.getElementById('match-subject-sel').value);
+        const subj = SUBJECTS.find(x=>x.id===sid);
+        await supabase.from('match_scores').insert({
+          user_id: currentUser.id,
+          subject_id: sid,
+          subject_name: subj?.name,
+          pairs: matchState.total,
+          seconds: matchSeconds,
+          errors: matchState.errors
+        });
+
+        // Laad leaderboard
+        const { data: lb } = await supabase
+          .from('match_scores')
+          .select('user_id, seconds, errors, pairs, played_at')
+          .eq('subject_id', sid)
+          .eq('pairs', matchState.total)
+          .order('seconds', { ascending: true })
+          .order('errors', { ascending: true })
+          .limit(10);
+
+        const { data: profiles } = await supabase.from('profiles').select('id, name, email');
+        const MEDALS = ['','',''];
+
+        const lbHtml = (lb||[]).map((row,i) => {
+          const profile = (profiles||[]).find(p => p.id === row.user_id);
+          const name = profile?.name || profile?.email?.split('@')[0] || 'Anoniem';
+          const isMe = row.user_id === currentUser?.id;
+          const mm = Math.floor(row.seconds/60), ss = String(row.seconds%60).padStart(2,'0');
+          return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:${isMe?'rgba(108,99,255,.1)':'var(--surface2)'};border:1px solid ${isMe?'rgba(108,99,255,.4)':'var(--border)'};border-radius:10px">
+            <div style="font-size:18px;width:28px;text-align:center">${i<3?MEDALS[i]:i+1}</div>
+            <div style="flex:1;font-weight:600;font-size:13px">${name}${isMe?' <span style="font-size:10px;background:rgba(108,99,255,.2);color:var(--accent);padding:1px 6px;border-radius:8px">jij</span>':''}</div>
+            <div style="font-size:13px;color:var(--accent);font-weight:700">${mm}:${ss}</div>
+            <div style="font-size:11px;color:var(--muted)">${row.errors} fouten</div>
+          </div>`;
+        }).join('');
+
+        document.getElementById('match-result').innerHTML += `
+          <div style="margin-top:24px;text-align:left">
+            <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:10px">
+              Leaderboard  -  ${subj?.name?.replace('Frans - ','')} (${matchState.total} paren)
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">${lbHtml}</div>
+          </div>`;
       }, 500);
     }
   } else {
