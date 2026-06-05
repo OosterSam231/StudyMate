@@ -14,7 +14,8 @@
       --accent: #6c63ff; --accent2: #ff6b6b; --accent3: #43e97b; --orange: #f59e0b;
       --text: #e8eaf0; --muted: #6b7280;
     }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    #study-overlay { overflow: hidden; }
     h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
 
     /* â"€â"€ Layout â"€â"€ */
@@ -273,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:11</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:19</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -713,6 +714,7 @@ let activeSession = null;
 // ******************************************************
 let learnPool     = [];   // vragen die nog geleerd moeten worden
 let learnKnown    = [];   // vragen die je kent
+let _learnAllCards = []; // originele volgorde voor de balk
 let learnCurrent  = null;
 let learnMode     = 'mc'; // modus voor huidige vraag: 'mc'|'type'|'flash'
 let studyRemaining = 0;
@@ -803,6 +805,7 @@ async function beginSession(direction) {
   const dir = activeSession.direction || 'auto';
   learnPool = filterByDirection(combined, dir);
   learnKnown   = [];
+  _learnAllCards = [...learnPool]; // sla originele volgorde op
   studyRemaining = (activeSession.duration_min || 30) * 60;
 
   document.getElementById('study-overlay').classList.remove('hidden');
@@ -1029,18 +1032,15 @@ function renderLearnCard() {
       <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
         <div style="flex:1">
           <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${(activeSession.subject_name||'').replace('Frans - ','')} &middot; ${known}/${total} gekend</div>
-          <!-- Segmentbalk: groen=gekend, rood=fout, paars=te leren -->
-          <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden">
-            ${(() => {
-              const allQ = [...learnKnown, ...learnWrong, ...learnPool];
-              return allQ.map((item, i) => {
-                const isKnown = learnKnown.some(k => k.id === item.id);
-                const isWrong = !isKnown && learnWrong.some(w => w.id === item.id);
-                const isCurrent = item.id === q.id;
-                const col = isKnown ? '#43e97b' : isWrong ? '#ff6b6b' : isCurrent ? '#6c63ff' : 'var(--border)';
-                return `<div style="flex:1;background:${col};transition:background .3s;min-width:3px"></div>`;
-              }).join('');
-            })()}
+          <!-- Segmentbalk in originele volgorde -->
+          <div style="display:flex;gap:1px;height:8px;border-radius:4px;overflow:hidden">
+            ${_learnAllCards.map(item => {
+              const isKnown   = learnKnown.some(k => k.id === item.id);
+              const isWrong   = !isKnown && learnWrong.some(w => w.id === item.id);
+              const isCurrent = item.id === q.id;
+              const col = isKnown ? '#43e97b' : isWrong ? '#ff6b6b' : isCurrent ? '#6c63ff' : 'rgba(255,255,255,.12)';
+              return `<div style="flex:1;background:${col};min-width:2px"></div>`;
+            }).join('')}
           </div>
         </div>
         ${!activeSession?._isQuiz ? `<div style="text-align:center;min-width:80px">
