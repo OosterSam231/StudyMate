@@ -273,7 +273,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:04</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:11</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -319,7 +319,7 @@
     </div>
 
     <!-- STUDEERSESSIE (fullscreen overlay) -->
-    <div id="study-overlay" class="hidden" style="position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px">
+    <div id="study-overlay" class="hidden" style="position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow:hidden">
       <div style="text-align:center">
         <div id="study-subject" style="font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px"></div>
         <div id="study-timer" style="font-family:'Syne',sans-serif;font-size:96px;font-weight:800;color:var(--accent);line-height:1">00:00</div>
@@ -1023,7 +1023,7 @@ function renderLearnCard() {
   const hint = q.answer.split('').map((c,i) => i===0 ? c : c===' ' ? ' ' : '_').join('');
 
   overlay.innerHTML = `
-    <div style="width:100%;max-width:700px;padding:24px 24px 32px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;height:100vh;box-sizing:border-box">
+    <div style="width:100%;max-width:700px;padding:24px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;max-height:100vh;box-sizing:border-box">
 
       <!-- Topbalk -->
       <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
