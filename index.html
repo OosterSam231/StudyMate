@@ -274,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:19</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:32</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -723,9 +723,9 @@ async function openStudySession(sessionId) {
   activeSession = SESSIONS.find(s => s.id === sessionId);
   if (!activeSession) return;
 
-  // Vraag richting " toon vorige keuze als standaard
-  const savedDir = localStorage.getItem('sm_direction') || 'auto';
-  if (!activeSession.direction) {
+  // Altijd richting/type kiezen bij sessie start
+  const savedDir = activeSession.direction || localStorage.getItem('sm_direction') || 'auto';
+  if (true) { // altijd tonen
     const overlay = document.getElementById('study-overlay');
     overlay.classList.remove('hidden');
     const labels = { auto:'Gemengd', fr:'Frans - exam mode', nl:'Nederlands' };
@@ -780,7 +780,7 @@ async function beginSession(direction) {
 
   let allQ = QUESTIONS.filter(q => q.subject_id === activeSession.subject_id);
 
-  // Filter op geselecteerde vraagtypes (komma-gescheiden of 'all')
+  // Filter op geselecteerde vraagtypes — elk antwoord minstens 1x per type
   const qt = activeSession.qtype || 'all';
   const qtypes = qt === 'all' ? null : qt.split(',').map(t => t.trim());
 
@@ -791,9 +791,13 @@ async function beginSession(direction) {
     }
     const otherTypes = qtypes.filter(t => t !== 'gender');
     if (otherTypes.length) {
-      filtered = filtered.concat(allQ.filter(q => otherTypes.includes(q.type)));
+      // Voeg voor elk type alle vragen toe (zodat elk woord per type 1x voorkomt)
+      otherTypes.forEach(t => {
+        filtered = filtered.concat(allQ.filter(q => q.type === t));
+      });
     }
-    allQ = filtered;
+    // Shuffle zodat types door elkaar zitten
+    allQ = filtered.sort(() => Math.random() - .5);
   }
 
   const wrongPool  = allQ.filter(q => wrongIds.has(q.id)).map(q => ({...q, _priority: true}));
@@ -983,8 +987,21 @@ function filterByDirection(pool, direction) {
 }
 
 function pickMode(q) {
+  // Respecteer de geselecteerde vraagtypes
+  const selected = (localStorage.getItem('sm_qtypes') || 'mc,fill,open,gender').split(',');
+  const onlyFill = selected.length === 1 && selected[0] === 'fill';
+  const onlyMC   = selected.length === 1 && selected[0] === 'mc';
+
+  if (q.type === 'gender') return 'mc'; // geslacht altijd als MC
   if (q.type === 'mc') return 'mc';
-  if (q.type === 'fill') return Math.random() < .6 ? 'type' : 'mc_generated';
+
+  if (q.type === 'fill') {
+    if (onlyFill) return 'type';         // enkel invullen gevraagd
+    if (onlyMC)   return 'mc_generated'; // enkel MC gevraagd
+    return Math.random() < .65 ? 'type' : 'mc_generated'; // gemengd
+  }
+  // open
+  if (onlyFill) return 'type';
   return Math.random() < .5 ? 'type' : 'flash';
 }
 
@@ -1130,7 +1147,12 @@ function checkLearnMC(btn, chosen, correct) {
   const isCorrect = chosen === correct;
   btn.classList.add(isCorrect ? 'correct' : 'wrong');
   opts.forEach(b => { if (b.textContent.replace(/^[A-D]\s+/,'').trim() === correct || b.textContent.includes(correct)) b.classList.add('correct'); });
-  setTimeout(() => learnResult(isCorrect), 1200);
+  if (isCorrect) {
+    setTimeout(() => learnResult(true), 900); // juist: snel door
+  } else {
+    // fout: wacht op gebruiker
+    showLearnWrongButtons(correct);
+  }
 }
 
 function checkLearnType() {
@@ -1141,12 +1163,27 @@ function checkLearnType() {
   const isCorrect = isCorrectAnswer(userVal, correct);
   inp.disabled = true;
   inp.style.borderColor = isCorrect ? 'var(--accent3)' : 'var(--accent2)';
+  if (isCorrect) {
+    document.getElementById('learn-input-area').insertAdjacentHTML('beforeend',
+      '<div class="feedback correct" style="margin-top:10px">Correct!</div>');
+    setTimeout(() => learnResult(true), 900);
+  } else {
+    showLearnWrongButtons(correct);
+  }
+}
+
+function showLearnWrongButtons(correct) {
   const area = document.getElementById('learn-input-area');
+  if (!area) return;
   area.insertAdjacentHTML('beforeend', `
-    <div class="feedback ${isCorrect?'correct':'wrong'}" style="margin-top:10px">
-      ${isCorrect ? '... Correct!' : ` Fout " correct: <strong>${correct}</strong>`}
+    <div class="feedback wrong" style="margin-top:10px">
+      Fout - correct: <strong>${correct}</strong>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="btn btn-danger btn-sm" style="flex:1" onclick="learnResult(false)">Volgende</button>
+      <button class="btn btn-sm" style="flex:1;background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3)"
+        onclick="learnResult(true);showNotification('Als juist gemarkeerd')">Toch juist</button>
     </div>`);
-  setTimeout(() => learnResult(isCorrect), 1400);
 }
 
 let learnWrong = []; // foute kaarten deze sessie
@@ -1169,13 +1206,15 @@ let _autoSaveTimer = null;
 function autoSaveProgress() {
   clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(async () => {
-    if (!activeSession?.id) return;
-    await supabase.from('sessions').update({
-      known_count:   learnKnown.length,
-      unknown_count: learnWrong.length,
-      total_count:   learnKnown.length + learnPool.length + learnWrong.length,
-    }).eq('id', activeSession.id);
-  }, 2000); // sla op na 2s inactiviteit
+    if (!activeSession?.id || activeSession._isQuiz) return;
+    try {
+      await supabase.from('sessions').update({
+        known_count:   learnKnown.length,
+        unknown_count: learnWrong.length,
+        total_count:   _learnAllCards.length,
+      }).eq('id', activeSession.id);
+    } catch(e) { console.warn('Auto-save mislukt:', e); }
+  }, 1500);
 }
 
 function renderLearnComplete() {
