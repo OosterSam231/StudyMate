@@ -273,7 +273,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 18:53</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:04</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -813,49 +813,57 @@ async function beginSession(direction) {
 
 let timerPaused = false;
 
+let _timerEndTime = 0;
+
 function startStudyTimer() {
-  // Stop elke bestaande timer
   if (studyTimer) { clearInterval(studyTimer); studyTimer = null; }
   timerPaused = false;
 
-  // Veiligheidscheck: als duration niet klopt, gebruik 30 min
-  if (!studyRemaining || studyRemaining <= 0) {
-    studyRemaining = (activeSession?.duration_min || 30) * 60;
-  }
+  // Zet studyRemaining correct op basis van duration_min
+  const dur = parseInt(activeSession?.duration_min) || 30;
+  studyRemaining = dur * 60;
 
-  // Toon startwaarde direct (vóór eerste tick)
-  function updateDisplay() {
-    const el = document.getElementById('study-timer-val');
-    if (!el) return;
-    const m = String(Math.floor(studyRemaining/60)).padStart(2,'0');
-    const s = String(studyRemaining % 60).padStart(2,'0');
-    el.textContent = `${m}:${s}`;
-    el.style.color = studyRemaining < 60 ? 'var(--accent2)' : 'var(--accent)';
-  }
+  // Gebruik absolute eindtijd (klokgebaseerd, geen drift)
+  _timerEndTime = Date.now() + studyRemaining * 1000;
 
-  updateDisplay(); // meteen tonen
-
-  studyTimer = setInterval(() => {
+  function tick() {
     if (timerPaused) return;
-    studyRemaining--;
-    updateDisplay();
-    if (studyRemaining <= 0) {
-      clearInterval(studyTimer);
-      studyTimer = null;
+    const remaining = Math.max(0, Math.round((_timerEndTime - Date.now()) / 1000));
+    studyRemaining = remaining;
+
+    const el = document.getElementById('study-timer-val');
+    if (el) {
+      const m = String(Math.floor(remaining / 60)).padStart(2,'0');
+      const s = String(remaining % 60).padStart(2,'0');
+      el.textContent = m + ':' + s;
+      el.style.color = remaining < 60 ? 'var(--accent2)' : 'var(--accent)';
+    }
+    if (remaining <= 0) {
+      clearInterval(studyTimer); studyTimer = null;
       const btn = document.getElementById('study-toets-btn');
       if (btn) btn.textContent = 'Tijd om! Start toets';
     }
-  }, 1000);
+  }
+
+  tick(); // meteen correct tonen
+  studyTimer = setInterval(tick, 1000);
 }
 
+let _pauseStart = 0;
 function togglePause() {
   timerPaused = !timerPaused;
+  if (timerPaused) {
+    _pauseStart = Date.now(); // sla moment van pauzeren op
+  } else {
+    // Verschuif eindtijd met de pauze-duur
+    _timerEndTime += (Date.now() - _pauseStart);
+  }
   const btn = document.getElementById('pause-btn');
   const lbl = document.getElementById('pause-label');
   const val = document.getElementById('study-timer-val');
   if (timerPaused) {
-    if (btn) btn.textContent = ' - ';
-    if (lbl) lbl.textContent = ' -  klik om te hervatten';
+    if (btn) btn.textContent = '>';
+    if (lbl) lbl.textContent = 'klik om te hervatten';
     if (val) val.style.opacity = '0.4';
   } else {
     if (btn) btn.textContent = '';
@@ -870,8 +878,7 @@ function togglePause() {
 // bv. antwoord "inventeur / inventrice" ' "inventeur" n "inventrice" zijn juist
 // bv. antwoord "praktisch / handig" ' beide juist
 function parseOpts(q) {
-  const opts = parseOpts(q);
-  // Shuffle zodat het juiste antwoord niet altijd eerste staat
+  const opts = Array.isArray(q.options) ? q.options : JSON.parse(q.options || '[]');
   return [...opts].sort(() => Math.random() - .5);
 }
 
