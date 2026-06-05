@@ -274,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:32</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 19:57</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -1438,11 +1438,19 @@ async function finishToets() {
   const pct = Math.round(score/questions.length*100);
   const color = pct>=70?'var(--accent3)':pct>=50?'var(--orange)':'var(--accent2)';
 
-  // Sla score op + markeer sessie als done
-  await Promise.all([
-    supabase.from('scores').insert({ user_id:currentUser.id, subject_id:session.subject_id, subject_name:session.subject_name, score:pct, total:questions.length }),
-    supabase.from('sessions').update({ status:'done', score:pct }).eq('id', session.id),
-  ]);
+  // Sla score altijd op (ook voor quiz)
+  await supabase.from('scores').insert({
+    user_id: currentUser.id,
+    subject_id: session.subject_id,
+    subject_name: session.subject_name,
+    score: pct,
+    total: questions.length
+  });
+
+  // Markeer sessie als done (enkel voor echte sessies)
+  if (session.id && !session._isQuiz) {
+    await supabase.from('sessions').update({ status:'done', score:pct }).eq('id', session.id);
+  }
 
   // Verwijder oude fouten voor dit vak, sla nieuwe op
   await supabase.from('wrong_answers').delete().eq('user_id',currentUser.id).eq('subject_id',session.subject_id);
@@ -1455,19 +1463,32 @@ async function finishToets() {
   // Herlaad sessies vanuit DB
   await reloadSessions();
 
-  document.getElementById('page-quiz').innerHTML = `
+  const isQuiz = toetsState?._isQuiz;
+  const resultHTML = `
     <div class="results-wrap">
-      <div class="page-header"><h1>Toets afgerond!</h1></div>
+      <div class="page-header"><h1>${isQuiz ? 'Quiz afgerond!' : 'Toets afgerond!'}</h1></div>
       <div class="score-circle" style="border-color:${color}">
         <div class="score-pct" style="color:${color}">${pct}%</div>
         <div class="score-lbl">${score}/${questions.length}</div>
       </div>
-      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend! ':pct>=60?'Goed gedaan!':'Blijf oefenen'}</p>
-      ${wrongs.length?`<div class="card mb-20"><h3 style="margin-bottom:12px;font-size:15px"> ${wrongs.length} fouten " komen terug in je volgende sessie</h3><div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">Jij: ${w.wrong}</div><div class="wc">... ${w.correct}</div></div>`).join('')}</div></div>`:'<div class="card mb-20" style="color:var(--accent3);text-align:center;padding:24px"> Geen fouten! Perfect gescoord.</div>'}
-      <div style="display:flex;gap:12px;justify-content:center">
-        <button class="btn btn-secondary" onclick="navigateTo(\'planner\')">Terug naar planner</button>
+      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend!':pct>=60?'Goed gedaan!':'Blijf oefenen'}</p>
+      ${wrongs.length
+        ? `<div class="card mb-20">
+            <h3 style="margin-bottom:12px;font-size:15px">${wrongs.length} fouten${isQuiz ? '' : ' — komen terug in volgende sessie'}</h3>
+            <div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">Jij: ${w.wrong}</div><div class="wc">Correct: ${w.correct}</div></div>`).join('')}</div>
+           </div>`
+        : '<div class="card mb-20" style="color:var(--accent3);text-align:center;padding:24px">Geen fouten! Perfect gescoord.</div>'}
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        ${isQuiz ? `
+          <button class="btn btn-secondary" onclick="navigateTo('quiz')">Nieuw hoofdstuk</button>
+          ${wrongs.length ? `<button class="btn btn-secondary" onclick="redoQuizWrong()" style="color:var(--accent2)">Fouten herdoen (${wrongs.length})</button>` : ''}
+          <button class="btn btn-primary" onclick="redoQuizAll()">Alles opnieuw</button>
+        ` : `
+          <button class="btn btn-secondary" onclick="navigateTo('planner')">Terug naar planner</button>
+        `}
       </div>
     </div>`;
+  document.getElementById('page-quiz').innerHTML = resultHTML;
 }
 
 async function renderProgress() {
@@ -2603,20 +2624,68 @@ async function startQuizAsSession() {
   const direction = localStorage.getItem('sm_direction') || 'auto';
   const qtype = getSelectedQtypes();
 
-  // Maak een tijdelijke sessie zonder timer (999 min)
-  activeSession = {
-    id: null,
-    subject_id: sid,
-    subject_name: subj?.name || '',
-    duration_min: 999,
-    direction: direction,
-    qtype: qtype,
-    status: 'planned',
-    _isQuiz: true  // markeer als quiz (geen timer UI)
-  };
+  // Bouw pool: alle vragen voor dit vak, gefilterd op type en richting
+  let pool = QUESTIONS.filter(q => q.subject_id === sid);
 
-  learnWrong = [];
-  await beginSession(direction);
+  const qtypes = qtype === 'all' ? null : qtype.split(',');
+  if (qtypes) {
+    let filtered = [];
+    if (qtypes.includes('gender')) filtered = filtered.concat(generateGenderQuestions(sid));
+    const others = qtypes.filter(t => t !== 'gender');
+    if (others.length) others.forEach(t => {
+      filtered = filtered.concat(pool.filter(q => q.type === t));
+    });
+    pool = filtered;
+  }
+
+  pool = filterByDirection(pool, direction).sort(() => Math.random() - .5);
+
+  if (!pool.length) { showNotification('Geen vragen voor deze selectie', 'error'); return; }
+
+  // Sla keuzes op voor "Opnieuw doen"
+  window._lastQuizConfig = { sid, direction, qtype };
+
+  // Start direct de toets (zonder studiesessie)
+  toetsState = {
+    questions: pool,
+    current: 0,
+    score: 0,
+    wrongs: [],
+    results: {},
+    session: {
+      id: null,
+      subject_id: sid,
+      subject_name: subj?.name || '',
+      direction,
+      _isQuiz: true
+    },
+    _isQuiz: true
+  };
+  renderToetsQuestion();
+}
+
+async function redoQuizWrong() {
+  // Doe enkel de fout beantwoorde vragen opnieuw
+  const wrongs = toetsState?.wrongs || [];
+  if (!wrongs.length) { showNotification('Geen fouten om opnieuw te doen!'); return; }
+  const wrongIds = new Set(wrongs.map(w => w.questionId));
+  const pool = toetsState.questions.filter(q => wrongIds.has(q.id)).sort(() => Math.random() - .5);
+  const sess = toetsState.session;
+  toetsState = { questions: pool, current: 0, score: 0, wrongs: [], results: {}, session: sess, _isQuiz: true };
+  renderToetsQuestion();
+}
+
+async function redoQuizAll() {
+  // Doe alles opnieuw met dezelfde instellingen
+  if (!window._lastQuizConfig) return;
+  const { sid, direction, qtype } = window._lastQuizConfig;
+  // Herstel selectie in de UI en start opnieuw
+  navigateTo('quiz');
+  setTimeout(() => {
+    const sel = document.getElementById('quiz-subject-sel');
+    if (sel) sel.value = sid;
+    startQuizAsSession();
+  }, 50);
 }
 
 // Start the app
