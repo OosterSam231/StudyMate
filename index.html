@@ -270,7 +270,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v04/06/2026 11:45</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v05/06/2026 14:36</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -302,14 +302,14 @@
     <div id="page-planner" class="hidden">
       <div class="flex items-center justify-between mb-24">
         <div class="page-header" style="margin-bottom:0"><h1>Planner</h1><p>Plan je studiesessies en toets je kennis</p></div>
-        <button class="btn btn-secondary btn-sm" onclick="showBeschikbaarheden()" style="font-size:12px">ðŸ* Beschikbaarheden</button>
-        <button class="btn btn-secondary btn-sm" id="auto-plan-btn" style="font-size:12px">ðŸ¤ -  Auto-plan</button>
+        <button class="btn btn-secondary btn-sm" onclick="showBeschikbaarheden()" style="font-size:12px">Beschikbaarheden</button>
+        <button class="btn btn-secondary btn-sm" id="auto-plan-btn" style="font-size:12px">Auto-plan</button>
         <button class="btn btn-primary" id="add-session-btn">+ Sessie plannen</button>
       </div>
       <div id="week-nav" style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-        <button class="btn btn-secondary btn-sm" id="week-prev">â†</button>
+        <button class="btn btn-secondary btn-sm" id="week-prev">&larr;</button>
         <span id="week-label" style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px"></span>
-        <button class="btn btn-secondary btn-sm" id="week-next">â†'</button>
+        <button class="btn btn-secondary btn-sm" id="week-next">&rarr;</button>
         <button class="btn btn-secondary btn-sm" id="week-today">Vandaag</button>
       </div>
       <div id="agenda-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px"></div>
@@ -323,8 +323,8 @@
         <div style="font-size:14px;color:var(--muted);margin-top:8px">resterende studietijd</div>
       </div>
       <div style="display:flex;gap:16px">
-        <button class="btn btn-secondary" id="study-stop-btn">âœ* Stoppen</button>
-        <button class="btn btn-primary btn-lg" id="study-toets-btn">ðŸ" Toets starten</button>
+        <button class="btn btn-secondary" id="study-stop-btn">Stoppen</button>
+        <button class="btn btn-primary btn-lg" id="study-toets-btn">Toets starten</button>
       </div>
     </div>
 
@@ -562,11 +562,11 @@ function renderSubjects() {
   grid.innerHTML = `
     <div class="subject-card" onclick="renderHoofdstukken()" style="border-left:4px solid #6c63ff">
       <div class="accent-bar" style="background:#6c63ff"></div>
-      <div style="font-size:32px"><<</div>
+      <div style="font-size:32px">&#x1F1EB;&#x1F1F7;</div>
       <div class="subject-title">Frans</div>
-      <div style="font-size:12px;color:var(--muted)">Nouveau Quartier franais 4 " Examen 2</div>
-      <div style="margin-top:12px;font-size:13px;font-weight:600;color:#6c63ff">${SUBJECTS.length} hoofdstukken  ${SUBJECTS.reduce((a,s)=>a+(s.question_count||0),0)} vragen</div>
-      <div style="margin-top:8px;font-size:12px;color:var(--muted)">Klik om hoofdstukken te zien '</div>
+      <div style="font-size:12px;color:var(--muted)">Nouveau Quartier fran&#xe7;ais 4 &mdash; Examen 2</div>
+      <div style="margin-top:12px;font-size:13px;font-weight:600;color:#6c63ff">${SUBJECTS.length} hoofdstukken &middot; ${SUBJECTS.reduce((a,s)=>a+(s.question_count||0),0)} vragen</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted)">Klik om hoofdstukken te zien &rarr;</div>
     </div>
   `;
 }
@@ -574,8 +574,8 @@ function renderSubjects() {
 function renderHoofdstukken() {
   document.getElementById('subjects-header').innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
-      <button onclick="renderSubjects()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:13px"> Vakken</button>
-      <h1>Frans " Hoofdstukken</h1>
+      <button onclick="renderSubjects()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:13px">&larr; Vakken</button>
+      <h1>Frans &mdash; Hoofdstukken</h1>
     </div>
     <p>Klik op een hoofdstuk om de quiz te starten</p>
   `;
@@ -585,11 +585,10 @@ function renderHoofdstukken() {
     return `
       <div class="subject-card" onclick="startQuizForSubject(${s.id})" style="border-left:4px solid ${color.bg}">
         <div class="accent-bar" style="background:${color.bg}"></div>
-        <div style="font-size:22px">" - </div>
         <div class="subject-title">${s.name.replace('Frans - ', '')}</div>
         <div style="font-size:12px;color:var(--muted)">${s.description}</div>
         <div style="margin-top:12px;font-size:13px;font-weight:600;color:${color.bg}">${s.question_count || 0} vragen</div>
-        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Klik om te oefenen '</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Klik om te oefenen &rarr;</div>
       </div>
     `;
   }).join('');
@@ -1005,23 +1004,33 @@ function renderLearnCard() {
       <!-- Topbalk -->
       <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
         <div style="flex:1">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${(activeSession.subject_name||'').replace('Frans - ','')}  ${known}/${total} gekend</div>
-          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:var(--accent3);border-radius:3px;transition:width .4s"></div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${(activeSession.subject_name||'').replace('Frans - ','')} &middot; ${known}/${total} gekend</div>
+          <!-- Segmentbalk: groen=gekend, rood=fout, paars=te leren -->
+          <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden">
+            ${(() => {
+              const allQ = [...learnKnown, ...learnWrong, ...learnPool];
+              return allQ.map((item, i) => {
+                const isKnown = learnKnown.some(k => k.id === item.id);
+                const isWrong = !isKnown && learnWrong.some(w => w.id === item.id);
+                const isCurrent = item.id === q.id;
+                const col = isKnown ? '#43e97b' : isWrong ? '#ff6b6b' : isCurrent ? '#6c63ff' : 'var(--border)';
+                return `<div style="flex:1;background:${col};transition:background .3s;min-width:3px"></div>`;
+              }).join('');
+            })()}
           </div>
         </div>
-        <div style="text-align:center;min-width:80px">
+        ${!activeSession?._isQuiz ? `<div style="text-align:center;min-width:80px">
           <div id="study-timer-val" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);cursor:pointer" onclick="togglePause()" title="Pauzeren/Hervatten">${m}:${s}</div>
-          <div id="pause-label" style="font-size:9px;color:var(--muted)"> klik om te pauzeren</div>
-        </div>
+          <div id="pause-label" style="font-size:9px;color:var(--muted)">klik om te pauzeren</div>
+        </div>` : ''}
         <div style="display:flex;gap:8px">
-          <button id="study-toets-btn" class="btn btn-primary btn-sm">" Toets</button>
-          <button class="btn btn-secondary btn-sm" onclick="togglePause()" id="pause-btn"></button>
-          <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">*</button>
+          <button id="study-toets-btn" class="btn btn-primary btn-sm">Toets</button>
+          ${!activeSession?._isQuiz ? `<button class="btn btn-secondary btn-sm" onclick="togglePause()" id="pause-btn">||</button>` : ''}
+          <button class="btn btn-secondary btn-sm" onclick="stopStudySession()">X</button>
         </div>
       </div>
 
-      ${q._priority ? `<div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--accent2)"> Vorige keer fout " extra aandacht!</div>` : ''}
+      ${q._priority ? `<div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--accent2)">Vorige keer fout - extra aandacht!</div>` : ''}
 
       <!-- Vraagkaart -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px">
@@ -1052,9 +1061,9 @@ function renderLearnCard() {
               <input id="learn-type-inp" class="form-input" placeholder="Typ je antwoord..." autocomplete="off" style="font-size:16px;padding:12px 16px"
                 onkeydown="if(event.key==='Enter') checkLearnType()"/>
               <div style="display:flex;gap:8px">
-                <button class="btn btn-danger btn-sm" onclick="learnResult(false)"> -  Ik weet het niet</button>
-                <button class="btn btn-secondary btn-sm" onclick="showLearnHint()">' Hint</button>
-                <button class="btn btn-primary" onclick="checkLearnType()">Controleren '</button>
+                <button class="btn btn-danger btn-sm" onclick="learnResult(false)">Ik weet het niet</button>
+                <button class="btn btn-secondary btn-sm" onclick="showLearnHint()">Hint</button>
+                <button class="btn btn-primary" onclick="checkLearnType()">Controleren</button>
               </div>
               <div id="learn-hint" style="display:none;font-size:13px;color:var(--orange)">Hint: <strong>${hint}</strong></div>
             </div>` : ''}
@@ -1253,7 +1262,7 @@ function renderToetsQuestion() {
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
         <button class="btn btn-danger btn-sm" onclick="toetsSkip()"> -  Weet ik niet</button>
-        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren '</button>
+        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren</button>
       </div>
     </div>`;
 
@@ -1315,8 +1324,8 @@ function toetsCheck() {
     toetsState.wrongs.push({ questionId: q.id, q: q.question, wrong: userAns, correct: q.answer });
     document.getElementById('qfeedback').innerHTML=`
       <div class="feedback wrong" style="margin-top:12px">
-         Fout " correct: <strong>${q.answer}</strong>
-        <button onclick="toetsTochJuist()" style="margin-left:12px;background:rgba(67,233,123,.15);border:1px solid rgba(67,233,123,.3);color:var(--accent3);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px">Toch juist "</button>
+        Fout - correct: <strong>${q.answer}</strong>
+        <button onclick="toetsTochJuist()" style="margin-left:12px;background:rgba(67,233,123,.15);border:1px solid rgba(67,233,123,.3);color:var(--accent3);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px">Toch juist</button>
       </div>`;
     document.getElementById('check-btn').textContent='Volgende ->';
     document.getElementById('check-btn').onclick=()=>{ toetsState.current++; renderToetsQuestion(); };
@@ -1602,7 +1611,7 @@ function showBeschikbaarheden() {
   modal.innerHTML = `
     <div class="modal" style="max-width:420px">
       <div class="modal-header">
-        <h2 class="modal-title">* Beschikbaarheden</h2>
+        <h2 class="modal-title">Beschikbaarheden</h2>
         <button class="close-btn" onclick="document.getElementById('beschikb-modal').remove()"> - </button>
       </div>
       <div class="col-gap">
@@ -1718,7 +1727,7 @@ async function showAutoPlanModal() {
   modal.innerHTML = `
     <div class="modal" style="max-width:620px">
       <div class="modal-header">
-        <h2 class="modal-title"> -  Smart Auto-planner</h2>
+        <h2 class="modal-title">Smart Auto-planner</h2>
         <button class="close-btn" onclick="document.getElementById('auto-plan-modal').remove()"> - </button>
       </div>
       <div class="col-gap">
@@ -1855,7 +1864,7 @@ async function finalizeBasistest(score, total, wrongs) {
   }));
   await supabase.from('scores').insert(inserts);
   toetsState = null; // reset zodat volgende toets niet als basistest behandeld wordt
-  showNotification('... Basistest klaar! Open Auto-planner voor je planning.');
+  showNotification('Basistest klaar! Open Auto-planner voor je planning.');
   navigateTo('planner');
 }
 
@@ -2018,7 +2027,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
     user_id: currentUser.id,
     subject_id: subjectId,
     subject_name: subjectName,
-    planned_at: new Date(plannedAt).toISOString(),
+    planned_at: new Date(plannedAt + ':00').toISOString(), // datetime-local is lokale tijd
     duration_min: duration,
     direction: direction,
     qtype: qtype,
@@ -2099,62 +2108,47 @@ let quizState = null;
 
 function renderPage_quiz() {
   const page = document.getElementById('page-quiz');
+  const savedDir = localStorage.getItem('sm_direction') || 'auto';
+  const savedQtypes = (localStorage.getItem('sm_qtypes') || 'mc,fill,open,gender').split(',');
+
   page.innerHTML = `
-    <div class="page-header"><h1>Quiz starten</h1><p>Test je kennis per onderwerp</p></div>
+    <div class="page-header"><h1>Quiz starten</h1><p>Zelfde systeem als een studiesessie — leren dan toets</p></div>
     <div class="card" style="max-width:520px">
       <div class="col-gap">
         <div class="form-group">
-          <label class="form-label">Vak</label>
+          <label class="form-label">Hoofdstuk</label>
           <select class="form-input" id="quiz-subject-sel">
-            <option value="">" Kies een vak "</option>
-            ${SUBJECTS.map(s => `<option value="${s.id}">${s.name} (${s.question_count} vragen)</option>`).join('')}
+            <option value="">--- Kies een hoofdstuk ---</option>
+            ${SUBJECTS.map(s => `<option value="${s.id}">${s.name.replace('Frans - ','')}</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Aantal vragen</label>
-          <select class="form-input" id="quiz-count-sel">
-            <option value="10">10 vragen</option>
-            <option value="20" selected>20 vragen</option>
-            <option value="30">30 vragen</option>
-            <option value="50">50 vragen</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Antwoorden in het</label>
-          <select class="form-input" id="quiz-direction-sel">
-            <option value="auto">Gemengd (automatisch)</option>
-            <option value="fr">Frans - exam mode</option>
-            <option value="nl">Nederlands</option>
-          </select>
+          <label class="form-label">Antwoorden in het...</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${['auto','fr','nl'].map(d => {
+              const labels = {auto:'Gemengd', fr:'Frans (exam)', nl:'Nederlands'};
+              return `<button class="btn ${d===savedDir?'btn-primary':'btn-secondary'} btn-sm quiz-dir-btn" data-dir="${d}"
+                onclick="document.querySelectorAll('.quiz-dir-btn').forEach(b=>b.className='btn btn-secondary btn-sm quiz-dir-btn');this.className='btn btn-primary btn-sm quiz-dir-btn';localStorage.setItem('sm_direction',this.dataset.dir)">
+                ${labels[d]}</button>`;
+            }).join('')}
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Vraagtype</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-              <input type="checkbox" class="qtype-check" value="mc" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px">" Meerkeuze</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-              <input type="checkbox" class="qtype-check" value="fill" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px"> Invullen</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-              <input type="checkbox" class="qtype-check" value="open" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px">" Open</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-              <input type="checkbox" class="qtype-check" value="gender" checked style="width:15px;height:15px;accent-color:var(--accent)">
-              <span style="font-size:12px"> Geslacht</span>
-            </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            ${[['mc','Meerkeuze'],['fill','Invullen'],['open','Open'],['gender','Geslacht (le/la)']].map(([v,l]) => `
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+                <input type="checkbox" class="qtype-check" value="${v}" ${savedQtypes.includes(v)?'checked':''} style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="font-size:13px">${l}</span>
+              </label>`).join('')}
           </div>
         </div>
-        <button class="btn btn-primary btn-lg btn-full" id="quiz-start-btn"> Quiz starten</button>
+        <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted)">
+          Werkt zoals een sessie: oefenen met flashcards/invullen, dan een echte toets.
+        </div>
+        <button class="btn btn-primary btn-lg btn-full" onclick="startQuizAsSession()">Starten</button>
       </div>
     </div>`;
-  document.getElementById('quiz-start-btn').onclick = startQuiz;
-  // Zet opgeslagen richtingkeuze
-  const savedDir = localStorage.getItem('sm_direction');
-  if (savedDir) { const s = document.getElementById('quiz-direction-sel'); if(s) s.value = savedDir; }
 }
 
 function startQuiz() {
@@ -2535,6 +2529,31 @@ function resetMatch() {
   document.getElementById('match-done').classList.add('hidden');
   document.getElementById('match-game').classList.add('hidden');
   document.getElementById('match-setup').classList.remove('hidden');
+}
+
+// ══ Quiz als sessie ══
+async function startQuizAsSession() {
+  const sid = parseInt(document.getElementById('quiz-subject-sel').value);
+  if (!sid) { showNotification('Kies eerst een hoofdstuk', 'error'); return; }
+
+  const subj = SUBJECTS.find(s => s.id === sid);
+  const direction = localStorage.getItem('sm_direction') || 'auto';
+  const qtype = getSelectedQtypes();
+
+  // Maak een tijdelijke sessie zonder timer (999 min)
+  activeSession = {
+    id: null,
+    subject_id: sid,
+    subject_name: subj?.name || '',
+    duration_min: 999,
+    direction: direction,
+    qtype: qtype,
+    status: 'planned',
+    _isQuiz: true  // markeer als quiz (geen timer UI)
+  };
+
+  learnWrong = [];
+  await beginSession(direction);
 }
 
 // Start the app
