@@ -1447,9 +1447,24 @@ async function finishToets() {
     total: questions.length
   });
 
-  // Markeer sessie als done (enkel voor echte sessies)
+  // Markeer sessie als done (echte sessies) of maak nieuw record aan (quiz)
   if (session.id && !session._isQuiz) {
     await supabase.from('sessions').update({ status:'done', score:pct }).eq('id', session.id);
+  } else if (session._isQuiz) {
+    const durationMin = stopQuizTimer();
+    await supabase.from('sessions').insert({
+      user_id:       currentUser.id,
+      subject_id:    session.subject_id,
+      subject_name:  session.subject_name,
+      status:        'done',
+      planned_at:    new Date().toISOString(),
+      duration_min:  durationMin,
+      known_count:   score,
+      unknown_count: wrongs.length,
+      total_count:   questions.length,
+      score:         pct,
+      direction:     session.direction
+    });
   }
 
   // Verwijder oude fouten voor dit vak, sla nieuwe op
@@ -2197,6 +2212,40 @@ async function handleLogout() {
 // ******************************************************
 let quizState = null;
 
+// ── Quiz activity timer (pauzeert na 2 min inactiviteit) ──
+let _quizStartTime  = null;
+let _quizActiveMs   = 0;
+let _quizInactTimer = null;
+
+function _quizActivityHandler() {
+  if (!_quizStartTime) _quizStartTime = Date.now(); // hervat na pauze
+  clearTimeout(_quizInactTimer);
+  _quizInactTimer = setTimeout(() => {
+    if (_quizStartTime) { _quizActiveMs += Date.now() - _quizStartTime; _quizStartTime = null; }
+  }, 2 * 60 * 1000);
+}
+
+function startQuizTimer() {
+  _quizStartTime = Date.now();
+  _quizActiveMs  = 0;
+  document.addEventListener('keydown', _quizActivityHandler);
+  document.addEventListener('click',   _quizActivityHandler);
+  clearTimeout(_quizInactTimer);
+  _quizInactTimer = setTimeout(() => {
+    if (_quizStartTime) { _quizActiveMs += Date.now() - _quizStartTime; _quizStartTime = null; }
+  }, 2 * 60 * 1000);
+}
+
+function stopQuizTimer() {
+  clearTimeout(_quizInactTimer);
+  if (_quizStartTime) { _quizActiveMs += Date.now() - _quizStartTime; _quizStartTime = null; }
+  document.removeEventListener('keydown', _quizActivityHandler);
+  document.removeEventListener('click',   _quizActivityHandler);
+  const minutes = Math.max(1, Math.round(_quizActiveMs / 60000));
+  _quizActiveMs = 0;
+  return minutes;
+}
+
 function renderPage_quiz() {
   const page = document.getElementById('page-quiz');
   const savedDir = localStorage.getItem('sm_direction') || 'auto';
@@ -2664,6 +2713,8 @@ async function startQuizAsSession() {
   window._lastQuizConfig = { sid, direction, qtype };
 
   // Start direct de toets (zonder studiesessie)
+  startQuizTimer();
+
   toetsState = {
     questions: pool,
     current: 0,
@@ -2683,12 +2734,12 @@ async function startQuizAsSession() {
 }
 
 async function redoQuizWrong() {
-  // Doe enkel de fout beantwoorde vragen opnieuw
   const wrongs = toetsState?.wrongs || [];
   if (!wrongs.length) { showNotification('Geen fouten om opnieuw te doen!'); return; }
   const wrongIds = new Set(wrongs.map(w => w.questionId));
   const pool = toetsState.questions.filter(q => wrongIds.has(q.id)).sort(() => Math.random() - .5);
   const sess = toetsState.session;
+  startQuizTimer();
   toetsState = { questions: pool, current: 0, score: 0, wrongs: [], results: {}, session: sess, _isQuiz: true };
   renderToetsQuestion();
 }
