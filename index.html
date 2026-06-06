@@ -1342,13 +1342,18 @@ function renderToetsQuestion() {
     <div class="quiz-wrap">
       <div class="question-card">
         <span class="q-type ${q.type}">${q.type==='mc'?'Meerkeuze':q.type==='fill'?'Invullen':q.type==='gender'?'Geslacht':'Open'}</span>
-        <div class="question-text">${
-          q.type==='fill' && q.question.includes('___')
-            ? q.question.replace('___','<input id="fill-ans" class="fill-input" autocomplete="off" style="min-width:160px"/>')
-            : q.type==='gender'
-            ? `<span style="font-size:28px;font-weight:800">${q.question}</span>`
-            : q.question
-        }</div>
+        <div class="question-text">${(() => {
+          if (q.type==='fill' && q.question.includes('___')) {
+            const input = '<input id="fill-ans" class="fill-input" autocomplete="off" style="min-width:160px"/>';
+            if (q.question.includes('->')) {
+              const [orig, trans] = q.question.split('->').map(s => s.trim());
+              return `<div style="font-size:13px;color:var(--muted);background:var(--surface2);border-radius:8px;padding:7px 12px;margin-bottom:14px;font-style:italic">${orig}</div>${trans.replace('___', input)}`;
+            }
+            return q.question.replace('___', input);
+          }
+          if (q.type==='gender') return `<span style="font-size:28px;font-weight:800">${q.question}</span>`;
+          return q.question;
+        })()}</div>
         ${q.type==='fill' && !q.question.includes('___') ? `
           <input id="fill-ans" autocomplete="off" placeholder="Typ je antwoord hier..."
             style="display:block;width:100%;margin-top:16px;padding:14px 18px;font-size:18px;font-family:'Nunito',sans-serif;font-weight:600;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;color:var(--text);outline:none"
