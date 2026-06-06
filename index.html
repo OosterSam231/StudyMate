@@ -2959,6 +2959,44 @@ function toggleStar(subjectId, questionId, btn) {
   localStorage.setItem('sm_stars', JSON.stringify(stars));
 }
 
+// ── Eenmalig samenvoegen van dubbele sessies (roep aan via console) ──
+window.mergeOldSessions = async function() {
+  const { data: sessions } = await supabase
+    .from('sessions').select('*')
+    .eq('user_id', currentUser.id).eq('status', 'done');
+  if (!sessions?.length) { console.log('Geen sessies gevonden'); return; }
+
+  const groups = {};
+  sessions.forEach(s => {
+    const day = (s.planned_at||'').slice(0,10);
+    const key = `${s.subject_id}_${day}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(s);
+  });
+
+  let merged = 0;
+  for (const group of Object.values(groups)) {
+    if (group.length <= 1) continue;
+    group.sort((a,b) => new Date(a.planned_at)-new Date(b.planned_at));
+    const keep = group[0];
+    const rest = group.slice(1);
+    const bestScore    = Math.max(...group.map(s => s.score||0));
+    const bestKnown    = Math.max(...group.map(s => s.known_count||0));
+    const totalDur     = group.reduce((t,s) => t+(s.duration_min||0), 0);
+    const bestTotal    = Math.max(...group.map(s => s.total_count||0));
+    await supabase.from('sessions').update({
+      score: bestScore, known_count: bestKnown,
+      total_count: bestTotal, duration_min: totalDur,
+      session_type: 'quiz'
+    }).eq('id', keep.id);
+    await supabase.from('sessions').delete().in('id', rest.map(s=>s.id));
+    merged += rest.length;
+    console.log(`Samengevoegd: ${keep.subject_name} ${(keep.planned_at||'').slice(0,10)} — ${rest.length+1} → 1`);
+  }
+  await reloadSessions();
+  console.log(`✓ Klaar! ${merged} dubbele sessies verwijderd.`);
+};
+
 // Start the app
 initApp();
 </script>
