@@ -2960,41 +2960,70 @@ function toggleStar(subjectId, questionId, btn) {
 }
 
 // ── Eenmalig samenvoegen van dubbele sessies (roep aan via console) ──
-window.mergeOldSessions = async function() {
+window.mergeOldSessions = async function(maxGapMinutes = 90) {
   const { data: sessions } = await supabase
     .from('sessions').select('*')
     .eq('user_id', currentUser.id).eq('status', 'done');
   if (!sessions?.length) { console.log('Geen sessies gevonden'); return; }
 
-  const groups = {};
+  // Sorteer op tijd
+  sessions.sort((a,b) => new Date(a.planned_at) - new Date(b.planned_at));
+
+  // Groepeer: zelfde subject, binnen maxGapMinutes van vorige sessie in groep
+  const groups = [];
   sessions.forEach(s => {
-    const day = (s.planned_at||'').slice(0,10);
-    const key = `${s.subject_id}_${day}`;
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(s);
+    const ms = maxGapMinutes * 60 * 1000;
+    // Zoek bestaande groep van zelfde subject waar de laatste sessie binnen de gap valt
+    const grp = groups.find(g =>
+      g[0].subject_id === s.subject_id &&
+      (new Date(s.planned_at) - new Date(g[g.length-1].planned_at)) <= ms
+    );
+    if (grp) grp.push(s);
+    else groups.push([s]);
   });
 
   let merged = 0;
-  for (const group of Object.values(groups)) {
+  for (const group of groups) {
     if (group.length <= 1) continue;
-    group.sort((a,b) => new Date(a.planned_at)-new Date(b.planned_at));
+
+    // Cumulatief berekenen: eerste run is basis, elke redo telt bij
+    // Eerste sessie: origTotal = total_count of schat via score
+    const first     = group[0];
+    const origTotal = Math.max(...group.map(s => s.total_count||0)) || 50;
+    const firstCorrect = Math.round((first.score||0) / 100 * origTotal);
+
+    // Elke volgende run: redo van vorige fouten → voeg juiste antwoorden toe
+    let cumCorrect = firstCorrect;
+    for (let i = 1; i < group.length; i++) {
+      const prev = group[i-1];
+      const wrongCount = origTotal - cumCorrect; // fouten na vorige run
+      const redoCorrect = Math.round((group[i].score||0) / 100 * Math.max(wrongCount, 1));
+      cumCorrect = Math.min(origTotal, cumCorrect + redoCorrect);
+    }
+    const cumPct   = Math.round(cumCorrect / origTotal * 100);
+    const totalDur = group.reduce((t,s) => t+(s.duration_min||0), 0);
+
     const keep = group[0];
     const rest = group.slice(1);
-    const bestScore    = Math.max(...group.map(s => s.score||0));
-    const bestKnown    = Math.max(...group.map(s => s.known_count||0));
-    const totalDur     = group.reduce((t,s) => t+(s.duration_min||0), 0);
-    const bestTotal    = Math.max(...group.map(s => s.total_count||0));
+
     await supabase.from('sessions').update({
-      score: bestScore, known_count: bestKnown,
-      total_count: bestTotal, duration_min: totalDur,
-      session_type: 'quiz'
+      score:         cumPct,
+      known_count:   cumCorrect,
+      unknown_count: origTotal - cumCorrect,
+      total_count:   origTotal,
+      duration_min:  totalDur,
+      session_type:  'quiz',
     }).eq('id', keep.id);
-    await supabase.from('sessions').delete().in('id', rest.map(s=>s.id));
+    await supabase.from('sessions').delete().in('id', rest.map(s => s.id));
     merged += rest.length;
-    console.log(`Samengevoegd: ${keep.subject_name} ${(keep.planned_at||'').slice(0,10)} — ${rest.length+1} → 1`);
+
+    const naam = (keep.subject_name||'').replace('Frans - ','');
+    const rondes = group.map(s => `${s.score}%`).join(' → ');
+    console.log(`✓ ${naam}: [${rondes}] → cumulatief ${cumPct}% (${totalDur}min totaal)`);
   }
+
   await reloadSessions();
-  console.log(`✓ Klaar! ${merged} dubbele sessies verwijderd.`);
+  console.log(`\n✓ Klaar! ${merged} sessies samengevoegd.`);
 };
 
 // Start the app
