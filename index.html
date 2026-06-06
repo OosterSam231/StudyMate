@@ -274,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 11:49</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 12:12</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -672,6 +672,10 @@ function renderPlanner() {
       const hasRounds = sessionRounds.length > 0;
       const cumScore  = s.score ?? '-';
 
+      const avgRoundScore = hasRounds
+        ? Math.round(sessionRounds.reduce((s,r) => s + r.score, 0) / sessionRounds.length)
+        : cumScore;
+
       const bottom = done
         ? (hasRounds
             ? `<div style="display:flex;flex-direction:column;gap:1px;margin-top:2px">
@@ -680,7 +684,7 @@ function renderPlanner() {
                   return `<div style="color:${c}">R${r.round}: ${r.score}% <span style="color:var(--muted);font-size:9px">${r.correct}/${r.total}</span></div>`;
                 }).join('')}
                 ${sessionRounds.length > 1
-                  ? `<div style="color:var(--accent);font-weight:700;border-top:1px solid var(--border);margin-top:2px;padding-top:2px">totaal: ${cumScore}%</div>`
+                  ? `<div style="color:var(--accent);font-weight:700;border-top:1px solid var(--border);margin-top:2px;padding-top:2px">gem: ${avgRoundScore}%</div>`
                   : ''}
               </div>`
             : `<div style="color:var(--accent3);font-weight:700">✓ ${cumScore}%</div>`)
@@ -924,9 +928,13 @@ function isCorrectAnswer(userInput, correctAnswer) {
   // Exacte match op een van de varianten
   if (variants.some(v => v === user)) return true;
 
-  // Accepteer ook zonder lidwoord (bv. "l'abonnement" ' antwoord "abonnement")
-  const userNoArticle = user.replace(/^(le |la |les |l'|l')/i, '').trim();
-  if (variants.some(v => v.replace(/^(le |la |les |l'|l')/i,'').trim() === userNoArticle)) return true;
+  // Accepteer zonder lidwoord ALLEEN als de gebruiker zelf geen lidwoord getypt heeft
+  // (bv. "abonnement" voor "l'abonnement" is OK, maar "la médias" voor "le médias" is FOUT)
+  const userHasArticle = /^(le |la |les |l'|l')\S/i.test(user);
+  if (!userHasArticle) {
+    const userNoArticle = user.trim();
+    if (variants.some(v => v.replace(/^(le |la |les |l'|l')/i, '').trim() === userNoArticle)) return true;
+  }
 
   return false;
 }
@@ -1481,11 +1489,13 @@ async function finishToets() {
     effectiveSessionId = session.id;
 
   } else if (session._isQuiz) {
-    const durationMin = stopQuizTimer();
+    const roundMin    = stopQuizTimer();
+    const totalMin    = (toetsState._accDuration || 0) + roundMin;
+    window._quizTotalDuration = totalMin; // bewaar voor volgende redo
     if (toetsState._sessionId) {
-      // Redo: update bestaande quiz-sessie
+      // Redo: update bestaande quiz-sessie met gecumuleerde tijd
       await supabase.from('sessions').update({
-        duration_min: durationMin, score: cumPct,
+        duration_min: totalMin, score: cumPct,
         known_count: accCorrect, unknown_count: origTotal - accCorrect, total_count: origTotal,
       }).eq('id', toetsState._sessionId);
       effectiveSessionId = toetsState._sessionId;
@@ -1494,7 +1504,7 @@ async function finishToets() {
       const { data: newSess } = await supabase.from('sessions').insert({
         user_id: currentUser.id, subject_id: session.subject_id,
         subject_name: session.subject_name, status: 'done', session_type: 'quiz',
-        planned_at: new Date().toISOString(), duration_min: durationMin,
+        planned_at: new Date().toISOString(), duration_min: totalMin,
         known_count: score, unknown_count: wrongs.length, total_count: questions.length,
         score: pct, direction: session.direction
       }).select().single();
@@ -1504,6 +1514,7 @@ async function finishToets() {
   }
 
   // ── Ronde opslaan in localStorage ──
+  let avgPct = pct;
   if (effectiveSessionId) {
     const key    = `sm_rounds_${effectiveSessionId}`;
     const rounds = JSON.parse(localStorage.getItem(key) || '[]');
@@ -1515,6 +1526,12 @@ async function finishToets() {
       ts: new Date().toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'})
     });
     localStorage.setItem(key, JSON.stringify(rounds));
+    // Gemiddelde over alle rondes
+    avgPct = Math.round(rounds.reduce((s, r) => s + r.score, 0) / rounds.length);
+    // Sessie score updaten naar gemiddelde
+    if (effectiveSessionId) {
+      await supabase.from('sessions').update({ score: avgPct }).eq('id', effectiveSessionId);
+    }
   }
 
   // Fouten opslaan
@@ -1532,12 +1549,12 @@ async function finishToets() {
     <div class="results-wrap">
       <div class="page-header"><h1>${isQuiz ? 'Quiz afgerond!' : 'Toets afgerond!'}</h1></div>
       <div class="score-circle" style="border-color:${color}">
-        <div class="score-pct" style="color:${color}">${cumPct}%</div>
-        <div class="score-lbl">${accCorrect}/${origTotal}</div>
+        <div class="score-pct" style="color:${color}">${pct}%</div>
+        <div class="score-lbl">${score}/${questions.length}</div>
       </div>
       ${isRedo
-        ? `<p style="color:var(--muted);font-size:12px;margin-bottom:4px">
-             deze ronde: ${score}/${questions.length} (${pct}%) &nbsp;·&nbsp; totaal: ${accCorrect}/${origTotal} (${cumPct}%)
+        ? `<p style="color:var(--muted);font-size:13px;margin-bottom:4px">
+             gemiddelde over alle rondes: <strong style="color:var(--accent)">${avgPct}%</strong>
            </p>`
         : ''}
       <p style="color:var(--muted);margin-bottom:24px">${cumPct>=80?'Uitstekend!':cumPct>=60?'Goed gedaan!':'Blijf oefenen'}</p>
@@ -2856,9 +2873,10 @@ async function redoQuizWrong() {
   const sess = toetsState.session;
 
   // Cumulatieve state doorgeven (werkt voor planner én quiz sessies)
-  const accCorrect = (toetsState._accCorrect || 0) + toetsState.score;
-  const origTotal  = toetsState._originalTotal || toetsState.questions.length;
-  const sessionId  = toetsState._sessionId || sess?.id || window._quizSessionId || null;
+  const accCorrect  = (toetsState._accCorrect  || 0) + toetsState.score;
+  const origTotal   = toetsState._originalTotal || toetsState.questions.length;
+  const sessionId   = toetsState._sessionId || sess?.id || window._quizSessionId || null;
+  const accDuration = window._quizTotalDuration || 0; // gecumuleerde tijd van vorige rondes
 
   if (sess._isQuiz) startQuizTimer();
   toetsState = {
@@ -2867,6 +2885,7 @@ async function redoQuizWrong() {
     _accCorrect:    accCorrect,
     _originalTotal: origTotal,
     _sessionId:     sessionId,
+    _accDuration:   accDuration,
   };
   renderToetsQuestion();
 }
