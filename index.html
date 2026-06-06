@@ -274,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 08:22</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 09:14</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -646,6 +646,7 @@ function renderPlanner() {
     const isPast  = date < today;
 
     const daySessions = SESSIONS.filter(s => {
+      if (s.session_type === 'quiz') return false; // quiz-sessies niet in planner
       const raw = s.planned_at.endsWith('Z')||s.planned_at.includes('+') ? s.planned_at : s.planned_at+'Z';
       const sd = new Date(raw); sd.setHours(0,0,0,0);
       return sd.getTime() === date.getTime();
@@ -667,16 +668,25 @@ function renderPlanner() {
       const border = done ? 'var(--accent3)'        : missed ? 'var(--accent2)'        : review ? 'var(--orange)'        : 'var(--accent)';
       const col    = done ? 'var(--accent3)'        : missed ? 'var(--accent2)'        : review ? 'var(--orange)'        : 'var(--accent)';
 
-      const bottom = done
-        ? `<div style="color:var(--accent3);font-weight:700">... ${s.score??'-'}%</div>`
-        : missed
-        ? `<div style="color:var(--accent2)"> Gemist " toch doen?</div>`
-        : review ? `<div style="color:var(--orange)">" Herhaling starten</div>`
-                 : `<div style="color:var(--accent)"> -  Starten</div>`;
+      // Rondes uit localStorage
+      const sessionRounds = JSON.parse(localStorage.getItem(`sm_rounds_${s.id}`) || '[]');
+      const hasRounds = sessionRounds.length > 0;
+      const r1Score   = hasRounds ? sessionRounds[0].score : (s.score ?? '-');
+      const cumScore  = s.score ?? '-';
 
-      // Gemiste sessies blijven klikbaar
-      return `<div style="margin-top:4px;background:${bg};border-left:3px solid ${border};border-radius:0 6px 6px 0;padding:5px 7px;font-size:10px;cursor:pointer" onclick="${done?'':'openStudySession('+s.id+')'}">
-        <div style="font-weight:700;color:${col}">${t}  ${s.duration_min}min</div>
+      const bottom = done
+        ? `<div style="color:var(--accent3);font-weight:700">✓ ${r1Score}%${hasRounds && sessionRounds.length > 1 ? `<span style="color:var(--muted);font-weight:400"> → totaal: ${cumScore}%</span>` : ''}</div>`
+        : missed
+        ? `<div style="color:var(--accent2)">Gemist — toch doen?</div>`
+        : review ? `<div style="color:var(--orange)">Herhaling starten</div>`
+                 : `<div style="color:var(--accent)">Starten</div>`;
+
+      const clickHandler = done
+        ? `showRoundsModal('${s.id}')`
+        : `openStudySession(${s.id})`;
+
+      return `<div style="margin-top:4px;background:${bg};border-left:3px solid ${border};border-radius:0 6px 6px 0;padding:5px 7px;font-size:10px;cursor:pointer" onclick="${clickHandler}">
+        <div style="font-weight:700;color:${col}">${t}  ${!s.duration_min ? '<1 min' : s.duration_min + 'min'}</div>
         <div style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
         ${bottom}
       </div>`;
@@ -1435,47 +1445,78 @@ async function finishToets() {
     return;
   }
 
-  const pct = Math.round(score/questions.length*100);
-  const color = pct>=70?'var(--accent3)':pct>=50?'var(--orange)':'var(--accent2)';
+  const pct = Math.round(score / questions.length * 100);
 
-  // Sla score altijd op (ook voor quiz)
+  // ── Cumulatief over alle rondes ──
+  const accCorrect = (toetsState._accCorrect || 0) + score;
+  const origTotal  = toetsState._originalTotal || questions.length;
+  const cumPct     = Math.round(accCorrect / origTotal * 100);
+  const isRedo     = (toetsState._accCorrect || 0) > 0;
+  const color      = cumPct>=70?'var(--accent3)':cumPct>=50?'var(--orange)':'var(--accent2)';
+
+  // Score opslaan
   await supabase.from('scores').insert({
-    user_id: currentUser.id,
-    subject_id: session.subject_id,
-    subject_name: session.subject_name,
-    score: pct,
-    total: questions.length
+    user_id: currentUser.id, subject_id: session.subject_id,
+    subject_name: session.subject_name, score: cumPct, total: origTotal
   });
 
-  // Markeer sessie als done (echte sessies) of maak nieuw record aan (quiz)
-  if (session.id && !session._isQuiz) {
-    await supabase.from('sessions').update({ status:'done', score:pct }).eq('id', session.id);
+  // Effectief sessie-ID bepalen (planner of quiz)
+  let effectiveSessionId = toetsState._sessionId || (!session._isQuiz ? session.id : null);
+
+  // Sessie bijwerken of aanmaken
+  if (!session._isQuiz && session.id) {
+    // Planner sessie: update met cumulatief
+    await supabase.from('sessions').update({
+      status: 'done', score: cumPct,
+      known_count: accCorrect, unknown_count: origTotal - accCorrect, total_count: origTotal
+    }).eq('id', session.id);
+    effectiveSessionId = session.id;
+
   } else if (session._isQuiz) {
     const durationMin = stopQuizTimer();
-    await supabase.from('sessions').insert({
-      user_id:       currentUser.id,
-      subject_id:    session.subject_id,
-      subject_name:  session.subject_name,
-      status:        'done',
-      planned_at:    new Date().toISOString(),
-      duration_min:  durationMin,
-      known_count:   score,
-      unknown_count: wrongs.length,
-      total_count:   questions.length,
-      score:         pct,
-      direction:     session.direction
-    });
+    if (toetsState._sessionId) {
+      // Redo: update bestaande quiz-sessie
+      await supabase.from('sessions').update({
+        duration_min: durationMin, score: cumPct,
+        known_count: accCorrect, unknown_count: origTotal - accCorrect, total_count: origTotal,
+      }).eq('id', toetsState._sessionId);
+      effectiveSessionId = toetsState._sessionId;
+    } else {
+      // Eerste run: nieuw sessie record
+      const { data: newSess } = await supabase.from('sessions').insert({
+        user_id: currentUser.id, subject_id: session.subject_id,
+        subject_name: session.subject_name, status: 'done', session_type: 'quiz',
+        planned_at: new Date().toISOString(), duration_min: durationMin,
+        known_count: score, unknown_count: wrongs.length, total_count: questions.length,
+        score: pct, direction: session.direction
+      }).select().single();
+      effectiveSessionId = newSess?.id || null;
+      window._quizSessionId = effectiveSessionId;
+    }
   }
 
-  // Verwijder oude fouten voor dit vak, sla nieuwe op
-  await supabase.from('wrong_answers').delete().eq('user_id',currentUser.id).eq('subject_id',session.subject_id);
+  // ── Ronde opslaan in localStorage ──
+  if (effectiveSessionId) {
+    const key    = `sm_rounds_${effectiveSessionId}`;
+    const rounds = JSON.parse(localStorage.getItem(key) || '[]');
+    rounds.push({
+      round: rounds.length + 1,
+      score: pct, correct: score, total: questions.length,
+      cumPct, cumCorrect: accCorrect, origTotal,
+      wrongs: wrongs.map(w => ({ q: w.q, correct: w.correct, wrong: w.wrong, qid: w.questionId })),
+      ts: new Date().toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'})
+    });
+    localStorage.setItem(key, JSON.stringify(rounds));
+  }
+
+  // Fouten opslaan
+  await supabase.from('wrong_answers').delete().eq('user_id', currentUser.id).eq('subject_id', session.subject_id);
   if (wrongs.length) {
     await supabase.from('wrong_answers').insert(
-      wrongs.map(w => ({ user_id:currentUser.id, subject_id:session.subject_id, question_id:w.questionId }))
+      wrongs.map(w => ({ user_id: currentUser.id, subject_id: session.subject_id, question_id: w.questionId }))
     );
   }
 
-  // Herlaad sessies vanuit DB
   await reloadSessions();
 
   const isQuiz = toetsState?._isQuiz;
@@ -1483,20 +1524,39 @@ async function finishToets() {
     <div class="results-wrap">
       <div class="page-header"><h1>${isQuiz ? 'Quiz afgerond!' : 'Toets afgerond!'}</h1></div>
       <div class="score-circle" style="border-color:${color}">
-        <div class="score-pct" style="color:${color}">${pct}%</div>
-        <div class="score-lbl">${score}/${questions.length}</div>
+        <div class="score-pct" style="color:${color}">${cumPct}%</div>
+        <div class="score-lbl">${accCorrect}/${origTotal}</div>
       </div>
-      <p style="color:var(--muted);margin-bottom:24px">${pct>=80?'Uitstekend!':pct>=60?'Goed gedaan!':'Blijf oefenen'}</p>
+      ${isRedo
+        ? `<p style="color:var(--muted);font-size:12px;margin-bottom:4px">
+             deze ronde: ${score}/${questions.length} (${pct}%) &nbsp;·&nbsp; totaal: ${accCorrect}/${origTotal} (${cumPct}%)
+           </p>`
+        : ''}
+      <p style="color:var(--muted);margin-bottom:24px">${cumPct>=80?'Uitstekend!':cumPct>=60?'Goed gedaan!':'Blijf oefenen'}</p>
       ${wrongs.length
         ? `<div class="card mb-20">
-            <h3 style="margin-bottom:12px;font-size:15px">${wrongs.length} fouten${isQuiz ? '' : ' — komen terug in volgende sessie'}</h3>
-            <div class="wrong-list">${wrongs.map(w=>`<div class="wrong-item"><div class="wq">${w.q}</div><div class="wa">Jij: ${w.wrong}</div><div class="wc">Correct: ${w.correct}</div></div>`).join('')}</div>
+            <h3 style="margin-bottom:12px;font-size:15px">${wrongs.length} ${isRedo ? 'nog steeds fout' : 'fouten'}${!isQuiz && !isRedo ? ' — komen terug in volgende sessie' : ''}</h3>
+            <div class="wrong-list">
+              ${wrongs.map(w => `
+                <div class="wrong-item" style="display:flex;align-items:flex-start;gap:8px">
+                  <div style="flex:1">
+                    <div class="wq">${w.q}</div>
+                    <div class="wa">Jij: ${w.wrong}</div>
+                    <div class="wc">Correct: ${w.correct}</div>
+                  </div>
+                  <button onclick="toggleStar('${session.subject_id}','${String(w.questionId||'').replace(/'/g,"\\'")}',this)"
+                    style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px;flex-shrink:0;opacity:${isStarred(session.subject_id,w.questionId)?1:.25}"
+                    title="Markeer als moeilijk">
+                    ${isStarred(session.subject_id, w.questionId) ? '⭐' : '☆'}
+                  </button>
+                </div>`).join('')}
+            </div>
            </div>`
-        : '<div class="card mb-20" style="color:var(--accent3);text-align:center;padding:24px">Geen fouten! Perfect gescoord.</div>'}
+        : '<div class="card mb-20" style="color:var(--accent3);text-align:center;padding:24px">Geen fouten! Perfect gescoord. 🎉</div>'}
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        ${wrongs.length ? `<button class="btn btn-secondary" onclick="redoQuizWrong()" style="color:var(--accent2)">Fouten herdoen (${wrongs.length})</button>` : ''}
         ${isQuiz ? `
           <button class="btn btn-secondary" onclick="navigateTo('quiz')">Nieuw hoofdstuk</button>
-          ${wrongs.length ? `<button class="btn btn-secondary" onclick="redoQuizWrong()" style="color:var(--accent2)">Fouten herdoen (${wrongs.length})</button>` : ''}
           <button class="btn btn-primary" onclick="redoQuizAll()">Alles opnieuw</button>
         ` : `
           <button class="btn btn-secondary" onclick="navigateTo('planner')">Terug naar planner</button>
@@ -1504,6 +1564,53 @@ async function finishToets() {
       </div>
     </div>`;
   document.getElementById('page-quiz').innerHTML = resultHTML;
+}
+
+async function cleanupDuplicateSessions() {
+  const { data: sessions } = await supabase
+    .from('sessions').select('*')
+    .eq('user_id', currentUser.id).eq('status', 'done');
+  if (!sessions?.length) { showNotification('Niets om op te ruimen'); return; }
+
+  // Groepeer per subject + dag
+  const groups = {};
+  sessions.forEach(s => {
+    const day = (s.planned_at || '').slice(0, 10);
+    const key = `${s.subject_id}_${day}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(s);
+  });
+
+  let mergeCount = 0;
+  for (const group of Object.values(groups)) {
+    if (group.length <= 1) continue;
+
+    // Sorteer op tijd zodat de eerste de "basis" is
+    group.sort((a, b) => new Date(a.planned_at) - new Date(b.planned_at));
+
+    // Samenvoegen: beste score, meeste gekend, totale tijd
+    const merged = {
+      score:         Math.max(...group.map(s => s.score        || 0)),
+      known_count:   Math.max(...group.map(s => s.known_count  || 0)),
+      unknown_count: Math.min(...group.map(s => s.unknown_count ?? 9999)),
+      total_count:   Math.max(...group.map(s => s.total_count  || 0)),
+      duration_min:  group.reduce((sum, s) => sum + (s.duration_min || 0), 0),
+      session_type:  'quiz',
+    };
+
+    // Bewaar de eerste, update met samengevoegde data, verwijder de rest
+    const keep    = group[0];
+    const delIds  = group.slice(1).map(s => s.id);
+
+    await supabase.from('sessions').update(merged).eq('id', keep.id);
+    await supabase.from('sessions').delete().in('id', delIds);
+    mergeCount += delIds.length;
+  }
+
+  await reloadSessions();
+  if (mergeCount === 0) { showNotification('Geen duplicaten gevonden ✓'); return; }
+  showNotification(`${mergeCount} sessies samengevoegd ✓`, 'success');
+  renderProgress();
 }
 
 async function renderProgress() {
@@ -2241,7 +2348,7 @@ function stopQuizTimer() {
   if (_quizStartTime) { _quizActiveMs += Date.now() - _quizStartTime; _quizStartTime = null; }
   document.removeEventListener('keydown', _quizActivityHandler);
   document.removeEventListener('click',   _quizActivityHandler);
-  const minutes = Math.max(1, Math.round(_quizActiveMs / 60000));
+  const minutes = Math.round(_quizActiveMs / 60000);
   _quizActiveMs = 0;
   return minutes;
 }
@@ -2739,8 +2846,20 @@ async function redoQuizWrong() {
   const wrongIds = new Set(wrongs.map(w => w.questionId));
   const pool = toetsState.questions.filter(q => wrongIds.has(q.id)).sort(() => Math.random() - .5);
   const sess = toetsState.session;
-  startQuizTimer();
-  toetsState = { questions: pool, current: 0, score: 0, wrongs: [], results: {}, session: sess, _isQuiz: true };
+
+  // Cumulatieve state doorgeven (werkt voor planner én quiz sessies)
+  const accCorrect = (toetsState._accCorrect || 0) + toetsState.score;
+  const origTotal  = toetsState._originalTotal || toetsState.questions.length;
+  const sessionId  = toetsState._sessionId || sess?.id || window._quizSessionId || null;
+
+  if (sess._isQuiz) startQuizTimer();
+  toetsState = {
+    questions: pool, current: 0, score: 0, wrongs: [], results: {},
+    session: sess,
+    _accCorrect:    accCorrect,
+    _originalTotal: origTotal,
+    _sessionId:     sessionId,
+  };
   renderToetsQuestion();
 }
 
@@ -2755,6 +2874,89 @@ async function redoQuizAll() {
     if (sel) sel.value = sid;
     startQuizAsSession();
   }, 50);
+}
+
+// ── Rondes modal ──
+function showRoundsModal(sessionId) {
+  const rounds = JSON.parse(localStorage.getItem(`sm_rounds_${sessionId}`) || '[]');
+  const sess   = SESSIONS.find(s => s.id == sessionId);
+  const naam   = (sess?.subject_name||'Sessie').replace('Frans - ','');
+
+  if (!rounds.length) { showNotification('Nog geen rondedata voor deze sessie'); return; }
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <h2 class="modal-title">${naam} — Rondes</h2>
+        <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
+      </div>
+      <div class="col-gap">
+        ${rounds.map(r => {
+          const c = r.score>=70?'var(--accent3)':r.score>=50?'var(--orange)':'var(--accent2)';
+          return `
+          <div style="background:var(--surface2);border-radius:12px;padding:14px 16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-weight:700;font-size:13px">
+                Ronde ${r.round}
+                <span style="font-size:11px;color:var(--muted);margin-left:6px">${r.ts||''}</span>
+              </div>
+              <div style="font-size:18px;font-weight:800;color:${c}">${r.score}%</div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px">
+              ${r.correct}/${r.total} juist
+              ${r.round>1 ? `&nbsp;·&nbsp; <span style="color:var(--accent)">totaal: ${r.cumPct}% (${r.cumCorrect}/${r.origTotal})</span>` : ''}
+            </div>
+            ${r.wrongs?.length ? `
+              <div style="display:flex;flex-direction:column;gap:3px">
+                ${r.wrongs.map(w => `
+                  <div style="background:rgba(255,107,107,.08);border-radius:6px;padding:5px 10px;font-size:11px;display:flex;align-items:flex-start;gap:6px">
+                    <div style="flex:1">
+                      <span style="color:var(--text)">${w.q}</span>
+                      <span style="color:var(--accent2);margin:0 4px">→ ${w.wrong}</span>
+                      <span style="color:var(--accent3)">✓ ${w.correct}</span>
+                    </div>
+                    <button onclick="toggleStar('${sess?.subject_id||''}','${String(w.qid||'').replace(/'/g,"\\'")}',this)"
+                      style="background:none;border:none;cursor:pointer;font-size:14px;padding:0;opacity:${isStarred(sess?.subject_id,w.qid)?1:.25}">
+                      ${isStarred(sess?.subject_id, w.qid) ? '⭐' : '☆'}
+                    </button>
+                  </div>`).join('')}
+              </div>` : `<div style="font-size:12px;color:var(--accent3)">✓ Geen fouten!</div>`}
+          </div>`;
+        }).join('')}
+        <div style="text-align:right;font-size:13px;color:var(--muted)">
+          Eindtotaal: <strong style="color:var(--accent)">${rounds[rounds.length-1]?.cumPct ?? rounds[rounds.length-1]?.score}%</strong>
+          (${rounds[rounds.length-1]?.cumCorrect ?? rounds[rounds.length-1]?.correct}/${rounds[rounds.length-1]?.origTotal ?? rounds[rounds.length-1]?.total})
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+// ── Sterretjes voor moeilijke woorden ──
+function isStarred(subjectId, questionId) {
+  if (!questionId) return false;
+  const stars = JSON.parse(localStorage.getItem('sm_stars') || '{}');
+  return !!(stars[String(subjectId)]?.includes(String(questionId)));
+}
+
+function toggleStar(subjectId, questionId, btn) {
+  if (!questionId) return;
+  const stars = JSON.parse(localStorage.getItem('sm_stars') || '{}');
+  const key = String(subjectId);
+  if (!stars[key]) stars[key] = [];
+  const idx = stars[key].indexOf(String(questionId));
+  if (idx >= 0) {
+    stars[key].splice(idx, 1);
+    btn.textContent = '☆';
+    btn.style.opacity = '.25';
+  } else {
+    stars[key].push(String(questionId));
+    btn.textContent = '⭐';
+    btn.style.opacity = '1';
+  }
+  localStorage.setItem('sm_stars', JSON.stringify(stars));
 }
 
 // Start the app
