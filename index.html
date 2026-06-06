@@ -273,8 +273,9 @@
       <button class="nav-item" data-page="match">Match</button>
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
+      <button class="nav-item" data-page="herhaling">🔁 Herhalen</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 15:45</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 17:00</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -392,6 +393,9 @@
       <div class="page-header"><h1>Klas</h1><p>Voortgang van alle studenten</p></div>
       <div id="klas-content"></div>
     </div>
+
+    <!-- HERHALING -->
+    <div id="page-herhaling" class="hidden"></div>
   </main>
 </div>
 
@@ -531,6 +535,7 @@ function navigateTo(page) {
   if (page === 'progress') { document.getElementById('progress-lower').innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Laden...</div>'; renderProgress(); }
   if (page === 'klas') renderKlas();
   if (page === 'match') initMatchPage();
+  if (page === 'herhaling') renderPage_herhaling();
 }
 
 function renderDashboard() {
@@ -1421,6 +1426,7 @@ function toetsCheck() {
   }
 
   toetsState.results[toetsState.current] = correct;
+  if (toetsState._isReview) updateReviewProg(q.id, correct);
   if (correct) {
     toetsState.score++;
     document.getElementById('qfeedback').innerHTML=`
@@ -1439,9 +1445,11 @@ function toetsCheck() {
 }
 
 function openSelfJudge(correct) {
+  const q = toetsState.questions[toetsState.current];
   toetsState.results[toetsState.current] = correct;
+  if (toetsState._isReview) updateReviewProg(q.id, correct);
   if (correct) toetsState.score++;
-  else toetsState.wrongs.push({ questionId: toetsState.questions[toetsState.current].id, q: toetsState.questions[toetsState.current].question, wrong:'(open)', correct: toetsState.questions[toetsState.current].answer });
+  else toetsState.wrongs.push({ questionId: q.id, q: q.question, wrong:'(open)', correct: q.answer });
   toetsState.current++;
   renderToetsQuestion();
 }
@@ -1463,6 +1471,7 @@ function toetsSkip() {
   if (!toetsState.results) toetsState.results = {};
   const q = toetsState.questions[toetsState.current];
   toetsState.results[toetsState.current] = false;
+  if (toetsState._isReview) updateReviewProg(q.id, false);
   toetsState.wrongs.push({ questionId: q.id, q: q.question, wrong:'(overgeslagen)', correct: q.answer });
   toetsState.current++;
   renderToetsQuestion();
@@ -1479,9 +1488,257 @@ function showToetsHint() {
   if (hintText) hintText.textContent = hint;
 }
 
+// ══════════════════════════════════════════════════════════════
+// HERHALINGSTEST — Spaced repetition per dag
+// ══════════════════════════════════════════════════════════════
+
+function getReviewProg() {
+  try { return JSON.parse(localStorage.getItem('sm_review') || '{}'); } catch(e) { return {}; }
+}
+
+function updateReviewProg(questionId, correct) {
+  const prog = getReviewProg();
+  const key = String(questionId);
+  if (!prog[key]) prog[key] = { correct: 0, wrong: 0, streak: 0 };
+  if (correct) {
+    prog[key].correct++;
+    prog[key].streak = (prog[key].streak || 0) + 1;
+  } else {
+    prog[key].wrong++;
+    prog[key].streak = 0;
+  }
+  prog[key].lastSeen = Date.now();
+  localStorage.setItem('sm_review', JSON.stringify(prog));
+}
+
+function getMastery(questionId) {
+  const prog = getReviewProg();
+  const entry = prog[String(questionId)];
+  if (!entry || (entry.correct === 0 && entry.wrong === 0)) return 0; // nooit gezien
+  const streak = entry.streak || 0;
+  if (streak >= 3) return 3; // gemeisterd
+  if (streak >= 1) return 2; // aan het leren
+  return 1; // moeite mee
+}
+
+function getMasteryForSubjects(subjectIds) {
+  const ids = new Set(subjectIds.map(Number));
+  const pool = QUESTIONS.filter(q => ids.has(q.subject_id) && q.type !== 'open');
+  const total    = pool.length;
+  const mastered = pool.filter(q => getMastery(q.id) === 3).length;
+  const learning = pool.filter(q => [1,2].includes(getMastery(q.id))).length;
+  const pct      = total ? Math.round(mastered / total * 100) : 0;
+  return { pct, mastered, learning, total };
+}
+
+function buildReviewPool(subjectIds, maxQuestions = 40) {
+  const ids  = new Set(subjectIds.map(Number));
+  const pool = QUESTIONS.filter(q => ids.has(q.subject_id) && q.type !== 'open');
+  const shuffle = arr => [...arr].sort(() => Math.random() - .5);
+  const prio0 = shuffle(pool.filter(q => getMastery(q.id) === 0)); // nooit gezien
+  const prio1 = shuffle(pool.filter(q => getMastery(q.id) === 1)); // moeite
+  const prio2 = shuffle(pool.filter(q => getMastery(q.id) === 2)); // leren
+  const prio3 = shuffle(pool.filter(q => getMastery(q.id) === 3)); // gemeisterd
+  return [...prio0, ...prio1, ...prio2, ...prio3].slice(0, maxQuestions);
+}
+
+async function startReviewSession(dateKey, subjectIds) {
+  const pool = buildReviewPool(subjectIds, 40);
+  if (!pool.length) { showNotification('Geen vragen beschikbaar voor herhaling', 'error'); return; }
+  window._requireArticle = false;
+  stopQuizTimer();
+  toetsState = {
+    questions: pool, current: 0, score: 0, wrongs: [], results: {},
+    session: {
+      id: null,
+      subject_id: subjectIds[0],
+      subject_name: subjectIds.map(id => (SUBJECTS.find(s=>s.id===id)?.name||'').replace('Frans - ','')).join(' + '),
+      direction: 'auto', _isReview: true
+    },
+    _isReview: true,
+    _reviewDate: dateKey,
+    _reviewSubjectIds: subjectIds,
+    _originalTotal: pool.length,
+    _accCorrect: 0,
+  };
+  navigateTo('quiz');
+  renderToetsQuestion();
+}
+
+async function finishReviewSession() {
+  const { questions, score, wrongs, _reviewSubjectIds, _reviewDate } = toetsState;
+  // updateReviewProg is al aangeroepen per vraag in toetsCheck/openSelfJudge/toetsSkip
+  const subjectIds = _reviewSubjectIds || [];
+  const mastery = getMasteryForSubjects(subjectIds);
+  const pct = Math.round(score / questions.length * 100);
+  const color = pct >= 70 ? 'var(--accent3)' : pct >= 50 ? 'var(--orange)' : 'var(--accent2)';
+  const mastColor = mastery.pct >= 70 ? 'var(--accent3)' : mastery.pct >= 50 ? 'var(--orange)' : 'var(--accent2)';
+
+  const page = document.getElementById('page-quiz');
+  page.innerHTML = `
+    <div style="max-width:560px;margin:0 auto;padding:20px 0">
+      <div class="card" style="text-align:center;padding:32px">
+        <div style="font-size:48px;margin-bottom:8px">🔁</div>
+        <h2 style="font-size:22px;margin-bottom:4px">Herhaling klaar!</h2>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:24px">
+          ${subjectIds.map(id=>(SUBJECTS.find(s=>s.id===id)?.name||'').replace('Frans - ','')).join(' + ')}
+        </p>
+
+        <div style="display:flex;gap:16px;justify-content:center;margin-bottom:24px">
+          <div style="background:var(--surface2);border-radius:12px;padding:16px 24px;min-width:100px">
+            <div style="font-size:28px;font-weight:800;color:${color}">${pct}%</div>
+            <div style="font-size:11px;color:var(--muted)">Deze ronde</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:12px;padding:16px 24px;min-width:100px">
+            <div style="font-size:28px;font-weight:800;color:${mastColor}">${mastery.pct}%</div>
+            <div style="font-size:11px;color:var(--muted)">Gemeisterd</div>
+          </div>
+        </div>
+
+        <!-- Mastery balk -->
+        <div style="margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px">
+            <span>🔴 Moeite: ${mastery.learning}</span>
+            <span>🟡 Leren: ${mastery.learning}</span>
+            <span>🟢 Gemeisterd: ${mastery.mastered} / ${mastery.total}</span>
+          </div>
+          <div style="height:10px;background:var(--surface2);border-radius:6px;overflow:hidden">
+            <div style="height:100%;width:${mastery.pct}%;background:var(--accent3);border-radius:6px;transition:width .5s"></div>
+          </div>
+        </div>
+
+        ${wrongs.length ? `
+        <div style="text-align:left;margin-bottom:20px">
+          <h3 style="font-size:14px;margin-bottom:10px">❌ Foute antwoorden (${wrongs.length})</h3>
+          <div style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto">
+            ${wrongs.map(w=>`
+              <div style="background:rgba(255,75,75,.08);border:1px solid rgba(255,75,75,.2);border-radius:8px;padding:8px 12px;font-size:13px">
+                <div style="color:var(--muted);font-size:11px">${w.q}</div>
+                <div><span style="color:var(--accent2)">${w.wrong}</span> → <strong style="color:var(--accent3)">${w.correct}</strong></div>
+              </div>`).join('')}
+          </div>
+        </div>` : '<div style="color:var(--accent3);font-size:14px;margin-bottom:20px">🎉 Geen fouten! Perfect!</div>'}
+
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+          ${wrongs.length ? `<button class="btn btn-secondary" style="color:var(--accent2)" onclick="redoReviewWrong()">❌ Fouten herdoen (${wrongs.length})</button>` : ''}
+          <button class="btn btn-secondary" onclick="navigateTo('herhaling')">🔁 Nieuwe herhaling</button>
+          <button class="btn btn-primary" onclick="navigateTo('planner')">← Terug naar planner</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function redoReviewWrong() {
+  const wrongs = toetsState?.wrongs || [];
+  const wrongIds = new Set(wrongs.map(w => w.questionId));
+  const pool = toetsState.questions.filter(q => wrongIds.has(q.id)).sort(() => Math.random() - .5);
+  if (!pool.length) { showNotification('Geen fouten om te herdoen', 'error'); return; }
+  toetsState = {
+    questions: pool, current: 0, score: 0, wrongs: [], results: {},
+    session: toetsState.session,
+    _isReview: true,
+    _reviewDate: toetsState._reviewDate,
+    _reviewSubjectIds: toetsState._reviewSubjectIds,
+    _accCorrect: (toetsState._accCorrect || 0) + toetsState.score,
+    _originalTotal: toetsState._originalTotal || toetsState.questions.length,
+  };
+  renderToetsQuestion();
+}
+
+function renderPage_herhaling() {
+  const page = document.getElementById('page-herhaling');
+
+  // Groepeer voltooide sessies per datum
+  const doneSessions = SESSIONS.filter(s => s.status === 'done');
+  const byDate = {};
+  doneSessions.forEach(s => {
+    const d = (s.planned_at || s.created_at || '').slice(0, 10);
+    if (!d) return;
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(s);
+  });
+
+  const sortedDates = Object.keys(byDate).sort((a,b) => b.localeCompare(a));
+
+  if (!sortedDates.length) {
+    page.innerHTML = `
+      <div class="page-header"><h1>🔁 Herhalen</h1><p>Herhaal wat je eerder geleerd hebt</p></div>
+      <div class="card" style="text-align:center;padding:32px;color:var(--muted)">
+        <div style="font-size:48px;margin-bottom:12px">📚</div>
+        <p>Je hebt nog geen voltooide studiessies.<br>Start eerst een quiz of planner-sessie!</p>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="navigateTo('quiz')">Quiz starten</button>
+      </div>`;
+    return;
+  }
+
+  // Globale mastery over alle vakken
+  const allSubjectIds = [...new Set(doneSessions.map(s => s.subject_id).filter(Boolean))];
+  const globalMastery = getMasteryForSubjects(allSubjectIds);
+  const mastColor = globalMastery.pct >= 70 ? 'var(--accent3)' : globalMastery.pct >= 50 ? 'var(--orange)' : 'var(--accent2)';
+
+  const daysHTML = sortedDates.map(dateKey => {
+    const sessions = byDate[dateKey];
+    const subjectIds = [...new Set(sessions.map(s => s.subject_id).filter(Boolean))];
+    const subjectNames = subjectIds.map(id => (SUBJECTS.find(s=>s.id===id)?.name||'Onbekend').replace('Frans - ','')).join(', ');
+    const mastery = getMasteryForSubjects(subjectIds);
+    const dayMastColor = mastery.pct >= 70 ? 'var(--accent3)' : mastery.pct >= 50 ? 'var(--orange)' : 'var(--accent2)';
+    const dateLabel = new Date(dateKey).toLocaleDateString('nl-BE', { weekday:'long', day:'numeric', month:'long' });
+
+    return `
+      <div class="card mb-16" style="display:flex;align-items:center;gap:16px;padding:16px 20px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:15px;margin-bottom:2px">${dateLabel}</div>
+          <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${subjectNames}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+            <div style="flex:1;height:6px;background:var(--surface2);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${mastery.pct}%;background:${dayMastColor};border-radius:4px"></div>
+            </div>
+            <span style="font-size:11px;color:${dayMastColor};font-weight:700;white-space:nowrap">${mastery.mastered}/${mastery.total} gemeisterd</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="startReviewSession('${dateKey}', ${JSON.stringify(subjectIds)})">
+          🔁 Herhalen
+        </button>
+      </div>`;
+  }).join('');
+
+  page.innerHTML = `
+    <div class="page-header" style="margin-bottom:20px">
+      <h1>🔁 Herhalen</h1>
+      <p>Herhaal wat je eerder geleerd hebt — moeilijke vragen eerst</p>
+    </div>
+
+    <!-- Globale voortgang -->
+    <div class="card mb-24" style="padding:20px 24px">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px">Totale beheersing (alle vakken)</div>
+          <div style="height:10px;background:var(--surface2);border-radius:6px;overflow:hidden">
+            <div style="height:100%;width:${globalMastery.pct}%;background:${mastColor};border-radius:6px;transition:width .5s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px">
+            <span>🟢 ${globalMastery.mastered} gemeisterd</span>
+            <span>${globalMastery.total} vragen totaal</span>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:800;color:${mastColor};min-width:60px;text-align:right">${globalMastery.pct}%</div>
+      </div>
+    </div>
+
+    <!-- Per dag -->
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">Selecteer een dag om te herhalen</h2>
+    ${daysHTML}`;
+}
+
 async function finishToets() {
   if (!toetsState) return;
   const { questions, score, wrongs, session } = toetsState;
+
+  // Herhalingstest apart afhandelen
+  if (toetsState._isReview) {
+    await finishReviewSession();
+    return;
+  }
 
   // Basistest apart afhandelen
   if (toetsState.isBasistest) {
