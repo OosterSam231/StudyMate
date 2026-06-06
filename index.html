@@ -1345,8 +1345,11 @@ function renderToetsQuestion() {
         <div class="question-text">${(() => {
           if (q.type==='fill' && q.question.includes('___')) {
             const input = '<input id="fill-ans" class="fill-input" autocomplete="off" style="min-width:160px"/>';
-            if (q.question.includes('->')) {
-              const [orig, trans] = q.question.split('->').map(s => s.trim());
+            const sep = q.question.includes('->') ? '->' : q.question.includes(': ') && !q.question.split(': ')[0].includes('___') ? ': ' : null;
+            if (sep) {
+              const idx = q.question.indexOf(sep);
+              const orig  = q.question.slice(0, idx).trim();
+              const trans = q.question.slice(idx + sep.length).trim();
               return `<div style="font-size:13px;color:var(--muted);background:var(--surface2);border-radius:8px;padding:7px 12px;margin-bottom:14px;font-style:italic">${orig}</div>${trans.replace('___', input)}`;
             }
             return q.question.replace('___', input);
