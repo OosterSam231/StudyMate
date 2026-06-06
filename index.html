@@ -274,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 14:30</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 15:45</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -646,6 +646,7 @@ function renderPlanner() {
     const isPast  = date < today;
 
     const daySessions = SESSIONS.filter(s => {
+      if (s.status === 'in_progress') return false; // bezig, nog niet klaar
       const raw = s.planned_at.endsWith('Z')||s.planned_at.includes('+') ? s.planned_at : s.planned_at+'Z';
       const sd = new Date(raw); sd.setHours(0,0,0,0);
       return sd.getTime() === date.getTime();
@@ -1352,11 +1353,22 @@ function renderToetsQuestion() {
           <textarea id="open-ans" class="form-input" rows="3" placeholder="Jouw antwoord..."></textarea>
           <div style="font-size:12px;color:var(--muted);margin-top:6px">Vergelijk daarna met het modelantwoord en beoordeel zelf.</div>
         ` : ''}
+        ${q.type!=='mc'&&q.type!=='gender' ? `
+          <div id="toets-hint" style="display:none;margin-top:10px;padding:8px 14px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:10px;font-size:14px;color:var(--orange)">
+            💡 <strong id="toets-hint-text" style="letter-spacing:2px"></strong>
+          </div>` : ''}
         <div id="qfeedback"></div>
       </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
-        <button class="btn btn-danger btn-sm" onclick="toetsSkip()"> -  Weet ik niet</button>
-        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren</button>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:16px">
+        <button class="btn btn-danger btn-sm" onclick="toetsSkip()">✗ Weet ik niet</button>
+        ${q.type!=='mc'&&q.type!=='gender' ? `<button class="btn btn-secondary btn-sm" onclick="showToetsHint()" style="color:var(--orange);border-color:rgba(245,158,11,.4)">💡 Hint</button>` : ''}
+        <div style="flex:1"></div>
+        <button onclick="toggleStar(${session.subject_id},'${q.id}',this)"
+          style="background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:0 4px;opacity:${isStarred(session.subject_id,q.id)?1:.3}"
+          title="Markeer als moeilijk woord">
+          ${isStarred(session.subject_id, q.id) ? '⭐' : '☆'}
+        </button>
+        <button class="btn btn-primary" id="check-btn" onclick="toetsCheck()">Controleren →</button>
       </div>
     </div>`;
 
@@ -1456,6 +1468,17 @@ function toetsSkip() {
   renderToetsQuestion();
 }
 
+function showToetsHint() {
+  const q = toetsState?.questions?.[toetsState.current];
+  if (!q) return;
+  // Toon eerste letter van elk woord, rest als streepjes
+  const hint = q.answer.split(' ').map(w => w ? w[0] + w.slice(1).replace(/[^\s]/g,'_') : '').join(' ');
+  const hintEl   = document.getElementById('toets-hint');
+  const hintText = document.getElementById('toets-hint-text');
+  if (hintEl)   hintEl.style.display   = 'block';
+  if (hintText) hintText.textContent = hint;
+}
+
 async function finishToets() {
   if (!toetsState) return;
   const { questions, score, wrongs, session } = toetsState;
@@ -1498,14 +1521,14 @@ async function finishToets() {
     const totalMin    = (toetsState._accDuration || 0) + roundMin;
     window._quizTotalDuration = totalMin; // bewaar voor volgende redo
     if (toetsState._sessionId) {
-      // Redo: update bestaande quiz-sessie met gecumuleerde tijd
+      // Update bestaande quiz-sessie (aangemaakt bij start of redo)
       await supabase.from('sessions').update({
-        duration_min: totalMin, score: cumPct,
+        status: 'done', duration_min: totalMin, score: cumPct,
         known_count: accCorrect, unknown_count: origTotal - accCorrect, total_count: origTotal,
       }).eq('id', toetsState._sessionId);
       effectiveSessionId = toetsState._sessionId;
     } else {
-      // Eerste run: nieuw sessie record
+      // Fallback: maak nieuw sessie-record als er om een of andere reden geen ID is
       const { data: newSess } = await supabase.from('sessions').insert({
         user_id: currentUser.id, subject_id: session.subject_id,
         subject_name: session.subject_name, status: 'done', session_type: 'quiz',
@@ -2367,7 +2390,7 @@ function _quizActivityHandler() {
   clearTimeout(_quizInactTimer);
   _quizInactTimer = setTimeout(() => {
     if (_quizStartTime) { _quizActiveMs += Date.now() - _quizStartTime; _quizStartTime = null; }
-  }, 2 * 60 * 1000);
+  }, 60 * 1000);
 }
 
 function startQuizTimer() {
@@ -2378,7 +2401,7 @@ function startQuizTimer() {
   clearTimeout(_quizInactTimer);
   _quizInactTimer = setTimeout(() => {
     if (_quizStartTime) { _quizActiveMs += Date.now() - _quizStartTime; _quizStartTime = null; }
-  }, 2 * 60 * 1000);
+  }, 60 * 1000);
 }
 
 function stopQuizTimer() {
@@ -2435,6 +2458,16 @@ function renderPage_quiz() {
             <div>
               <div style="font-size:13px;font-weight:600">Lidwoord verplicht</div>
               <div style="font-size:11px;color:var(--muted)">Geen le / la / l' typen = fout antwoord</div>
+            </div>
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Filter</label>
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+            <input type="checkbox" id="quiz-stars-only" style="width:16px;height:16px;accent-color:var(--accent)">
+            <div>
+              <div style="font-size:13px;font-weight:600">⭐ Alleen gesterde vragen</div>
+              <div style="font-size:11px;color:var(--muted)">Quiz enkel de woorden die je moeilijk vindt</div>
             </div>
           </label>
         </div>
@@ -2958,17 +2991,47 @@ async function startQuizAsSession() {
     pool = filtered;
   }
 
-  pool = filterByDirection(pool, direction).sort(() => Math.random() - .5);
+  pool = filterByDirection(pool, direction);
+
+  // Filter op gesterde vragen als die optie aan staat
+  const starsOnly = document.getElementById('quiz-stars-only')?.checked || false;
+  if (starsOnly) {
+    const stars = JSON.parse(localStorage.getItem('sm_stars') || '{}');
+    const starredIds = new Set((stars[String(sid)] || []).map(String));
+    if (!starredIds.size) { showNotification('Geen gesterde vragen voor dit hoofdstuk', 'error'); return; }
+    pool = pool.filter(q => starredIds.has(String(q.id)) || starredIds.has(String(q.id - 90000)));
+    if (!pool.length) { showNotification('Geen gesterde vragen gevonden met deze instellingen', 'error'); return; }
+  }
+
+  pool = pool.sort(() => Math.random() - .5);
 
   if (!pool.length) { showNotification('Geen vragen voor deze selectie', 'error'); return; }
 
   // Sla keuzes op voor "Opnieuw doen"
-  window._lastQuizConfig = { sid, direction, qtype, requireArticle };
+  window._lastQuizConfig = { sid, direction, qtype, requireArticle, starsOnly };
 
   // Verwijder eventuele oude autosave voor dit vak
   localStorage.removeItem('sm_autosave');
 
-  // Start direct de toets (zonder studiesessie)
+  // Verwijder eventuele oude in_progress sessies voor dit vak (verlaten quizzen)
+  await supabase.from('sessions').delete()
+    .eq('user_id', currentUser.id).eq('subject_id', sid).eq('status', 'in_progress');
+
+  // Maak meteen een sessie-record aan in de DB zodat tijd betrouwbaar bijgehouden wordt
+  let quizSessionId = null;
+  try {
+    const { data: newSess } = await supabase.from('sessions').insert({
+      user_id: currentUser.id, subject_id: sid,
+      subject_name: subj?.name || '', status: 'in_progress',
+      session_type: 'quiz', planned_at: new Date().toISOString(),
+      duration_min: 0, score: 0, direction,
+      known_count: 0, unknown_count: 0, total_count: pool.length,
+    }).select().single();
+    quizSessionId = newSess?.id || null;
+    window._quizSessionId = quizSessionId;
+  } catch(e) {}
+
+  // Start timer
   startQuizTimer();
 
   toetsState = {
@@ -2978,13 +3041,14 @@ async function startQuizAsSession() {
     wrongs: [],
     results: {},
     session: {
-      id: null,
+      id: quizSessionId,
       subject_id: sid,
       subject_name: subj?.name || '',
       direction,
       _isQuiz: true
     },
-    _isQuiz: true
+    _isQuiz: true,
+    _sessionId: quizSessionId,
   };
   renderToetsQuestion();
 }
