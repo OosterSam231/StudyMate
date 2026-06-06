@@ -1525,11 +1525,26 @@ function stopQuizEarly() {
         <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">↩ Doorgaan met quiz</button>
         <button class="btn" style="background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)"
           onclick="pauseQuiz();this.closest('.modal-overlay').remove()">⏸ Pauzeer (later verdergaan)</button>
+        <button class="btn" style="background:rgba(67,233,123,.12);color:var(--accent3);border:1px solid rgba(67,233,123,.3)"
+          onclick="claimPartialResults();this.closest('.modal-overlay').remove()">✓ Stop & bewaar resultaten tot nu</button>
         <button class="btn btn-danger"
-          onclick="abandonQuiz();this.closest('.modal-overlay').remove()">✕ Stop & wis voortgang</button>
+          onclick="abandonQuiz();this.closest('.modal-overlay').remove()">✕ Stop & wis alles</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
+}
+
+function claimPartialResults() {
+  const answered = toetsState.current;
+  if (answered === 0) {
+    showNotification('Je hebt nog geen vragen beantwoord', 'error');
+    return;
+  }
+  // Knip de vragen af tot wat al beantwoord is
+  toetsState.questions   = toetsState.questions.slice(0, answered);
+  toetsState._originalTotal = toetsState._originalTotal || answered;
+  localStorage.removeItem('sm_autosave');
+  finishToets();
 }
 
 function abandonQuiz() {
