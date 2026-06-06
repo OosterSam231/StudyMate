@@ -274,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 12:12</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 14:30</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -911,18 +911,20 @@ function parseOpts(q) {
   return [...opts].sort(() => Math.random() - .5);
 }
 
-function isCorrectAnswer(userInput, correctAnswer) {
-  const user = userInput.trim().toLowerCase()
-    .replace(/[()]/g, '')   // haal (e)(s) etc weg
+function normalizeAnswer(str) {
+  return str.trim().toLowerCase()
+    .replace(/[''`´]/g, "'")      // alle apostrof-varianten → rechte apostrof
+    .replace(/'\s+/g, "'")        // spatie na apostrof wegdoen (l' adresse → l'adresse)
+    .replace(/[()]/g, '')         // haal (e)(s) etc weg
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function isCorrectAnswer(userInput, correctAnswer) {
+  const user = normalizeAnswer(userInput);
 
   const variants = correctAnswer.split(/\s*\/\s*|\s*\|\s*/)
-    .map(v => v.trim().toLowerCase()
-      .replace(/[()]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-    )
+    .map(v => normalizeAnswer(v))
     .filter(Boolean);
 
   // Exacte match op een van de varianten
@@ -930,10 +932,12 @@ function isCorrectAnswer(userInput, correctAnswer) {
 
   // Accepteer zonder lidwoord ALLEEN als de gebruiker zelf geen lidwoord getypt heeft
   // (bv. "abonnement" voor "l'abonnement" is OK, maar "la médias" voor "le médias" is FOUT)
-  const userHasArticle = /^(le |la |les |l'|l')\S/i.test(user);
+  const userHasArticle = /^(le |la |les |l')\S/i.test(user);
+  // Als lidwoord verplicht is en de gebruiker heeft het niet getypt: direct fout
+  if (!userHasArticle && window._requireArticle) return false;
   if (!userHasArticle) {
     const userNoArticle = user.trim();
-    if (variants.some(v => v.replace(/^(le |la |les |l'|l')/i, '').trim() === userNoArticle)) return true;
+    if (variants.some(v => v.replace(/^(le |la |les |l')/i, '').trim() === userNoArticle)) return true;
   }
 
   return false;
@@ -1305,6 +1309,7 @@ async function startToets(session) {
 function renderToetsQuestion() {
   const { questions, current, session } = toetsState;
   if (current >= questions.length) { finishToets(); return; }
+  if (current > 0) autoSaveQuizState(); // sla voortgang op na elke vraag
   const q = questions[current];
   const pct = Math.round(current / questions.length * 100);
   const page = document.getElementById('page-quiz');
@@ -1513,7 +1518,8 @@ async function finishToets() {
     }
   }
 
-  // ── Ronde opslaan in localStorage ──
+  // ── Ronde opslaan (localStorage + Supabase) ──
+  localStorage.removeItem('sm_autosave'); // autosave wissen na afronden
   let avgPct = pct;
   if (effectiveSessionId) {
     const key    = `sm_rounds_${effectiveSessionId}`;
@@ -1523,15 +1529,21 @@ async function finishToets() {
       score: pct, correct: score, total: questions.length,
       cumPct, cumCorrect: accCorrect, origTotal,
       wrongs: wrongs.map(w => ({ q: w.q, correct: w.correct, wrong: w.wrong, qid: w.questionId })),
+      settings: {
+        direction:      session.direction || 'auto',
+        requireArticle: window._requireArticle || false,
+        qtype:          window._lastQuizConfig?.qtype || 'all',
+      },
       ts: new Date().toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'})
     });
     localStorage.setItem(key, JSON.stringify(rounds));
     // Gemiddelde over alle rondes
     avgPct = Math.round(rounds.reduce((s, r) => s + r.score, 0) / rounds.length);
-    // Sessie score updaten naar gemiddelde
-    if (effectiveSessionId) {
-      await supabase.from('sessions').update({ score: avgPct }).eq('id', effectiveSessionId);
-    }
+    // Sessie score updaten naar gemiddelde + rondes opslaan in DB
+    await supabase.from('sessions').update({ score: avgPct }).eq('id', effectiveSessionId);
+    // Probeer rounds_json kolom te updaten (vereist: ALTER TABLE sessions ADD COLUMN rounds_json jsonb)
+    supabase.from('sessions').update({ rounds_json: rounds }).eq('id', effectiveSessionId)
+      .then(() => {}).catch(() => {});
   }
 
   // Fouten opslaan
@@ -2348,6 +2360,7 @@ let quizState = null;
 let _quizStartTime  = null;
 let _quizActiveMs   = 0;
 let _quizInactTimer = null;
+window._requireArticle = false; // lidwoord verplicht instelling
 
 function _quizActivityHandler() {
   if (!_quizStartTime) _quizStartTime = Date.now(); // hervat na pauze
@@ -2414,6 +2427,16 @@ function renderPage_quiz() {
                 <span style="font-size:13px">${l}</span>
               </label>`).join('')}
           </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lidwoord</label>
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+            <input type="checkbox" id="quiz-article-req" ${localStorage.getItem('sm_require_article')==='1'?'checked':''} style="width:16px;height:16px;accent-color:var(--accent)">
+            <div>
+              <div style="font-size:13px;font-weight:600">Lidwoord verplicht</div>
+              <div style="font-size:11px;color:var(--muted)">Geen le / la / l' typen = fout antwoord</div>
+            </div>
+          </label>
         </div>
         <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted)">
           Werkt zoals een sessie: oefenen met flashcards/invullen, dan een echte toets.
@@ -2814,6 +2837,94 @@ function resetMatch() {
   document.getElementById('match-setup').classList.remove('hidden');
 }
 
+// ── Auto-save quiz state (voor refresh-herstel) ──
+function autoSaveQuizState() {
+  if (!toetsState || toetsState.isBasistest) return;
+  try {
+    localStorage.setItem('sm_autosave', JSON.stringify({
+      subjectId:     toetsState.session?.subject_id,
+      sessionId:     toetsState._sessionId || window._quizSessionId || null,
+      accCorrect:    toetsState._accCorrect || 0,
+      originalTotal: toetsState._originalTotal || toetsState.questions.length,
+      accDuration:   window._quizTotalDuration || 0,
+      requireArticle: window._requireArticle || false,
+      direction:     toetsState.session?.direction || 'auto',
+      questionIds:   toetsState.questions.map(q => q.id),
+      current:       toetsState.current,
+      score:         toetsState.score,
+      wrongs:        toetsState.wrongs,
+      results:       toetsState.results,
+      ts:            Date.now(),
+    }));
+  } catch(e) {}
+}
+
+function showRestoreModal(save, subj) {
+  const naam = (subj?.name || 'Sessie').replace('Frans - ', '');
+  window._pendingRestore = save; // bewaar veilig in global
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <h2 class="modal-title">Lopende quiz gevonden</h2>
+        <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px">
+        Je had een lopende quiz voor <strong>${naam}</strong>.<br>
+        Vraag <strong>${save.current + 1}</strong> van <strong>${save.questionIds?.length || '?'}</strong>
+        — <strong>${save.score}</strong> juist beantwoord.
+      </p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" style="flex:1" id="restore-fresh">Opnieuw beginnen</button>
+        <button class="btn btn-primary" style="flex:1" id="restore-cont">Verdergaan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('restore-fresh').onclick = () => {
+    localStorage.removeItem('sm_autosave');
+    window._pendingRestore = null;
+    modal.remove();
+    startQuizAsSession();
+  };
+  document.getElementById('restore-cont').onclick = () => {
+    const s = window._pendingRestore;
+    window._pendingRestore = null;
+    modal.remove();
+    restoreQuizFromSave(s);
+  };
+}
+
+function restoreQuizFromSave(save) {
+  const subj = SUBJECTS.find(s => s.id === save.subjectId);
+  if (!subj) { showNotification('Kan quiz niet herstellen', 'error'); return; }
+  const pool = (save.questionIds || []).map(id => QUESTIONS.find(q => String(q.id) === String(id))).filter(Boolean);
+  if (!pool.length) { showNotification('Vragen niet gevonden', 'error'); return; }
+  window._requireArticle    = save.requireArticle || false;
+  window._quizSessionId     = save.sessionId || null;
+  window._quizTotalDuration = save.accDuration || 0;
+  window._lastQuizConfig    = { sid: save.subjectId, direction: save.direction, requireArticle: save.requireArticle };
+  startQuizTimer();
+  toetsState = {
+    questions: pool,
+    current:   save.current,
+    score:     save.score,
+    wrongs:    save.wrongs || [],
+    results:   save.results || {},
+    session: {
+      id: save.sessionId, subject_id: save.subjectId,
+      subject_name: subj.name, direction: save.direction, _isQuiz: true,
+    },
+    _isQuiz:        true,
+    _sessionId:     save.sessionId,
+    _accCorrect:    save.accCorrect,
+    _originalTotal: save.originalTotal,
+    _accDuration:   save.accDuration,
+  };
+  navigateTo('quiz');
+  renderToetsQuestion();
+}
+
 // ══ Quiz als sessie ══
 async function startQuizAsSession() {
   const sid = parseInt(document.getElementById('quiz-subject-sel').value);
@@ -2822,6 +2933,16 @@ async function startQuizAsSession() {
   const subj = SUBJECTS.find(s => s.id === sid);
   const direction = localStorage.getItem('sm_direction') || 'auto';
   const qtype = getSelectedQtypes();
+  const requireArticle = document.getElementById('quiz-article-req')?.checked || false;
+  window._requireArticle = requireArticle;
+  localStorage.setItem('sm_require_article', requireArticle ? '1' : '0');
+
+  // Check voor autosave van een eerdere run
+  const savedRaw = (() => { try { return JSON.parse(localStorage.getItem('sm_autosave') || 'null'); } catch { return null; } })();
+  if (savedRaw && savedRaw.subjectId === sid && Date.now() - savedRaw.ts < 4 * 60 * 60 * 1000 && savedRaw.current > 0) {
+    showRestoreModal(savedRaw, subj);
+    return;
+  }
 
   // Bouw pool: alle vragen voor dit vak, gefilterd op type en richting
   let pool = QUESTIONS.filter(q => q.subject_id === sid);
@@ -2842,7 +2963,10 @@ async function startQuizAsSession() {
   if (!pool.length) { showNotification('Geen vragen voor deze selectie', 'error'); return; }
 
   // Sla keuzes op voor "Opnieuw doen"
-  window._lastQuizConfig = { sid, direction, qtype };
+  window._lastQuizConfig = { sid, direction, qtype, requireArticle };
+
+  // Verwijder eventuele oude autosave voor dit vak
+  localStorage.removeItem('sm_autosave');
 
   // Start direct de toets (zonder studiesessie)
   startQuizTimer();
@@ -2904,12 +3028,33 @@ async function redoQuizAll() {
 }
 
 // ── Rondes modal ──
-function showRoundsModal(sessionId) {
-  const rounds = JSON.parse(localStorage.getItem(`sm_rounds_${sessionId}`) || '[]');
+async function showRoundsModal(sessionId) {
+  // Probeer rounds_json uit DB te laden (valt terug op localStorage)
+  let rounds = [];
+  try {
+    const { data: sessDB } = await supabase.from('sessions').select('rounds_json').eq('id', sessionId).single();
+    if (sessDB?.rounds_json?.length) {
+      rounds = sessDB.rounds_json;
+      localStorage.setItem(`sm_rounds_${sessionId}`, JSON.stringify(rounds)); // sync naar localStorage
+    }
+  } catch(e) {}
+  if (!rounds.length) rounds = JSON.parse(localStorage.getItem(`sm_rounds_${sessionId}`) || '[]');
+
   const sess   = SESSIONS.find(s => s.id == sessionId);
   const naam   = (sess?.subject_name||'Sessie').replace('Frans - ','');
 
   if (!rounds.length) { showNotification('Nog geen rondedata voor deze sessie'); return; }
+
+  // Quiz instellingen uit de eerste ronde halen
+  const firstSettings = rounds[0]?.settings;
+  const settingsBadge = firstSettings ? (() => {
+    const dirLabel = {auto:'Gemengd', fr:'Frans', nl:'Nederlands'}[firstSettings.direction] || firstSettings.direction;
+    const artLabel = firstSettings.requireArticle ? '🔡 Lidwoord verplicht' : '🔡 Lidwoord optioneel';
+    return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+      <span style="background:rgba(108,99,255,.12);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11px">${dirLabel}</span>
+      <span style="background:rgba(108,99,255,.12);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11px">${artLabel}</span>
+    </div>`;
+  })() : '';
 
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
@@ -2920,6 +3065,7 @@ function showRoundsModal(sessionId) {
         <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
       </div>
       <div class="col-gap">
+        ${settingsBadge}
         ${rounds.map(r => {
           const c = r.score>=70?'var(--accent3)':r.score>=50?'var(--orange)':'var(--accent2)';
           return `
