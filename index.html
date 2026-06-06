@@ -646,7 +646,6 @@ function renderPlanner() {
     const isPast  = date < today;
 
     const daySessions = SESSIONS.filter(s => {
-      if (s.session_type === 'quiz') return false; // quiz-sessies niet in planner
       const raw = s.planned_at.endsWith('Z')||s.planned_at.includes('+') ? s.planned_at : s.planned_at+'Z';
       const sd = new Date(raw); sd.setHours(0,0,0,0);
       return sd.getTime() === date.getTime();
