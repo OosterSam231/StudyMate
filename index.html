@@ -1329,8 +1329,14 @@ function renderToetsQuestion() {
 
   page.innerHTML = `
     <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.3);border-radius:12px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--accent);display:flex;align-items:center;justify-content:space-between">
-      <span>" Toets " ${(session.subject_name||'').replace('Frans - ','')}</span>
-      <span style="font-weight:700">${current+1} / ${questions.length}</span>
+      <span>📖 ${(session.subject_name||'').replace('Frans - ','')}</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-weight:700">${current+1} / ${questions.length}</span>
+        ${!toetsState.isBasistest ? `
+          <button onclick="pauseQuiz()" style="background:none;border:1px solid rgba(108,99,255,.4);border-radius:7px;cursor:pointer;font-size:11px;color:var(--accent);padding:3px 9px;font-family:inherit">⏸ Pauzeer</button>
+          <button onclick="stopQuizEarly()" style="background:none;border:1px solid rgba(255,75,75,.35);border-radius:7px;cursor:pointer;font-size:11px;color:var(--accent2);padding:3px 9px;font-family:inherit">✕ Stop</button>
+        ` : ''}
+      </div>
     </div>
     <div style="display:flex;gap:3px;margin-bottom:20px">${segBar}</div>
     <div class="quiz-wrap">
@@ -1369,7 +1375,7 @@ function renderToetsQuestion() {
         ${q.type!=='mc'&&q.type!=='gender' ? `<button class="btn btn-secondary btn-sm" onclick="showToetsHint()" style="color:var(--orange);border-color:rgba(245,158,11,.4)">💡 Hint</button>` : ''}
         <div style="flex:1"></div>
         <button onclick="toggleStar(${session.subject_id},'${q.id}',this)"
-          style="background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:0 4px;opacity:${isStarred(session.subject_id,q.id)?1:.3}"
+          style="background:none;border:1px solid rgba(245,158,11,.4);border-radius:8px;cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;color:#f59e0b;opacity:${isStarred(session.subject_id,q.id)?1:.55}"
           title="Markeer als moeilijk woord">
           ${isStarred(session.subject_id, q.id) ? '⭐' : '☆'}
         </button>
@@ -1488,6 +1494,48 @@ function showToetsHint() {
   if (hintText) hintText.textContent = hint;
 }
 
+function pauseQuiz() {
+  autoSaveQuizState();
+  stopQuizTimer();
+  showNotification('Quiz gepauzeerd — je kunt later verdergaan ▶', 'success');
+  navigateTo('quiz');
+}
+
+function stopQuizEarly() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:380px">
+      <div class="modal-header">
+        <h2 class="modal-title">Quiz stoppen?</h2>
+        <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 20px">
+        Wat wil je doen? Je voortgang tot nu toe gaat verloren.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">↩ Doorgaan met quiz</button>
+        <button class="btn" style="background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3)"
+          onclick="pauseQuiz();this.closest('.modal-overlay').remove()">⏸ Pauzeer (later verdergaan)</button>
+        <button class="btn btn-danger"
+          onclick="abandonQuiz();this.closest('.modal-overlay').remove()">✕ Stop & wis voortgang</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function abandonQuiz() {
+  stopQuizTimer();
+  localStorage.removeItem('sm_autosave');
+  // Sessie in DB verwijderen als die in_progress is
+  if (toetsState?._sessionId && currentUser) {
+    supabase.from('sessions').delete().eq('id', toetsState._sessionId).then(() => {}).catch(() => {});
+  }
+  toetsState = null;
+  showNotification('Quiz gestopt', 'info');
+  navigateTo('quiz');
+}
+
 // ══════════════════════════════════════════════════════════════
 // HERHALINGSTEST — Spaced repetition per dag
 // ══════════════════════════════════════════════════════════════
@@ -1543,7 +1591,7 @@ function buildReviewPool(subjectIds, maxQuestions = 40) {
 }
 
 async function startReviewSession(dateKey, subjectIds) {
-  const pool = buildReviewPool(subjectIds, 40);
+  const pool = buildReviewPool(subjectIds, 20);
   if (!pool.length) { showNotification('Geen vragen beschikbaar voor herhaling', 'error'); return; }
   window._requireArticle = false;
   stopQuizTimer();
@@ -1696,9 +1744,12 @@ function renderPage_herhaling() {
             <span style="font-size:11px;color:${dayMastColor};font-weight:700;white-space:nowrap">${mastery.mastered}/${mastery.total} gemeisterd</span>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="startReviewSession('${dateKey}', ${JSON.stringify(subjectIds)})">
-          🔁 Herhalen
-        </button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <button class="btn btn-primary btn-sm" onclick="startReviewSession('${dateKey}', ${JSON.stringify(subjectIds)})">
+            🔁 Herhalen
+          </button>
+          <span style="font-size:10px;color:var(--muted)">max 20 vragen</span>
+        </div>
       </div>`;
   }).join('');
 
@@ -2676,8 +2727,24 @@ function renderPage_quiz() {
   const savedDir = localStorage.getItem('sm_direction') || 'auto';
   const savedQtypes = (localStorage.getItem('sm_qtypes') || 'mc,fill,open,gender').split(',');
 
+  // Check of er een gepauzeerde quiz is
+  const _savedQuiz = (() => { try { return JSON.parse(localStorage.getItem('sm_autosave') || 'null'); } catch { return null; } })();
+  const _pausedBanner = (_savedQuiz && _savedQuiz.current > 0 && Date.now() - _savedQuiz.ts < 24 * 60 * 60 * 1000) ? (() => {
+    const subjName = (SUBJECTS.find(s => s.id === _savedQuiz.subjectId)?.name || 'Onbekend').replace('Frans - ','');
+    return `<div style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.4);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;max-width:520px">
+      <div style="font-size:24px">⏸</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">Gepauzeerde quiz gevonden</div>
+        <div style="font-size:12px;color:var(--muted)">${subjName} — vraag ${_savedQuiz.current + 1} van ${_savedQuiz.questionIds?.length || '?'} &nbsp;(${_savedQuiz.score} juist)</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="restoreQuizFromSave(JSON.parse(localStorage.getItem('sm_autosave')))">▶ Verdergaan</button>
+      <button onclick="localStorage.removeItem('sm_autosave');renderPage_quiz()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px">×</button>
+    </div>`;
+  })() : '';
+
   page.innerHTML = `
     <div class="page-header"><h1>Quiz starten</h1><p>Zelfde systeem als een studiesessie — leren dan toets</p></div>
+    ${_pausedBanner}
     <div class="card" style="max-width:520px">
       <div class="col-gap">
         <div class="form-group">
@@ -3229,7 +3296,7 @@ async function startQuizAsSession() {
 
   // Check voor autosave van een eerdere run
   const savedRaw = (() => { try { return JSON.parse(localStorage.getItem('sm_autosave') || 'null'); } catch { return null; } })();
-  if (savedRaw && savedRaw.subjectId === sid && Date.now() - savedRaw.ts < 4 * 60 * 60 * 1000 && savedRaw.current > 0) {
+  if (savedRaw && savedRaw.subjectId === sid && Date.now() - savedRaw.ts < 24 * 60 * 60 * 1000 && savedRaw.current > 0) {
     showRestoreModal(savedRaw, subj);
     return;
   }
