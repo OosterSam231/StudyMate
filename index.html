@@ -1538,9 +1538,16 @@ async function renderProgress() {
 
     // Voortgang uit sessies (known_count / total_count)
     const latestSess = subjSess.sort((a,b) => new Date(b.planned_at)-new Date(a.planned_at))[0];
-    const known   = latestSess?.known_count   || 0;
-    const unknown = latestSess?.unknown_count || 0;
+    let known   = latestSess?.known_count   || 0;
+    let unknown = latestSess?.unknown_count || 0;
     const total   = subj.question_count || 1;
+
+    // Fallback: sessie heeft geen kennis-data maar er is wel een score → afleiden uit score
+    if (known === 0 && unknown === 0 && latestScore) {
+      known   = Math.round(latestScore.score / 100 * total);
+      unknown = total - known;
+    }
+
     const todo    = Math.max(0, total - known - unknown);
 
     const pctKnown   = Math.round(known   / total * 100);
@@ -2281,7 +2288,9 @@ function renderQuestion() {
         ${renderInput(q)}
         <div id="qfeedback"></div>
       </div>
-      <div style="display:flex;gap:12px;justify-content:flex-end">
+      ${q.type !== 'mc' ? `<div id="quiz-hint" style="display:none;margin-top:12px;padding:10px 16px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;font-size:14px;color:var(--orange)">Hint: <strong id="quiz-hint-text" style="letter-spacing:2px"></strong></div>` : ''}
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px">
+        ${q.type !== 'mc' ? `<button class="btn btn-secondary btn-sm" onclick="showQuizHint()" style="color:var(--orange);border-color:rgba(245,158,11,.4)">&#128161; Hint</button>` : ''}
         <button class="btn btn-secondary" onclick="skipQuestion()">Overslaan</button>
         <button class="btn btn-primary" id="check-btn" onclick="checkAnswer()">Controleren</button>
       </div>
@@ -2362,6 +2371,15 @@ function checkAnswer() {
 function skipQuestion() {
   quizState.wrongs.push({ q: quizState.questions[quizState.current].question, wrong: '(overgeslagen)', correct: quizState.questions[quizState.current].answer });
   nextQuestion();
+}
+
+function showQuizHint() {
+  const q = quizState.questions[quizState.current];
+  const hint = q.answer.split(' ').map(w => w[0] + w.slice(1).replace(/[^\s]/g, '_')).join(' ');
+  const hintEl = document.getElementById('quiz-hint');
+  const hintText = document.getElementById('quiz-hint-text');
+  if (hintEl) hintEl.style.display = 'block';
+  if (hintText) hintText.textContent = hint;
 }
 
 function nextQuestion() {
