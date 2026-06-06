@@ -274,7 +274,7 @@
       <button class="nav-item" data-page="progress">Voortgang</button>
       <button class="nav-item" data-page="klas">Klas</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 11:41</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v06/06/2026 11:49</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -670,11 +670,20 @@ function renderPlanner() {
       // Rondes uit localStorage
       const sessionRounds = JSON.parse(localStorage.getItem(`sm_rounds_${s.id}`) || '[]');
       const hasRounds = sessionRounds.length > 0;
-      const r1Score   = hasRounds ? sessionRounds[0].score : (s.score ?? '-');
       const cumScore  = s.score ?? '-';
 
       const bottom = done
-        ? `<div style="color:var(--accent3);font-weight:700">✓ ${r1Score}%${hasRounds && sessionRounds.length > 1 ? `<span style="color:var(--muted);font-weight:400"> → totaal: ${cumScore}%</span>` : ''}</div>`
+        ? (hasRounds
+            ? `<div style="display:flex;flex-direction:column;gap:1px;margin-top:2px">
+                ${sessionRounds.map(r => {
+                  const c = r.score>=70?'var(--accent3)':r.score>=50?'var(--orange)':'var(--accent2)';
+                  return `<div style="color:${c}">R${r.round}: ${r.score}% <span style="color:var(--muted);font-size:9px">${r.correct}/${r.total}</span></div>`;
+                }).join('')}
+                ${sessionRounds.length > 1
+                  ? `<div style="color:var(--accent);font-weight:700;border-top:1px solid var(--border);margin-top:2px;padding-top:2px">totaal: ${cumScore}%</div>`
+                  : ''}
+              </div>`
+            : `<div style="color:var(--accent3);font-weight:700">✓ ${cumScore}%</div>`)
         : missed
         ? `<div style="color:var(--accent2)">Gemist — toch doen?</div>`
         : review ? `<div style="color:var(--orange)">Herhaling starten</div>`
