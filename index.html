@@ -307,7 +307,7 @@
       <button class="nav-item" data-page="klas">Klas</button>
       <button class="nav-item" data-page="herhaling">🔁 Herhalen</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:19</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:22</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -4088,16 +4088,24 @@ function downloadSummaryPDF(subjectId) {
   setTimeout(() => { win.print(); }, 400);
 }
 
+// ─── Emoji stripper voor print ────────────────────────────────
+function stripEmoji(html) {
+  // Verwijder emoji-tekens maar laat gewone tekst intact
+  return html.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{2B00}-\u{2BFF}]|[\u{FE00}-\u{FEFF}]|[✂-➰]|[\uD83C-\uDBFF][\uDC00-\uDFFF]|⚪|⚫|⭐|⭕|⌚|⌛|⏩-⏳|⏸-⏺/gu, '').replace(/\s{2,}/g, ' ').trim();
+}
+
 // ─── Shared print-window HTML builder ─────────────────────────
 function buildPrintHTML(subjectIds) {
   const sections = subjectIds.map(id => {
     const s = SUBJECTS.find(x => x.id === id);
     if (!s) return '';
     const title = s.name.replace('Frans - ','');
-    const body = buildSummaryHTML(id, '#000');
+    let body = buildSummaryHTML(id, '#000');
+    // Verwijder alle emoji uit de gegenereerde HTML
+    body = stripEmoji(body);
     return `<div class="chapter">
       <h1>${title}</h1>
-      <p class="meta">${s.description || ''} &nbsp;·&nbsp; ${s.question_count || 0} oefenvragen</p>
+      <p class="meta">${s.description || ''} &nbsp;&middot;&nbsp; ${s.question_count || 0} oefenvragen</p>
       ${body}
     </div>`;
   }).join('<div class="chapter-break"></div>');
@@ -4113,46 +4121,46 @@ function buildPrintHTML(subjectIds) {
   /* ── Hoofdstuk scheiding ── */
   .chapter { margin-bottom:0; }
   .chapter-break { page-break-after:always; }
-  h1 { font-size:18pt; font-weight:800; margin-bottom:2pt; padding-bottom:5pt;
+  h1 { font-size:17pt; font-weight:800; margin-bottom:2pt; padding-bottom:5pt;
        border-bottom:2px solid #000; page-break-after:avoid; }
   .meta { font-size:9pt; color:#555; margin-bottom:12pt; }
 
-  /* ── Secties ── */
-  /* Kleine secties (tabellen, regels): houd bij elkaar */
-  .sum-section { margin-bottom:11pt; page-break-inside:avoid; }
-  /* Maar als een sectie te lang is, mag hij breken — titel blijft dan bij eerste rij */
-  .sum-section h3 { font-size:11pt; font-weight:700; color:#000; margin-bottom:6pt;
-                    border-bottom:1px solid #ccc; padding-bottom:2pt;
-                    page-break-after:avoid; /* titel NOOIT alleen onderaan pagina */ }
+  /* ── Secties: mogen breken over pagina's, alleen de titel niet alleen ── */
+  .sum-section { margin-bottom:11pt; page-break-inside:auto; }
+  .sum-section h3 { font-size:11pt; font-weight:700; color:#000; margin-bottom:5pt;
+                    border-bottom:1px solid #bbb; padding-bottom:2pt;
+                    page-break-after:avoid; orphans:3; widows:3; }
 
-  /* ── Tabellen ── */
+  /* ── Tabellen: witte achtergrond, alleen lijnen ── */
   .sum-tbl-wrap { overflow:visible; }
   table, .sum-table { width:100%; border-collapse:collapse; font-size:9pt; margin-top:3pt; }
-  th { background:#ebebeb; color:#000; padding:5pt 7pt; text-align:left;
-       border:1px solid #999; font-weight:700; white-space:nowrap; page-break-after:avoid; }
-  td { padding:4pt 7pt; border:1px solid #ccc; line-height:1.4; }
+  thead { display:table-header-group; }
+  th { background:#fff; color:#000; padding:5pt 7pt; text-align:left;
+       border-top:2px solid #000; border-bottom:1px solid #000; border-left:1px solid #ccc; border-right:1px solid #ccc;
+       font-weight:700; white-space:nowrap; }
+  td { padding:4pt 7pt; border:1px solid #ccc; line-height:1.4; background:#fff; }
   tr { page-break-inside:avoid; }
-  tr:nth-child(even) td { background:#f8f8f8; }
+  tr:nth-child(even) td { background:#fff; }
 
-  /* ── Kaderregels ── */
-  .sum-rule { background:#f4f4f4; border-left:3px solid #555; padding:7pt 11pt;
-              margin-bottom:7pt; font-size:10pt; line-height:1.6;
-              border-radius:0 4px 4px 0; page-break-inside:avoid; }
-  .sum-rule code { background:#e2e2e2; padding:1pt 4pt; border-radius:3px;
+  /* ── Kaderregels: alleen een linkerlijn, witte achtergrond ── */
+  .sum-rule { background:#fff; border-left:3px solid #555; padding:6pt 10pt;
+              margin-bottom:7pt; font-size:10pt; line-height:1.65;
+              page-break-inside:avoid; }
+  .sum-rule code { background:#fff; border:1px solid #bbb; padding:0pt 3pt;
                    font-family:monospace; font-size:8.5pt; }
 
-  /* ── Chips ── */
-  .sum-chips { display:flex; flex-wrap:wrap; gap:4pt; margin-top:5pt; }
+  /* ── Chips: geen grijze balonnen, gewoon inline tekst met een randje ── */
+  .sum-chips { display:flex; flex-wrap:wrap; gap:3pt; margin-top:4pt; }
   .sum-chip, .sum-chip.green, .sum-chip.orange {
-    background:#f0f0f0; color:#000; border:1px solid #aaa;
-    border-radius:10pt; padding:2pt 8pt; font-size:8.5pt; }
+    background:#fff; color:#000; border:1px solid #888;
+    border-radius:3pt; padding:1pt 6pt; font-size:8.5pt; }
 
-  /* ── Woordenlijst: 3 kolommen via CSS columns zodat het netjes over paginas loopt ── */
+  /* ── Woordenlijst: 3 kolommen, netjes over pagina's ── */
   .sum-vocab-2col { column-count:3; column-gap:14pt; column-fill:auto; }
-  .sum-vocab-row { display:flex; padding:2.5pt 0; border-bottom:1px solid #e8e8e8;
+  .sum-vocab-row { display:flex; padding:2.5pt 0; border-bottom:1px solid #ddd;
                    font-size:9.5pt; gap:6pt; break-inside:avoid; page-break-inside:avoid; }
-  .sum-vocab-fr { min-width:0; width:48%; font-weight:600; flex-shrink:0; }
-  .sum-vocab-nl { color:#444; flex:1; }
+  .sum-vocab-fr { min-width:0; width:48%; font-weight:700; flex-shrink:0; }
+  .sum-vocab-nl { color:#000; flex:1; }
 
   /* ── Overige ── */
   p { margin-bottom:4pt; }
@@ -4161,7 +4169,7 @@ function buildPrintHTML(subjectIds) {
 </style>
 </head><body>
 ${sections}
-<p style="margin-top:16pt;font-size:8pt;color:#888;text-align:center">StudyMate Frans · ${new Date().toLocaleDateString('nl-NL')}</p>
+<p style="margin-top:16pt;font-size:8pt;color:#888;text-align:center">StudyMate Frans &middot; ${new Date().toLocaleDateString('nl-NL')}</p>
 </body></html>`;
 }
 
