@@ -307,7 +307,7 @@
       <button class="nav-item" data-page="klas">Klas</button>
       <button class="nav-item" data-page="herhaling">🔁 Herhalen</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:13</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:19</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -4094,12 +4094,9 @@ function buildPrintHTML(subjectIds) {
     const s = SUBJECTS.find(x => x.id === id);
     if (!s) return '';
     const title = s.name.replace('Frans - ','');
-    const color = (SUBJECT_COLORS[s.color_idx || 0] || {bg:'#6c63ff'}).bg;
-    const body = buildSummaryHTML(id, color);
-    // Compute a light tint for table headers
-    const tint = color + '20'; // 12% opacity hex approximation
-    return `<div class="chapter" style="--c:${color}">
-      <h1 style="color:${color};border-bottom:3px solid ${color}">${title}</h1>
+    const body = buildSummaryHTML(id, '#000');
+    return `<div class="chapter">
+      <h1>${title}</h1>
       <p class="meta">${s.description || ''} &nbsp;·&nbsp; ${s.question_count || 0} oefenvragen</p>
       ${body}
     </div>`;
@@ -4110,37 +4107,61 @@ function buildPrintHTML(subjectIds) {
 <title>Samenvattingen Frans</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #1a1a1a; background:#fff; padding:16mm 18mm; }
-  .chapter { margin-bottom: 0; }
-  .chapter-break { page-break-after: always; margin: 0; }
-  h1 { font-size: 20pt; font-weight: 800; margin-bottom: 3pt; padding-bottom: 6pt; }
-  .meta { font-size: 9pt; color: #777; margin-bottom: 14pt; }
-  .sum-section { margin-bottom: 13pt; page-break-inside: avoid; }
-  .sum-section h3 { font-size: 12pt; font-weight: 700; color: var(--c, #333); margin-bottom: 7pt; }
-  .sum-tbl-wrap { overflow: visible; }
-  table, .sum-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 4pt; }
-  th { background: color-mix(in srgb, var(--c, #6c63ff) 12%, #fff); color: var(--c, #555);
-       padding: 5pt 8pt; text-align: left; border: 1px solid #ccc; font-weight: 700; white-space: nowrap; }
-  td { padding: 5pt 8pt; border: 1px solid #ddd; line-height: 1.45; }
-  tr:nth-child(even) td { background: #f9f9f9; }
-  .sum-rule { background: color-mix(in srgb, var(--c, #6c63ff) 8%, #fff); border-left: 3px solid var(--c, #6c63ff);
-              padding: 8pt 12pt; margin-bottom: 8pt; font-size: 10.5pt; line-height: 1.65; border-radius: 0 4px 4px 0; }
-  .sum-rule code { background: color-mix(in srgb, var(--c, #6c63ff) 16%, #fff); padding: 1pt 4pt; border-radius: 3px; font-family: monospace; font-size: 9pt; }
-  .sum-chips { display: flex; flex-wrap: wrap; gap: 4pt; margin-top: 5pt; }
-  .sum-chip { background: color-mix(in srgb, var(--c, #6c63ff) 10%, #fff); color: var(--c, #6c63ff);
-              border: 1px solid color-mix(in srgb, var(--c, #6c63ff) 35%, #fff); border-radius: 10pt; padding: 2pt 8pt; font-size: 8.5pt; }
-  .sum-chip.green { background:#e6faf0; color:#1a7a45; border-color:#9ee6c0; }
-  .sum-chip.orange { background:#fef8e6; color:#a05a00; border-color:#f5c96a; }
-  .sum-vocab-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20pt; }
-  .sum-vocab-row { display: flex; padding: 3pt 0; border-bottom: 1px solid #eee; font-size: 10pt; gap: 8pt; }
-  .sum-vocab-fr { min-width: 130pt; font-weight: 600; }
-  .sum-vocab-nl { color: #555; }
-  p { margin-bottom: 4pt; }
-  @media print { body { padding: 10mm 14mm; } .chapter-break { display: block; } }
+  body { font-family: Arial, sans-serif; font-size: 10.5pt; color: #000; background:#fff;
+         padding:14mm 16mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  /* ── Hoofdstuk scheiding ── */
+  .chapter { margin-bottom:0; }
+  .chapter-break { page-break-after:always; }
+  h1 { font-size:18pt; font-weight:800; margin-bottom:2pt; padding-bottom:5pt;
+       border-bottom:2px solid #000; page-break-after:avoid; }
+  .meta { font-size:9pt; color:#555; margin-bottom:12pt; }
+
+  /* ── Secties ── */
+  /* Kleine secties (tabellen, regels): houd bij elkaar */
+  .sum-section { margin-bottom:11pt; page-break-inside:avoid; }
+  /* Maar als een sectie te lang is, mag hij breken — titel blijft dan bij eerste rij */
+  .sum-section h3 { font-size:11pt; font-weight:700; color:#000; margin-bottom:6pt;
+                    border-bottom:1px solid #ccc; padding-bottom:2pt;
+                    page-break-after:avoid; /* titel NOOIT alleen onderaan pagina */ }
+
+  /* ── Tabellen ── */
+  .sum-tbl-wrap { overflow:visible; }
+  table, .sum-table { width:100%; border-collapse:collapse; font-size:9pt; margin-top:3pt; }
+  th { background:#ebebeb; color:#000; padding:5pt 7pt; text-align:left;
+       border:1px solid #999; font-weight:700; white-space:nowrap; page-break-after:avoid; }
+  td { padding:4pt 7pt; border:1px solid #ccc; line-height:1.4; }
+  tr { page-break-inside:avoid; }
+  tr:nth-child(even) td { background:#f8f8f8; }
+
+  /* ── Kaderregels ── */
+  .sum-rule { background:#f4f4f4; border-left:3px solid #555; padding:7pt 11pt;
+              margin-bottom:7pt; font-size:10pt; line-height:1.6;
+              border-radius:0 4px 4px 0; page-break-inside:avoid; }
+  .sum-rule code { background:#e2e2e2; padding:1pt 4pt; border-radius:3px;
+                   font-family:monospace; font-size:8.5pt; }
+
+  /* ── Chips ── */
+  .sum-chips { display:flex; flex-wrap:wrap; gap:4pt; margin-top:5pt; }
+  .sum-chip, .sum-chip.green, .sum-chip.orange {
+    background:#f0f0f0; color:#000; border:1px solid #aaa;
+    border-radius:10pt; padding:2pt 8pt; font-size:8.5pt; }
+
+  /* ── Woordenlijst: 3 kolommen via CSS columns zodat het netjes over paginas loopt ── */
+  .sum-vocab-2col { column-count:3; column-gap:14pt; column-fill:auto; }
+  .sum-vocab-row { display:flex; padding:2.5pt 0; border-bottom:1px solid #e8e8e8;
+                   font-size:9.5pt; gap:6pt; break-inside:avoid; page-break-inside:avoid; }
+  .sum-vocab-fr { min-width:0; width:48%; font-weight:600; flex-shrink:0; }
+  .sum-vocab-nl { color:#444; flex:1; }
+
+  /* ── Overige ── */
+  p { margin-bottom:4pt; }
+  strong { font-weight:700; }
+  em { font-style:italic; }
 </style>
 </head><body>
 ${sections}
-<p style="margin-top:20pt;font-size:8pt;color:#aaa;text-align:center">StudyMate Frans · Bundel gegenereerd op ${new Date().toLocaleDateString('nl-NL')}</p>
+<p style="margin-top:16pt;font-size:8pt;color:#888;text-align:center">StudyMate Frans · ${new Date().toLocaleDateString('nl-NL')}</p>
 </body></html>`;
 }
 
