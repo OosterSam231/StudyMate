@@ -307,7 +307,7 @@
       <button class="nav-item" data-page="klas">Klas</button>
       <button class="nav-item" data-page="herhaling">🔁 Herhalen</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:22</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:24</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -4155,12 +4155,12 @@ function buildPrintHTML(subjectIds) {
     background:#fff; color:#000; border:1px solid #888;
     border-radius:3pt; padding:1pt 6pt; font-size:8.5pt; }
 
-  /* ── Woordenlijst: 3 kolommen, netjes over pagina's ── */
-  .sum-vocab-2col { column-count:3; column-gap:14pt; column-fill:auto; }
-  .sum-vocab-row { display:flex; padding:2.5pt 0; border-bottom:1px solid #ddd;
-                   font-size:9.5pt; gap:6pt; break-inside:avoid; page-break-inside:avoid; }
-  .sum-vocab-fr { min-width:0; width:48%; font-weight:700; flex-shrink:0; }
-  .sum-vocab-nl { color:#000; flex:1; }
+  /* ── Woordenlijst: 2 symmetrische kolommen ── */
+  .sum-vocab-2col { column-count:2; column-gap:20pt; column-fill:auto; }
+  .sum-vocab-row { display:flex; padding:3.5pt 0; border-bottom:1px solid #ddd;
+                   font-size:10pt; gap:0; break-inside:avoid; page-break-inside:avoid; }
+  .sum-vocab-fr { width:50%; font-weight:700; flex-shrink:0; padding-right:6pt; }
+  .sum-vocab-nl { width:50%; color:#000; }
 
   /* ── Overige ── */
   p { margin-bottom:4pt; }
