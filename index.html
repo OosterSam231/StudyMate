@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -114,10 +114,40 @@
     .badge-missed  { background:rgba(255,107,107,.15); color:var(--accent2); }
 
     /* â"€â"€ Subject card â"€â"€ */
-    .subject-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+    .subject-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; transition:all .2s; position:relative; overflow:hidden; }
     .subject-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 32px rgba(108,99,255,.15); }
     .subject-card .accent-bar { position:absolute; top:0; left:0; right:0; height:4px; }
     .subject-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; margin-bottom:6px; margin-top:8px; }
+
+    /* Summary overlay */
+    #summary-overlay { position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:500; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; padding:24px 16px 48px; backdrop-filter:blur(4px); }
+    .summary-box { background:var(--surface); border:1px solid var(--border); border-radius:24px; width:100%; max-width:860px; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.6); }
+    .summary-hero { padding:28px 32px 20px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+    .summary-hero-left h2 { font-size:24px; font-weight:800; margin-bottom:4px; }
+    .summary-hero-left p { color:var(--muted); font-size:13px; }
+    .summary-hero-btns { display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+    .sum-section { padding:18px 32px; border-top:1px solid var(--border); }
+    .sum-section h3 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:12px; }
+    .sum-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+    .sum-table th { background:rgba(108,99,255,.12); color:var(--accent); padding:7px 10px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; border:1px solid var(--border); white-space:nowrap; }
+    .sum-table td { padding:6px 10px; border:1px solid var(--border); line-height:1.45; font-size:13px; }
+    .sum-table tr:nth-child(even) td { background:rgba(255,255,255,.02); }
+    .sum-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+    .sum-chip { background:rgba(108,99,255,.12); color:var(--accent); border:1px solid rgba(108,99,255,.25); border-radius:20px; padding:3px 10px; font-size:12px; font-weight:500; }
+    .sum-chip.green { background:rgba(67,233,123,.1); color:#43e97b; border-color:rgba(67,233,123,.25); }
+    .sum-chip.orange { background:rgba(245,158,11,.1); color:#f59e0b; border-color:rgba(245,158,11,.25); }
+    .sum-rule { background:rgba(108,99,255,.07); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:11px 14px; font-size:13px; line-height:1.7; margin-bottom:10px; }
+    .sum-rule code { background:rgba(108,99,255,.22); padding:1px 6px; border-radius:4px; font-family:monospace; font-size:12px; }
+    .sum-vocab-2col { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; }
+    .sum-vocab-row { display:flex; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:13px; gap:10px; min-width:0; }
+    .sum-vocab-fr { min-width:130px; font-weight:600; color:var(--text); flex-shrink:0; }
+    .sum-vocab-nl { color:var(--muted); overflow:hidden; text-overflow:ellipsis; }
+    .sum-footer { padding:16px 32px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:space-between; align-items:center; }
+
+    @media print {
+      body > * { display:none !important; }
+      #print-summary { display:block !important; }
+    }
 
     /* â"€â"€ Modal â"€â"€ */
     .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:1000; backdrop-filter:blur(4px); }
@@ -275,7 +305,7 @@
       <button class="nav-item" data-page="klas">Klas</button>
       <button class="nav-item" data-page="herhaling">🔁 Herhalen</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v07/06/2026 12:00</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 15:34</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -586,18 +616,21 @@ function renderHoofdstukken() {
       <button onclick="renderSubjects()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:13px">&larr; Vakken</button>
       <h1>Frans &mdash; Hoofdstukken</h1>
     </div>
-    <p>Klik op een hoofdstuk om de quiz te starten</p>
+    <p>Kies een hoofdstuk — bekijk de samenvatting of start direct de quiz</p>
   `;
   const grid = document.getElementById('subjects-grid');
   grid.innerHTML = SUBJECTS.map(s => {
     const color = SUBJECT_COLORS[s.color_idx || 0];
     return `
-      <div class="subject-card" onclick="startQuizForSubject(${s.id})" style="border-left:4px solid ${color.bg}">
+      <div class="subject-card" style="border-left:4px solid ${color.bg}">
         <div class="accent-bar" style="background:${color.bg}"></div>
         <div class="subject-title">${s.name.replace('Frans - ', '')}</div>
         <div style="font-size:12px;color:var(--muted)">${s.description}</div>
-        <div style="margin-top:12px;font-size:13px;font-weight:600;color:${color.bg}">${s.question_count || 0} vragen</div>
-        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Klik om te oefenen &rarr;</div>
+        <div style="margin-top:10px;font-size:13px;font-weight:600;color:${color.bg}">${s.question_count || 0} vragen</div>
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="showSubjectSummary(${s.id})" style="flex:1;font-size:12px">📋 Samenvatting</button>
+          <button class="btn btn-primary btn-sm" onclick="startQuizForSubject(${s.id})" style="flex:1;font-size:12px">▶ Quiz</button>
+        </div>
       </div>
     `;
   }).join('');
@@ -926,6 +959,20 @@ function normalizeAnswer(str) {
     .trim();
 }
 
+// Élision normalisatie: qu' = que, j' = je, n' = ne, etc.
+function deElide(str) {
+  return str
+    .replace(/\bqu'/gi, 'que ')
+    .replace(/\bj'/gi,  'je ')
+    .replace(/\bn'/gi,  'ne ')
+    .replace(/\bc'/gi,  'ce ')
+    .replace(/\bd'/gi,  'de ')
+    .replace(/\bm'/gi,  'me ')
+    .replace(/\bt'/gi,  'te ')
+    .replace(/\bs'/gi,  'se ')
+    .replace(/\s+/g, ' ').trim();
+}
+
 function isCorrectAnswer(userInput, correctAnswer) {
   const user = normalizeAnswer(userInput);
 
@@ -935,6 +982,10 @@ function isCorrectAnswer(userInput, correctAnswer) {
 
   // Exacte match op een van de varianten
   if (variants.some(v => v === user)) return true;
+
+  // Élision match: qu' = que, j' = je, n' = ne, etc.
+  const userDe = deElide(user);
+  if (variants.some(v => deElide(v) === userDe)) return true;
 
   // Accepteer zonder lidwoord ALLEEN als de gebruiker zelf geen lidwoord getypt heeft
   // (bv. "abonnement" voor "l'abonnement" is OK, maar "la médias" voor "le médias" is FOUT)
@@ -2049,10 +2100,11 @@ async function renderProgress() {
       ? subjScores.sort((a,b) => new Date(b.played_at)-new Date(a.played_at))[0]
       : null;
 
-    // Voortgang uit sessies (known_count / total_count)
-    const latestSess = subjSess.sort((a,b) => new Date(b.planned_at)-new Date(a.planned_at))[0];
-    let known   = latestSess?.known_count   || 0;
-    let unknown = latestSess?.unknown_count || 0;
+    // Voortgang uit sessies: cumulatief over alle sessies, gecapped op total
+    const allKnown   = subjSess.reduce((sum, s) => sum + (s.known_count   || 0), 0);
+    const allUnknown = subjSess.reduce((sum, s) => sum + (s.unknown_count || 0), 0);
+    let known   = Math.min(allKnown, total);
+    let unknown = Math.min(allUnknown, Math.max(0, total - known));
     const total   = QUESTIONS.filter(q => q.subject_id === subj.id).length || subj.question_count || 1;
 
     // Fallback: sessie heeft geen kennis-data maar er is wel een score → afleiden uit score
@@ -3609,6 +3661,456 @@ window.mergeOldSessions = async function(maxGapMinutes = 90) {
   await reloadSessions();
   console.log(`\n✓ Klaar! ${merged} sessies samengevoegd.`);
 };
+
+// ═══════════════════════════════════════════════════════════════
+//  SUBJECT SUMMARIES — samenvatting per hoofdstuk + PDF-download
+// ═══════════════════════════════════════════════════════════════
+
+function showSubjectSummary(subjectId) {
+  const s = SUBJECTS.find(x => x.id === subjectId);
+  if (!s) return;
+  const color = (SUBJECT_COLORS[s.color_idx || 0] || {bg:'#6c63ff'}).bg;
+  const title = s.name.replace('Frans - ', '');
+
+  let existing = document.getElementById('summary-overlay');
+  if (existing) existing.remove();
+
+  const ov = document.createElement('div');
+  ov.id = 'summary-overlay';
+  ov.innerHTML = `
+    <div class="summary-box">
+      <div class="summary-hero" style="border-top:5px solid ${color}">
+        <div class="summary-hero-left">
+          <h2>${title}</h2>
+          <p>${s.description || ''} &nbsp;·&nbsp; ${s.question_count || 0} oefenvragen</p>
+        </div>
+        <div class="summary-hero-btns">
+          <button class="btn btn-secondary btn-sm" onclick="downloadSummaryPDF(${subjectId})">📥 PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="closeSummaryOverlay();startQuizForSubject(${subjectId})">▶ Quiz starten</button>
+          <button class="btn btn-secondary btn-sm" onclick="closeSummaryOverlay()">✕</button>
+        </div>
+      </div>
+      <div id="summary-body">
+        <div style="padding:24px 32px;color:var(--muted);font-size:13px">Bezig met laden...</div>
+      </div>
+      <div class="sum-footer">
+        <span style="font-size:12px;color:var(--muted)">Tip: klik 📥 PDF om te downloaden of af te drukken</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="downloadSummaryPDF(${subjectId})">📥 Download PDF</button>
+          <button class="btn btn-primary" onclick="closeSummaryOverlay();startQuizForSubject(${subjectId})">▶ Quiz starten</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+
+  // Sluit bij klik op achtergrond
+  ov.addEventListener('click', e => { if (e.target === ov) closeSummaryOverlay(); });
+
+  // Vul de body
+  setTimeout(() => {
+    const body = document.getElementById('summary-body');
+    if (body) body.innerHTML = buildSummaryHTML(subjectId, color);
+  }, 10);
+}
+
+function closeSummaryOverlay() {
+  const ov = document.getElementById('summary-overlay');
+  if (ov) ov.remove();
+}
+
+function buildSummaryHTML(subjectId, color) {
+  switch(subjectId) {
+    case 1: return summSubjonctif(color);
+    case 2: return summCasParticuliers(color);
+    case 3: return summPronomRelatif(color);
+    case 4: return summVerbesSpeciaux(color);
+    case 5: return summIndefinis(color);
+    case 6: return summNegation(color);
+    case 7: return summCODCOI(color);
+    case 8: return summRevisionVerbes(color);
+    case 9: case 10: case 11: return summVocab(subjectId, color);
+    case 12: return summPetitPrince(color);
+    default: return '<div style="padding:24px 32px;color:var(--muted)">Geen samenvatting beschikbaar voor dit hoofdstuk.</div>';
+  }
+}
+
+// ─── helpers ──────────────────────────────────────────────────
+function sec(title, html) {
+  return `<div class="sum-section"><h3>${title}</h3>${html}</div>`;
+}
+function chip(txt, cls='') { return `<span class="sum-chip ${cls}">${txt}</span>`; }
+function chips(arr, cls='') { return `<div class="sum-chips">${arr.map(t=>chip(t,cls)).join('')}</div>`; }
+function rule(html) { return `<div class="sum-rule">${html}</div>`; }
+function tbl(headers, rows) {
+  return `<table class="sum-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+
+// ─── Subject 1: Subjonctif présent ────────────────────────────
+function summSubjonctif(color) {
+  return [
+    sec('📌 Wanneer gebruik je de subjonctif?', `
+      <p style="font-size:13px;margin-bottom:8px">Na uitdrukkingen die <strong>wens, gevoel, twijfel of verplichting</strong> uitdrukken + <strong>que</strong>:</p>
+      ${chips(['il faut que','il est important que','je veux que','je voudrais que','avoir peur que','être content(e) que','regretter que',"c'est dommage que",'bien que','pour que','à condition que','avant que',"jusqu'à ce que"])}
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">⚠️ Beide werkwoorden hebben een ANDER subject!</p>`),
+    sec('🔧 Vorming — règle générale', `
+      ${rule('<strong>ils-vorm presens</strong> → haal <code>-ent</code> weg → voeg eindingen toe:<br><code>-e &nbsp; -es &nbsp; -e &nbsp; -ions &nbsp; -iez &nbsp; -ent</code>')}
+      ${tbl(['','parler','finir','prendre'],
+        [['je','parl<strong>e</strong>','finiss<strong>e</strong>','prenn<strong>e</strong>'],
+         ['tu','parles','finisses','prennes'],
+         ['il/elle','parle','finisse','prenne'],
+         ['nous','parl<strong>ions</strong>','finissions','prenions'],
+         ['vous','parl<strong>iez</strong>','finissiez','preniez'],
+         ['ils','parlent','finissent','prennent']])}`),
+    sec('⚡ Onregelmatige werkwoorden', `
+      ${tbl(['','être','avoir','aller','faire','pouvoir','vouloir','savoir'],
+        [['je/j\'','sois','aie','aille','fasse','puisse','veuille','sache'],
+         ['tu','sois','aies','ailles','fasses','puisses','veuilles','saches'],
+         ['il/elle','soit','ait','aille','fasse','puisse','veuille','sache'],
+         ['nous','soyons','ayons','allions','fassions','puissions','voulions','sachions'],
+         ['vous','soyez','ayez','alliez','fassiez','puissiez','vouliez','sachiez'],
+         ['ils','soient','aient','aillent','fassent','puissent','veuillent','sachent']])}`),
+    sec('✏️ Voorbeeldzinnen', `
+      ${tbl(['Frans','Nederlands'],
+        [["Il faut que tu <strong>fasses</strong> tes devoirs.","Je moet je huiswerk maken."],
+         ["Je veux qu'il <strong>soit</strong> à l'heure.","Ik wil dat hij op tijd is."],
+         ["Bien qu'elle <strong>soit</strong> fatiguée, elle travaille.","Hoewel ze moe is, werkt ze."],
+         ["Pour qu'on <strong>puisse</strong> partir, il faut finir.","Opdat we kunnen vertrekken, moet je afmaken."]])}`)
+  ].join('');
+}
+
+// ─── Subject 2: Cas particuliers ER ───────────────────────────
+function summCasParticuliers(color) {
+  return [
+    sec('📋 Overzicht spellingwijzigingen', `
+      ${tbl(['Type werkwoord','Regel','Voorbeeld'],
+        [['<strong>-cer</strong>','c → ç vóór a/o','<em>commencer</em>: nous commen<strong>ç</strong>ons'],
+         ['<strong>-ger</strong>','g → ge vóór a/o','<em>manger</em>: nous man<strong>ge</strong>ons'],
+         ['<strong>-yer</strong>','y → i vóór stomme e','<em>payer</em>: je pa<strong>i</strong>e, tu paies'],
+         ['<strong>-eler</strong>','ll vóór stomme e','<em>appeler</em>: j\'appe<strong>ll</strong>e'],
+         ['<strong>-eter</strong>','tt vóór stomme e','<em>jeter</em>: je je<strong>tt</strong>e'],
+         ['<strong>e + cons + er</strong>','é/e → è vóór stomme e','<em>acheter</em>: j\'ach<strong>è</strong>te; <em>espérer</em>: j\'esp<strong>è</strong>re']])}
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">ℹ️ "Stomme e" = e in de uitgang die niet uitgesproken wordt (je, tu, il, ils)</p>`),
+    sec('🔧 Conjugatie-tabellen', `
+      ${tbl(['commencer (ç)','manger (ge)','payer (i/y)','appeler (ll)'],
+        [['je commence','je mange','je paie','j\'appelle'],
+         ['tu commences','tu manges','tu paies','tu appelles'],
+         ['il commence','il mange','il paie','il appelle'],
+         ['nous commen<strong>ç</strong>ons','nous man<strong>ge</strong>ons','nous payons','nous appelons'],
+         ['vous commencez','vous mangez','vous payez','vous appelez'],
+         ['ils commencent','ils mangent','ils paient','ils appellent']])}`),
+    sec('📝 Andere werkwoorden', `
+      ${chips(['commencer','lancer','annoncer','manger','bouger','voyager','plonger','payer','essuyer','nettoyer','appeler','rappeler','jeter','acheter','lever','espérer','préférer','répéter'])}`),
+  ].join('');
+}
+
+// ─── Subject 3: Pronom relatif ────────────────────────────────
+function summPronomRelatif(color) {
+  return [
+    sec('📋 Overzicht', `
+      ${tbl(['Pronom','Gebruik','Voorbeeld'],
+        [['<strong>qui</strong>','sujet (persoon of zaak + werkwoord)',"C'est le prof <strong>qui</strong> explique bien."],
+         ['<strong>que / qu\'</strong>','COD (+ onderwerp + werkwoord)',"Le livre <strong>que</strong> je lis est bien."],
+         ['<strong>dont</strong>','vervangt <em>de</em> + persoon/zaak',"C'est l'outil <strong>dont</strong> j'ai besoin."],
+         ['<strong>où</strong>','tijd of plaats',"Le jour <strong>où</strong> il est né était pluvieux."],
+         ['<strong>ce qui</strong>','sujet, verwijst naar hele zin/idee',"<strong>Ce qui</strong> m'intéresse, c'est la musique."],
+         ['<strong>ce que/qu\'</strong>','object, verwijst naar hele zin',"Il fait <strong>ce qu'</strong>il veut."],
+         ['<strong>ce dont</strong>','na avoir besoin/envie de, hele zin',"C'est <strong>ce dont</strong> j'ai besoin."]])}
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">⚠️ que → qu' vóór klinker/stomme h &nbsp;|&nbsp; BEIDE vormen zijn correct!</p>`),
+    sec('🔑 Verbes + DE → gebruik DONT', `
+      ${tbl(['Werkwoord/adjectief','Betekenis'],
+        [['avoir besoin de','nodig hebben'],['avoir envie de','zin hebben in'],['parler de','praten over'],
+         ['rêver de','dromen van'],['se souvenir de','zich herinneren'],['se servir de','gebruikmaken van'],
+         ['s\'occuper de','zich bezighouden met'],['se rendre compte de','beseffen'],
+         ['tenir compte de','rekening houden met'],['être fier/fière de','trots op'],
+         ['être content(e) de','tevreden over'],['être amoureux/euse de','verliefd op'],
+         ['être certain(e) de','zeker van'],['être responsable de','verantwoordelijk voor']])}
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">Bijv: <em>C'est l'outil dont j'ai besoin.</em> (avoir besoin <strong>de</strong> l'outil → dont)</p>`),
+    sec('✏️ Oefeningen (verbind de zinnen)', `
+      ${tbl(['Twee zinnen','Combinatie met pronom relatif'],
+        [["Je regarde un film. J'aime beaucoup ce film.","→ Je regarde un film <strong>que</strong> j'aime beaucoup."],
+         ["Voilà une carte. Cette carte te donne accès.","→ Voilà une carte <strong>qui</strong> te donne accès."],
+         ["C'est le concours. Tu m'as parlé de ce concours.","→ C'est le concours <strong>dont</strong> tu m'as parlé."],
+         ["1926, c'est l'année. On a présenté la TV en 1926.","→ 1926, c'est l'année <strong>où</strong> on a présenté la TV."]])}`),
+  ].join('');
+}
+
+// ─── Subject 4: Verbes spéciaux ───────────────────────────────
+function summVerbesSpeciaux(color) {
+  return [
+    sec("💺 S'asseoir — conjugation", `
+      ${rule("S'asseoir = gaan zitten. Er zijn <strong>twee correcte vormen</strong> (beide in het boek).")}
+      ${tbl(['','Vorm 1 (assieds)','Vorm 2 (assois)'],
+        [['je','m\'assieds','m\'assois'],['tu','t\'assieds','t\'assois'],['il/elle','s\'assied','s\'assoit'],
+         ['nous','nous asseyons','nous assoyons'],['vous','vous asseyez','vous assoyez'],['ils','s\'assoient','s\'assoient']])}
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">Subjonctif présent: que je m'<strong>asseye</strong> / que nous nous <strong>asseyions</strong></p>`),
+    sec('📝 Andere onregelmatige werkwoorden (révision)', `
+      ${tbl(['Werkwoord','Présent (je/tu/il/nous/vous/ils)'],
+        [['être','suis / es / est / sommes / êtes / sont'],
+         ['avoir','ai / as / a / avons / avez / ont'],
+         ['aller','vais / vas / va / allons / allez / vont'],
+         ['faire','fais / fais / fait / faisons / faites / font'],
+         ['prendre','prends / prends / prend / prenons / prenez / prennent'],
+         ['venir','viens / viens / vient / venons / venez / viennent'],
+         ['pouvoir','peux / peux / peut / pouvons / pouvez / peuvent'],
+         ['vouloir','veux / veux / veut / voulons / voulez / veulent'],
+         ['savoir','sais / sais / sait / savons / savez / savent'],
+         ['devoir','dois / dois / doit / devons / devez / doivent']])}`)
+  ].join('');
+}
+
+// ─── Subject 5: Indéfinis ─────────────────────────────────────
+function summIndefinis(color) {
+  return [
+    sec('📋 Alle indéfinis', `
+      ${tbl(['Frans','Nederlands','Gebruik'],
+        [['tout / toute / tous / toutes','al/alle/heel','tout le monde, toute la classe, tous les jours'],
+         ['chaque','elk(e) (+ enkelvoud)','chaque jour, chaque étudiant'],
+         ['chacun(e)','iedereen apart','chacun a ses idées'],
+         ['quelqu\'un','iemand (enk.)','quelqu\'un a téléphoné'],
+         ['quelque chose','iets (enk.)','quelque chose d\'intéressant'],
+         ['quelque part','ergens','il est quelque part'],
+         ['plusieurs','meerdere / verschillende','plusieurs personnes'],
+         ['certain(e)(s)','sommige / bepaalde','certains étudiants'],
+         ['tel(s) / telle(s)','zodanig / zo\'n','une telle idée'],
+         ['même(s)','zelfde / zelfs','le même jour; même lui!'],
+         ['autre(s)','ander(e)','une autre solution'],
+         ['n\'importe qui','gelijk wie / het maakt niet uit wie','n\'importe qui peut venir'],
+         ['n\'importe quoi','gelijk wat','il dit n\'importe quoi'],
+         ['n\'importe où','gelijk waar','on peut manger n\'importe où'],
+         ['n\'importe quand','gelijk wanneer','appelez n\'importe quand'],
+         ['n\'importe comment','gelijk hoe','il travaille n\'importe comment'],
+         ['n\'importe lequel/laquelle','gelijk welke(r)','prends n\'importe lequel']])}
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">⚠️ TOUT: volgt in geslacht en getal het zelfstandig naamwoord!</p>`),
+    sec('✏️ Voorbeelden TOUT', `
+      ${tbl(['Vorm','Voorbeeld'],
+        [['tout','tout le monde parle (iedereen)'],
+         ['toute','toute la journée (de hele dag)'],
+         ['tous','tous les jours (elke dag)'],
+         ['toutes','toutes les filles (alle meisjes)']])}`),
+  ].join('');
+}
+
+// ─── Subject 6: Négation ──────────────────────────────────────
+function summNegation(color) {
+  return [
+    sec('📋 Alle negaties', `
+      ${tbl(['Frans','Nederlands','Voorbeeld'],
+        [['ne...pas','niet','Je ne parle pas.'],
+         ['ne...plus','niet meer','Il ne fume plus.'],
+         ['ne...jamais','nooit','Elle ne ment jamais.'],
+         ['ne...rien','niets','Nous ne faisons rien.'],
+         ['ne...personne','niemand','Tu ne vois personne.'],
+         ['ne...que','alleen maar / slechts','Je n\'ai que 10€.'],
+         ['ne...point','niet (literair/formeel)','Il ne vient point.']])}` ),
+    sec('📍 Plaatsing', `
+      ${rule('<strong>ne</strong> vóór werkwoord &nbsp;·&nbsp; <strong>2de deel</strong> ná werkwoord')}
+      ${tbl(['Temps','Positie','Uitzondering'],
+        [['Présent / Futur','ne + werkwoord + pas/plus/jamais/rien','—'],
+         ['Passé composé','ne + avoir/être + pas/plus/jamais/rien + PP','rien staat vóór PP'],
+         ['Passé composé','ne + avoir/être + PP + personne','personne staat NÁ PP'],
+         ['Infinitif','ne pas + infinitief','ne pas manger, ne rien dire']])}
+      <div style="margin-top:10px;font-size:13px">
+        <strong>Bijv.:</strong><br>
+        ✅ Je <strong>n'</strong>ai <strong>rien</strong> vu. (rien vóór PP)<br>
+        ✅ Je <strong>n'</strong>ai vu <strong>personne</strong>. (personne NÁ PP)<br>
+        ✅ <strong>Ne pas</strong> manger avant l'opération.
+      </div>`),
+    sec('⚡ Imperatief negatief', `
+      ${rule('Ne + werkwoord + pas: &nbsp; <strong>Ne fais pas</strong> ça! &nbsp; <strong>N\'oublie pas</strong> de fermer la porte.')}`),
+  ].join('');
+}
+
+// ─── Subject 7: COD/COI/en/y ──────────────────────────────────
+function summCODCOI(color) {
+  return [
+    sec('📋 Overzicht pronomens', `
+      ${tbl(['Categorie','Pronomen','Wat vervangt het?','Voorbeeld'],
+        [['COD','me/te/nous/vous','1e/2e pers. direct obj.','Il me voit.'],
+         ['COD','le / la / l\'','3e pers. enk. masc./fem.','Je le lis. / Elle la mange.'],
+         ['COD','les','3e pers. mv.','Nous les regardons.'],
+         ['COI','me/te/nous/vous','1e/2e pers. indirect obj.','Il me parle.'],
+         ['COI','lui','3e pers. enk. (persoon)','Je lui téléphone.'],
+         ['COI','leur','3e pers. mv. (persoon)','Elle leur écrit.'],
+         ['EN','en','de/du/des/hoeveelheid + zaak','J\'en mange. / J\'en ai deux.'],
+         ['Y','y','à + zaak of plaats','Il y habite. / Elle y répond.'],
+         ['TONIQUE','moi toi lui elle nous vous eux elles','na préposition / na c\'est / nadruk','Pour moi. C\'est lui!']])}` ),
+    sec('📍 Plaatsing vóór werkwoord', `
+      ${rule('Volgorde: <code>me/te/se/nous/vous</code> → <code>le/la/les</code> → <code>lui/leur</code> → <code>y</code> → <code>en</code>')}
+      ${tbl(['Situatie','Positie','Voorbeeld'],
+        [['Présent/futur','vóór werkwoord','Je <strong>le</strong> lis.'],
+         ['Passé composé','vóór aux','Je <strong>l\'</strong>ai lu.'],
+         ['Verbe + infinitif','vóór infinitief','Je veux <strong>le</strong> lire.'],
+         ['Impératif negatief','vóór werkwoord','Ne <strong>le</strong> fais pas!'],
+         ['Impératif affirmatief','NÁ werkwoord + -','Fais-<strong>le</strong>! Donne-<strong>moi</strong>!']])}
+      <p style="font-size:12px;color:var(--muted);margin-top:6px">⚠️ me → <strong>moi</strong> bij affirmatief imperatief: Parle-<strong>moi</strong>!</p>`),
+    sec('✏️ Voorbeeldzinnen', `
+      ${tbl(['Origineel','Met pronomen'],
+        [['Je regarde le film.','Je <strong>le</strong> regarde.'],
+         ['Elle parle à ses parents.','Elle <strong>leur</strong> parle.'],
+         ['Tu as vu le film?','Tu <strong>l\'</strong>as vu?'],
+         ['Je donne le livre à Marie.','Je <strong>le lui</strong> donne.'],
+         ['Il habite à Paris.','Il <strong>y</strong> habite.'],
+         ['Je veux du café.','J\'<strong>en</strong> veux.'],
+         ['J\'ai deux sœurs.','J\'<strong>en</strong> ai deux.']])}`)
+  ].join('');
+}
+
+// ─── Subject 8: Révision verbes ───────────────────────────────
+function summRevisionVerbes(color) {
+  return [
+    sec('⏱️ Alle tijden — vorming', `
+      ${tbl(['Tijd','Vorming (regel)','Irregular ∆'],
+        [['<strong>Présent</strong>','stam + -e/-es/-e/-ons/-ez/-ent','être/avoir/aller/faire/...'],
+         ['<strong>Passé composé</strong>','avoir/être + participe passé','-é,-i,-u + onregelm.'],
+         ['<strong>Imparfait</strong>','nous-stam présent + -ais/-ais/-ait/-ions/-iez/-aient','être → ét-'],
+         ['<strong>Futur simple</strong>','infinitif + -ai/-as/-a/-ons/-ez/-ont','être→ser-, avoir→aur-, aller→ir-, faire→fer-'],
+         ['<strong>Futur proche</strong>','aller (présent) + infinitif','—'],
+         ['<strong>Passé récent</strong>','venir de (présent) + infinitif','—'],
+         ['<strong>Conditionnel</strong>','futur-stam + -ais/-ais/-ait/-ions/-iez/-aient','zelfde stam als futur'],
+         ['<strong>Impératif</strong>','tu/nous/vous présent (drop -s bij -er tu)','être: sois/soyons/soyez'],
+         ['<strong>Subjonctif</strong>','ils-stam + -e/-es/-e/-ions/-iez/-ent','être/avoir/aller/faire/...']])}` ),
+    sec('📋 Participé passé onregelmatige werkwoorden', `
+      ${tbl(['Infinitif','PP','Infinitif','PP'],
+        [['être','été','avoir','eu'],
+         ['aller','allé','faire','fait'],
+         ['prendre','pris','mettre','mis'],
+         ['vouloir','voulu','pouvoir','pu'],
+         ['venir','venu','tenir','tenu'],
+         ['voir','vu','savoir','su'],
+         ['lire','lu','écrire','écrit'],
+         ['dire','dit','ouvrir','ouvert'],
+         ['partir','parti','sortir','sorti']])}` ),
+    sec('🔑 Helpwerkwoorden bij passé composé', `
+      ${rule('<strong>AVOIR</strong> = de meeste werkwoorden<br><strong>ÊTRE</strong> = 14 DR & MRS VANDERTRAMP + alle reflexieve werkwoorden<br><em>aller, venir, partir, arriver, naître, mourir, rester, entrer, sortir, monter, descendre, retourner, passer, tomber</em>')}`)
+  ].join('');
+}
+
+// ─── Subjects 9/10/11: Vocabulaire dynamisch ──────────────────
+function summVocab(subjectId, color) {
+  const s = SUBJECTS.find(x => x.id === subjectId);
+  const title = s ? s.name.replace('Frans - ','') : '';
+
+  // Haal woorden op uit QUESTIONS
+  const qs = QUESTIONS.filter(q => q.subject_id === subjectId && q.type === 'fill' && q.lang === 'fr_nl');
+
+  // Groepeer per topic
+  const byTopic = {};
+  qs.forEach(q => {
+    const t = q.topic || 'Overig';
+    if (!byTopic[t]) byTopic[t] = [];
+    // Extract FR en NL uit vraag/antwoord
+    let fr = '', nl = q.answer || '';
+    const m = q.question.match(/^'?([^'→=]+)'?\s*(?:→|=)\s*/);
+    if (m) fr = m[1].trim().replace(/^l[''] /i,'l\'').replace(/^(le|la|les) /i,'$1 ');
+    else fr = q.question.replace(/Vul in: /,'').replace(/['"]/g,'').split('=')[0].trim();
+    if (fr) byTopic[t].push({ fr, nl });
+  });
+
+  let html = '';
+  for (const [topic, words] of Object.entries(byTopic)) {
+    if (!words.length) continue;
+    const sortedWords = [...words].sort((a,b) => a.fr.localeCompare(b.fr));
+    html += sec(topic, `<div class="sum-vocab-2col">${
+      sortedWords.map(w => `<div class="sum-vocab-row"><span class="sum-vocab-fr">${w.fr}</span><span class="sum-vocab-nl">${w.nl}</span></div>`).join('')
+    }</div>`);
+  }
+
+  // Actes de parole sectie
+  const actesQs = QUESTIONS.filter(q => q.subject_id === subjectId && (q.topic||'').includes('Actes de parole'));
+  const actesTopics = [...new Set(actesQs.map(q => q.topic))];
+  for (const t of actesTopics) {
+    const fillAcq = actesQs.filter(q => q.topic === t && q.type === 'fill');
+    if (fillAcq.length) {
+      html += sec('💬 ' + t, `
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+          ${fillAcq.map(q => `<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">${q.question} <strong style="color:#43e97b">${q.answer}</strong></div>`).join('')}
+        </div>`);
+    }
+  }
+
+  if (!html) html = '<div style="padding:0 0 12px;color:var(--muted);font-size:13px">Woordenlijst wordt geladen vanuit de database...</div>';
+  return html;
+}
+
+// ─── Subject 12: Le Petit Prince ──────────────────────────────
+function summPetitPrince(color) {
+  return [
+    sec('📖 Over het boek', `
+      <div style="font-size:13px;line-height:1.7">
+        <strong>Auteur:</strong> Antoine de Saint-Exupéry (1943)<br>
+        <strong>Verteller:</strong> een piloot die neerstort in de Sahara<br>
+        <strong>Personages:</strong> le petit prince, le renard (vos), la rose, le pilote, la chenille, le serpent, le vaniteux, le géographe, le roi...<br>
+        <strong>Thema's:</strong> vriendschap, liefde, de essentie van het leven, volwassenen vs. kinderen
+      </div>`),
+    sec('⭐ Beroemde citaten', `
+      ${tbl(['Citaat','Vertaling'],
+        [["<em>On ne voit bien qu'avec le cœur.</em>","Je ziet alleen goed met het hart."],
+         ["<em>L'essentiel est invisible pour les yeux.</em>","Het essentiële is onzichtbaar voor de ogen."],
+         ["<em>Tu deviens responsable pour toujours de ce que tu as apprivoisé.</em>","Je wordt voor altijd verantwoordelijk voor wat je getemd hebt."],
+         ["<em>C'est le temps que tu as perdu pour ta rose qui fait ta rose si importante.</em>","Het is de tijd die je hebt verloren voor je roos die je roos zo belangrijk maakt."]])}` ),
+    sec('📚 Kernvocabulaire', `
+      <div class="sum-vocab-2col">${[
+        ['le renard','de vos'],['apprivoiser','temmen'],['la rose','de roos'],['le serpent','de slang'],
+        ['le blé','het koren'],['le terrier','het hol'],['la chenille','de rups'],['le fusil','het geweer'],
+        ['la source','de bron'],['le malentendu','het misverstand'],['le passant','de voorbijganger'],
+        ['le paravent','het windscherm'],['le pas','de stap'],['se vanter','pochen'],
+        ['s\'agiter','ongedurig worden'],['abriter','beschermen'],['au fil de','in de loop van'],
+        ['à peine','nauwelijks'],['semblable à','lijkend op'],['pousser','groeien'],
+        ['ne...point','niet (literair)'],['le narrateur','de verteller'],['le conte','het verhaal']
+      ].map(([fr,nl]) => `<div class="sum-vocab-row"><span class="sum-vocab-fr">${fr}</span><span class="sum-vocab-nl">${nl}</span></div>`).join('')}</div>`),
+    sec('💡 Begrip: apprivoiser', `
+      <div class="sum-rule">
+        <strong>Apprivoiser</strong> = temmen/binden<br>
+        De vos legt uit: "Apprivoiser" betekent een band scheppen. "Tu n'es pas encore pour moi qu'un petit garçon tout semblable à cent mille petits garçons." Maar als hij getemd is, zal de kleine prins uniek zijn voor de vos.
+      </div>`)
+  ].join('');
+}
+
+// ─── PDF download ──────────────────────────────────────────────
+function downloadSummaryPDF(subjectId) {
+  const s = SUBJECTS.find(x => x.id === subjectId);
+  if (!s) return;
+  const title = s.name.replace('Frans - ','');
+  const color = (SUBJECT_COLORS[s.color_idx || 0] || {bg:'#6c63ff'}).bg;
+  const bodyHTML = buildSummaryHTML(subjectId, color);
+
+  const win = window.open('', '_blank');
+  if (!win) { alert('Sta pop-ups toe om de PDF te downloaden.'); return; }
+
+  win.document.write(`<!DOCTYPE html><html lang="nl"><head>
+<meta charset="UTF-8">
+<title>Samenvatting – ${title}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 12pt; color: #111; background: #fff; padding: 20mm 18mm; }
+  h1 { font-size: 22pt; margin-bottom: 4pt; color: ${color}; border-bottom: 3px solid ${color}; padding-bottom: 6pt; }
+  .meta { font-size: 10pt; color: #666; margin-bottom: 16pt; }
+  .sum-section { margin-bottom: 14pt; page-break-inside: avoid; }
+  .sum-section h3 { font-size: 11pt; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; color: #555; margin-bottom: 6pt; border-bottom: 1px solid #ddd; padding-bottom: 3pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 4pt; }
+  th { background: #f0eeff; color: ${color}; padding: 5pt 8pt; text-align: left; border: 1px solid #ccc; font-size: 9pt; text-transform: uppercase; }
+  td { padding: 5pt 8pt; border: 1px solid #ddd; line-height: 1.4; }
+  tr:nth-child(even) td { background: #fafafa; }
+  .sum-rule { background: #f5f3ff; border-left: 3px solid ${color}; padding: 8pt 12pt; margin-bottom: 8pt; font-size: 11pt; line-height: 1.6; }
+  .sum-rule code { background: #e8e4ff; padding: 1pt 4pt; border-radius: 3px; font-family: monospace; }
+  .sum-chips { display: flex; flex-wrap: wrap; gap: 5pt; margin-top: 5pt; }
+  .sum-chip { background: #f0eeff; color: ${color}; border: 1px solid #c8c3ff; border-radius: 12pt; padding: 2pt 8pt; font-size: 9pt; }
+  .sum-vocab-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20pt; }
+  .sum-vocab-row { display: flex; padding: 3pt 0; border-bottom: 1px solid #eee; font-size: 10pt; gap: 8pt; }
+  .sum-vocab-fr { min-width: 130pt; font-weight: bold; }
+  .sum-vocab-nl { color: #555; }
+  @media print { body { padding: 10mm 12mm; } }
+</style>
+</head><body>
+<h1>📚 ${title}</h1>
+<p class="meta">${s.description || ''} &nbsp;·&nbsp; StudyMate Frans examen 2</p>
+${bodyHTML}
+<p style="margin-top:20pt;font-size:9pt;color:#999;text-align:center">StudyMate · Samenvatting gegenereerd op ${new Date().toLocaleDateString('nl-NL')}</p>
+</body></html>`);
+  win.document.close();
+  setTimeout(() => { win.print(); }, 400);
+}
 
 // Start the app
 initApp();
