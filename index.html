@@ -307,7 +307,7 @@
       <button class="nav-item" data-page="klas">Klas</button>
       <button class="nav-item" data-page="herhaling">🔁 Herhalen</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:45</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:48</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -4114,9 +4114,11 @@ function buildPrintHTML(subjectIds) {
 <meta charset="UTF-8">
 <title>Samenvattingen Frans</title>
 <style>
+  @page { size: A4; margin: 14mm 16mm; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; background:#fff;
          padding:14mm 16mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @media print { body { padding:0; } }
 
   /* ── Hoofdstuk scheiding ── */
   .chapter { margin-bottom:0; }
