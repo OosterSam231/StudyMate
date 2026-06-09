@@ -307,7 +307,7 @@
       <button class="nav-item" data-page="klas">Klas</button>
       <button class="nav-item" data-page="herhaling">🔁 Herhalen</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:40</div>
+    <div style="text-align:center;padding:6px 0 2px;font-size:10px;color:var(--border);letter-spacing:.3px">v09/06/2026 16:45</div>
     <div class="sidebar-bottom">
       <div class="user-chip">
         <div class="avatar" id="sidebar-avatar">S</div>
@@ -4115,54 +4115,53 @@ function buildPrintHTML(subjectIds) {
 <title>Samenvattingen Frans</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family: Arial, sans-serif; font-size: 13pt; color: #000; background:#fff;
+  body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; background:#fff;
          padding:14mm 16mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 
   /* ── Hoofdstuk scheiding ── */
   .chapter { margin-bottom:0; }
   .chapter-break { page-break-after:always; }
-  h1 { font-size:22pt; font-weight:800; margin-bottom:4pt; padding-bottom:6pt;
+  h1 { font-size:19pt; font-weight:800; margin-bottom:3pt; padding-bottom:5pt;
        border-bottom:2px solid #000; page-break-after:avoid; }
-  .meta { font-size:11pt; color:#000; margin-bottom:18pt; }
+  .meta { font-size:10pt; color:#000; margin-bottom:14pt; }
 
   /* ── Secties ── */
-  .sum-section { margin-bottom:20pt; page-break-inside:auto; }
-  .sum-section h3 { font-size:14pt; font-weight:800; color:#000; margin-bottom:9pt;
-                    border-bottom:1px solid #000; padding-bottom:3pt;
+  .sum-section { margin-bottom:14pt; page-break-inside:auto; }
+  .sum-section h3 { font-size:12.5pt; font-weight:800; color:#000; margin-bottom:7pt;
+                    border-bottom:1px solid #000; padding-bottom:2pt;
                     page-break-after:avoid; orphans:3; widows:3; }
 
-  /* ── Tabellen: enkel horizontale lijnen, geen raster ── */
+  /* ── Tabellen ── */
   .sum-tbl-wrap { overflow:visible; }
-  table, .sum-table { width:100%; border-collapse:collapse; font-size:12pt; margin-top:5pt; }
+  table, .sum-table { width:100%; border-collapse:collapse; font-size:11pt; margin-top:4pt; }
   thead { display:table-header-group; }
-  th { background:#fff; color:#000; padding:6pt 10pt; text-align:left;
+  th { background:#fff; color:#000; padding:5pt 8pt; text-align:left;
        border-bottom:2px solid #000; font-weight:800; white-space:nowrap; }
-  td { padding:5.5pt 10pt; border-bottom:0.5px solid #000;
-       line-height:1.6; background:#fff; }
+  td { padding:4.5pt 8pt; border-bottom:0.5px solid #000; line-height:1.5; background:#fff; }
   td:first-child { font-weight:700; }
   tr { page-break-inside:avoid; }
 
   /* ── Kaderregels ── */
-  .sum-rule { border-left:4px solid #000; padding:8pt 13pt;
-              margin-bottom:12pt; font-size:13pt; line-height:1.75;
+  .sum-rule { border-left:3px solid #000; padding:7pt 11pt;
+              margin-bottom:9pt; font-size:11pt; line-height:1.7;
               page-break-inside:avoid; }
-  .sum-rule code { font-family:monospace; font-size:12pt; font-weight:700; }
+  .sum-rule code { font-family:monospace; font-size:10.5pt; font-weight:700; }
 
-  /* ── Chips: randje, goed leesbaar ── */
-  .sum-chips { display:flex; flex-wrap:wrap; gap:5pt; margin-top:6pt; }
+  /* ── Chips: zwarte rand, goed leesbaar ── */
+  .sum-chips { display:flex; flex-wrap:wrap; gap:4pt; margin-top:5pt; }
   .sum-chip, .sum-chip.green, .sum-chip.orange {
-    background:#fff; color:#000; border:1.5px solid #000;
-    border-radius:4pt; padding:2pt 9pt; font-size:12pt; font-weight:600; }
+    background:#fff; color:#000; border:1px solid #000;
+    border-radius:3pt; padding:2pt 8pt; font-size:10.5pt; font-weight:600; }
 
-  /* ── Woordenlijst: 2 kolommen ── */
-  .sum-vocab-2col { column-count:2; column-gap:26pt; column-fill:auto; }
-  .sum-vocab-row { display:flex; padding:5pt 0; border-bottom:0.5px solid #000;
+  /* ── Woordenlijst: 3 kolommen, compact maar leesbaar ── */
+  .sum-vocab-2col { column-count:3; column-gap:16pt; column-fill:auto; }
+  .sum-vocab-row { display:flex; padding:3pt 0; border-bottom:0.5px solid #000;
                    gap:0; break-inside:avoid; page-break-inside:avoid; }
-  .sum-vocab-fr { width:48%; font-weight:700; font-size:13pt; flex-shrink:0; padding-right:6pt; }
-  .sum-vocab-nl { width:52%; font-size:12pt; color:#000; }
+  .sum-vocab-fr { width:50%; font-weight:700; font-size:10pt; flex-shrink:0; padding-right:5pt; }
+  .sum-vocab-nl { width:50%; font-size:10pt; color:#000; }
 
   /* ── Overige ── */
-  p { margin-bottom:6pt; font-size:13pt; line-height:1.65; }
+  p { margin-bottom:5pt; font-size:11pt; line-height:1.6; }
   strong { font-weight:700; }
   em { font-style:italic; }
 </style>
